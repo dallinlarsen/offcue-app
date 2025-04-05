@@ -170,7 +170,12 @@ module.exports = {
         },
       },
       fontFamily: {
-        heading: undefined,
+        heading: 'Quicksand-Bold',
+        'quicksand-bold': 'Quicksand-Bold',
+        'quicksand-semibold': 'Quicksand-SemiBold',
+        'quicksand-medium': 'Quicksand-Medium',
+        'quicksand-normal': 'Quicksand-Regular',
+        'quicksand-light': 'Quicksand-Light',
         body: undefined,
         mono: undefined,
         roboto: ['Roboto', 'sans-serif'],

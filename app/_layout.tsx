@@ -7,13 +7,10 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
-
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     "Quicksand-Light": require("../assets/fonts/Quicksand/Quicksand-Light.ttf"),

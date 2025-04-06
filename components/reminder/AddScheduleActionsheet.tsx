@@ -17,6 +17,7 @@ import DatePicker from "react-native-date-picker";
 import dayjs from 'dayjs';
 import { Box } from "../ui/box";
 import { ScrollView } from "react-native";
+import { createSchedule } from "@/lib/db-service";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
@@ -38,8 +39,45 @@ export function AddScheduleActionsheet({
   ]);
   const [startTime, setStartTime] = useState(dayjs('2000-01-01 00:00').toDate());
   const [endTime, setEndTime] = useState(dayjs("2000-01-02 00:00").toDate());
+  const [label, setLabel] = useState("");
 
-  //TODO: Fix the keyboard hiding the datetime picker bug
+  const handleSave = async () => {
+    const schedule = {
+      label,
+      isSunday: days.includes('sunday'),
+      isMonday: days.includes('monday'),
+      isTuesday: days.includes('tuesday'),
+      isWednesday: days.includes('wednesday'),
+      isThursday: days.includes('thursday'),
+      isFriday: days.includes('friday'),
+      isSaturday: days.includes('saturday'),
+      startTime: dayjs(startTime).format("HH:mm"),
+      endTime: dayjs(endTime).format("HH:mm"),
+    };
+
+    console.log("Saving schedule to database:", schedule);
+
+    try {
+      await createSchedule(
+        label,
+        schedule.isSunday,
+        schedule.isMonday,
+        schedule.isTuesday,
+        schedule.isWednesday,
+        schedule.isThursday,
+        schedule.isFriday,
+        schedule.isSaturday,
+        schedule.startTime,
+        schedule.endTime
+      );
+      console.log("Schedule saved successfully.");
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+    }
+
+    // Close the actionsheet after saving
+    setIsOpen(false);
+  };
 
   return (
     <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
@@ -52,9 +90,13 @@ export function AddScheduleActionsheet({
           New Schedule
         </Heading>
         <ScrollView>
-          <Input size="xl">
-            <InputField placeholder="Label" />
-          </Input>
+            <Input size="xl">
+            <InputField
+              placeholder="Label"
+              value={label}
+              onChangeText={(text) => setLabel(text)}
+            />
+            </Input>
           <CheckboxGroup
             value={days}
             onChange={(keys) => {
@@ -110,7 +152,7 @@ export function AddScheduleActionsheet({
         <Button
           className="w-full mt-4"
           size="xl"
-          onPress={() => setIsOpen(false)}
+          onPress={handleSave}
         >
           <ButtonText>Create Schedule</ButtonText>
         </Button>

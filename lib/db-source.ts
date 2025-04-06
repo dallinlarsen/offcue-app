@@ -344,7 +344,7 @@ export const getAllReminders = async (): Promise<any[]> => {
 // Function to fetch all schedules
 export const getAllSchedules = async (): Promise<any[]> => {
   const db = await openDB();
-  const schedules = await db.getAllAsync(`SELECT * FROM schedule;`, []);
+  const schedules = await db.getAllAsync(`SELECT * FROM schedules;`, []);
   return schedules;
 };
 

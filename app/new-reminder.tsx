@@ -23,8 +23,9 @@ import { Text } from "@/components/ui/text";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { saveReminder, initDatabase } from "@/lib/database";
+import { saveReminder } from "@/lib/database";
 import * as SQLite from "expo-sqlite";
+import { Keyboard } from "react-native";
 
 export default function NewReminder() {
   const navigation = useNavigation();
@@ -33,14 +34,14 @@ export default function NewReminder() {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [frequency, setFrequency] = useState("");
-  const [frequencyType, setFrequencyType] = useState("Minute(s)");
+  const [intervalType, setIntervalType] = useState("minute");
+  const [intervalNum, setIntervalNum] = useState("");
   const [times, setTimes] = useState("");
   const [trackStreak, setTrackStreak] = useState(false);
+  const [trackNotes, setTrackNotes] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
-    initDatabase();
 
     // Check if SQLite is available; if not, log a warning.
     if (typeof SQLite.openDatabaseSync !== "function") {
@@ -51,15 +52,15 @@ export default function NewReminder() {
   }, [navigation]);
 
   const handleSave = async () => {
-    if (!title || !frequency || !times) {
+    if (!title || !intervalNum || !times) {
       alert("Please fill in all required fields: Title, Frequency, and Times.");
       return;
     }
-    const freqNum = parseInt(frequency, 10);
+    const freqNum = parseInt(intervalNum, 10);
     const timesNum = parseInt(times, 10);
 
     try {
-      await saveReminder(title, description, freqNum, frequencyType, timesNum, trackStreak, false);
+      await saveReminder(title, description, intervalType, parseInt(intervalNum), parseInt(times), trackStreak, trackNotes, false);
       router.back();
     } catch (error) {
       console.error("Error saving reminder:", error);
@@ -97,14 +98,16 @@ export default function NewReminder() {
           <Input size="xl" className="w-1/2">
             <InputField
               placeholder="Frequency"
-              value={frequency}
-              onChangeText={setFrequency}
+              value={intervalNum}
+              onChangeText={setIntervalNum}
+              keyboardType="numeric"
+              returnKeyType="done"
             />
           </Input>
           <Select
             className="w-1/2"
-            selectedValue={frequencyType}
-            onValueChange={(value) => setFrequencyType(value)}
+            selectedValue={intervalType}
+            onValueChange={(value) => setIntervalType(value)}
           >
             <SelectTrigger variant="outline" size="xl" className="flex justify-between w-full">
               <SelectInput placeholder="Select option" />
@@ -116,9 +119,12 @@ export default function NewReminder() {
                 <SelectDragIndicatorWrapper>
                   <SelectDragIndicator />
                 </SelectDragIndicatorWrapper>
-                <SelectItem label="Minute(s)" value="Minute(s)" />
-                <SelectItem label="Hour(s)" value="Hour(s)" />
-                <SelectItem label="Day(s)" value="Day(s)" />
+                <SelectItem label="Minute(s)" value="minute" />
+                <SelectItem label="Hour(s)" value="hour" />
+                <SelectItem label="Day(s)" value="day" />
+                <SelectItem label="Week(s)" value="week" />
+                <SelectItem label="Month(s)" value="month" />
+                <SelectItem label="Year(s)" value="year" />
               </SelectContent>
             </SelectPortal>
           </Select>
@@ -132,6 +138,8 @@ export default function NewReminder() {
               placeholder="Times"
               value={times}
               onChangeText={setTimes}
+              keyboardType="numeric"
+              returnKeyType="done"
             />
           </Input>
           <Text size="xl">Time(s)</Text>
@@ -151,6 +159,18 @@ export default function NewReminder() {
         <Switch
           value={trackStreak}
           onValueChange={setTrackStreak}
+          trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
+          thumbColor={colors.gray[50]}
+          ios_backgroundColor={colors.gray[300]}
+        />
+      </Box>
+      <Box className="flex flex-row gap-4 items-center mt-2">
+        <Text size="xl" className="font-quicksand-semibold">
+          Track Notes
+        </Text>
+        <Switch
+          value={trackNotes}
+          onValueChange={setTrackNotes}
           trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
           thumbColor={colors.gray[50]}
           ios_backgroundColor={colors.gray[300]}

@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const loadReminders = async () => {
     const data = await fetchReminders();
     setReminders(data);
-    console.log(data);
+    // console.log(data);
   };
 
   useEffect(() => {
@@ -47,13 +47,13 @@ export default function HomeScreen() {
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.frequency}>
           {item.times === 1 ? "1 time" : `${item.times} times`} every{" "}
-          {item.frequency === 1 ? "1 minute" : `${item.frequency} ${item.frequencyType}`}{" "}
+          {item.interval_num === 1 ? "1 minute" : `${item.interval_num} ${item.interval_type}`}{" "}
         </Text>
         <View style={styles.muteContainer}>
           <Text style={styles.muteLabel}>Mute</Text>
           <Switch
-            value={item.muted === 1}
-            onValueChange={() => handleToggleMute(item.id, item.muted)}
+            value={item.is_muted === 1}
+            onValueChange={() => handleToggleMute(item.id, item.is_muted)}
             trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
             thumbColor={colors.gray[50]}
             ios_backgroundColor={colors.gray[300]}

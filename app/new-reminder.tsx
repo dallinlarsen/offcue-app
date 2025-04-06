@@ -34,6 +34,8 @@ import { FREQUENCY_TYPES } from "@/constants/utils";
 import { ScrollView } from "react-native";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
+import { Actionsheet } from "@/components/ui/actionsheet";
+import { ScheduleActionsheet } from "@/components/reminder/ScheduleActionsheet";
 
 export default function NewReminder() {
   const navigation = useNavigation();
@@ -46,6 +48,9 @@ export default function NewReminder() {
   const [frequencyType, setFrequencyType] = useState<string | null>(null);
   const [times, setTimes] = useState("");
   const [trackStreak, setTrackStreak] = useState(false);
+
+  // Schedule Actionsheet
+  const [schedulesOpen, setSchedulesOpen] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -166,7 +171,7 @@ export default function NewReminder() {
           </Box>
           <VStack>
             <Heading size="xl">But Only On</Heading>
-            <Button size="xl" variant="outline">
+            <Button size="xl" variant="outline" onPress={() => setSchedulesOpen(true)}>
               <ButtonIcon as={AddIcon} />
               <ButtonText>Schedule</ButtonText>
             </Button>
@@ -188,6 +193,7 @@ export default function NewReminder() {
       <Button size="xl" onPress={handleSave}>
         <ButtonText>Save Reminder</ButtonText>
       </Button>
+      <ScheduleActionsheet isOpen={schedulesOpen} setIsOpen={setSchedulesOpen} />
     </ThemedContainer>
   );
 }

@@ -46,7 +46,8 @@ export default function HomeScreen() {
       <TouchableOpacity style={styles.reminderBox} onPress={() => { }}>
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.frequency}>
-          {item.frequency} {item.frequencyType}
+          {item.times === 1 ? "1 time" : `${item.times} times`} every{" "}
+          {item.frequency === 1 ? "1 minute" : `${item.frequency} ${item.frequencyType}`}{" "}
         </Text>
         <View style={styles.muteContainer}>
           <Text style={styles.muteLabel}>Mute</Text>
@@ -113,27 +114,32 @@ const styles = StyleSheet.create({
   },
   reminderBox: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#fff", // Adjust this if your boxes have a different background color
     margin: 8,
     padding: 16,
-    borderRadius: 8,
-    aspectRatio: 1,
+    borderRadius: 12, // Increase the border radius for more rounded corners
+    aspectRatio: 1, // Keeps the box square
     justifyContent: "space-between",
+    // Adjusted shadow properties for a more subtle drop shadow
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 3,
   },
   placeholderBox: {
     backgroundColor: "transparent",
   },
   title: {
-    fontSize: 18,
+    fontSize: 20, // Slightly larger font if needed
     fontWeight: "bold",
+    marginBottom: 8,
+    color: "#333",
   },
   frequency: {
-    fontSize: 14,
+    fontSize: 16,
     marginTop: 4,
+    color: "#555",
   },
   muteContainer: {
     flexDirection: "row",
@@ -143,5 +149,6 @@ const styles = StyleSheet.create({
   muteLabel: {
     marginRight: 8,
     fontSize: 14,
+    color: "#666",
   },
 });

@@ -146,6 +146,25 @@ export const saveNotification = async (
     [reminderId, scheduledAt, isScheduled ? 1 : 0, intervalIndex, segmentIndex]
   );
   console.log("✅ Notification saved successfully", result);
+  const notificationId = result.lastInsertRowId;
+  console.log("Notification:", fetchNotificationById(notificationId));
+};
+
+// Function to fetch a specific notification by ID
+export const fetchNotificationById = async (id: number): Promise<any> => {
+  const db = await openDB();
+  const notification = await db.getFirstAsync(`SELECT * FROM notifications WHERE id = ?;`, [id]);
+  return notification;
+};
+
+// Function to fetch all notifications for a specific reminder
+export const fetchNotificationsForReminder = async (reminderId: number): Promise<any[]> => {
+  const db = await openDB();
+  const notifications = await db.getAllAsync(
+    `SELECT * FROM notifications WHERE reminder_id = ?;`,
+    [reminderId]
+  );
+  return notifications;
 };
 
 // Function to update notification status (e.g., marking as scheduled, setting response time/status)
@@ -538,7 +557,6 @@ export const processCurrentInterval = async (reminderId: number): Promise<void> 
       // Create notifications for the next interval
       const nextIntervalIndex = currentIntervalIndex + 1;
       await createNotificationsForInterval(reminder, nextIntervalIndex);
-      console.log(`Notifications for interval ${nextIntervalIndex} have been created.`);
     } else {
       console.log('Current interval is not yet complete. Waiting for all notifications to be resolved.');
     }
@@ -559,12 +577,9 @@ export const getNextNotification = async (reminderId: number): Promise<any> => {
 
 // Helper function to create notifications for a specific interval
 export const createNotificationsForInterval = async (reminder: any, intervalIndex: number): Promise<void> => {
-  console.log(`Creating notifications for interval ${intervalIndex}...`);
   for (let segmentIndex = 0; segmentIndex < reminder.times; segmentIndex++) {
-    console.log(`Creating notification for segment ${segmentIndex}...`);
     const scheduledAt = calculateScheduledTime(reminder, intervalIndex, segmentIndex);
     // Only the first notification in the interval is marked as scheduled
-    console.log('Saving notification:', scheduledAt);
     await saveNotification(reminder.id, scheduledAt, segmentIndex === 0, intervalIndex, segmentIndex);
   }
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigation, useRouter, useFocusEffect } from "expo-router";
-import { FlatList, TouchableOpacity, StyleSheet, View } from "react-native";
+import { FlatList, TouchableOpacity, StyleSheet, View, ScrollView } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
@@ -11,6 +11,10 @@ import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
 import { fetchReminders, updateReminderMuted, wipeDatabase } from "@/lib/database";
 import { Button, ButtonText } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { chunkIntoPairs, formatFrequencyString } from "@/lib/utils";
+import { VStack } from "@/components/ui/vstack";
+import { HStack } from "@/components/ui/hstack";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -41,58 +45,67 @@ export default function HomeScreen() {
     loadReminders(); // Refresh list after updating
   };
 
-  const renderItem = ({ item }: { item: any }) => {
-    return (
-      <TouchableOpacity style={styles.reminderBox} onPress={() => { }}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.frequency}>
-          {item.times === 1 ? "1 time" : `${item.times} times`} every{" "}
-          {item.frequency === 1 ? "1 minute" : `${item.frequency} ${item.frequencyType}`}{" "}
-        </Text>
-        <View style={styles.muteContainer}>
-          <Text style={styles.muteLabel}>Mute</Text>
-          <Switch
-            value={item.muted === 1}
-            onValueChange={() => handleToggleMute(item.id, item.muted)}
-            trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
-            thumbColor={colors.gray[50]}
-            ios_backgroundColor={colors.gray[300]}
-          />
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <ThemedContainer>
-      <Box style={styles.header}>
+      <Box className="mb-2">
         <Heading size="3xl">Reminders</Heading>
+        <Button
+          onPress={async () => {
+            await wipeDatabase();
+            loadReminders();
+          }}
+        >
+          <ButtonText>Wipe Database</ButtonText>
+        </Button>
       </Box>
-      <Button
-        onPress={async () => {
-          await wipeDatabase();
-          loadReminders();
-        }}
-      >
-        <ButtonText>Wipe Database</ButtonText>
-      </Button>
-      <FlatList
-        data={
-          reminders.length % 2 === 0
-            ? reminders
-            : [...reminders, { id: "placeholder", isPlaceholder: true }]
-        }
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) =>
-          item.isPlaceholder ? (
-            <View style={[styles.reminderBox, styles.placeholderBox]} />
-          ) : (
-            renderItem({ item })
-          )
-        }
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-      />
+      <ScrollView>
+        <VStack space="lg">
+          {chunkIntoPairs(reminders).map((p, idx) => (
+            <Box className="flex flex-row gap-4" key={idx}>
+              {p.map((r, idx) =>
+                r ? (
+                  <Card
+                    key={idx}
+                    variant="outline"
+                    className="bg-background-50 p-3 flex-1 aspect-square justify-between"
+                  >
+                    <VStack>
+                      <Heading className="font-quicksand-bold" size="lg">
+                        {r.title}
+                      </Heading>
+                      <Text>{formatFrequencyString(r.times, r.frequency, r.frequencyType)}</Text>
+                    </VStack>
+                    <Box className="flex flex-row">
+                      <Box className="flex-grow" />
+                      <HStack space="sm" className="items-center">
+                        <Text size="lg" className="font-quicksand-semibold">
+                          Mute
+                        </Text>
+                        <Switch
+                          value={r.muted === 1}
+                          onValueChange={() => handleToggleMute(r.id, r.muted)}
+                          trackColor={{
+                            false: colors.gray[300],
+                            true: colors.gray[500],
+                          }}
+                          size="sm"
+                          thumbColor={colors.gray[50]}
+                          ios_backgroundColor={colors.gray[300]}
+                        />
+                      </HStack>
+                    </Box>
+                  </Card>
+                ) : (
+                  <Box
+                    key={idx}
+                    className="p-3 flex-1 aspect-square opacity-0"
+                  />
+                )
+              )}
+            </Box>
+          ))}
+        </VStack>
+      </ScrollView>
       <Fab
         size="lg"
         placement="bottom center"
@@ -103,52 +116,3 @@ export default function HomeScreen() {
     </ThemedContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    padding: 16,
-  },
-  listContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 80,
-  },
-  reminderBox: {
-    flex: 1,
-    backgroundColor: "#fff", // Adjust this if your boxes have a different background color
-    margin: 8,
-    padding: 16,
-    borderRadius: 12, // Increase the border radius for more rounded corners
-    aspectRatio: 1, // Keeps the box square
-    justifyContent: "space-between",
-    // Adjusted shadow properties for a more subtle drop shadow
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  placeholderBox: {
-    backgroundColor: "transparent",
-  },
-  title: {
-    fontSize: 20, // Slightly larger font if needed
-    fontWeight: "bold",
-    marginBottom: 8,
-    color: "#333",
-  },
-  frequency: {
-    fontSize: 16,
-    marginTop: 4,
-    color: "#555",
-  },
-  muteContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  muteLabel: {
-    marginRight: 8,
-    fontSize: 14,
-    color: "#666",
-  },
-});

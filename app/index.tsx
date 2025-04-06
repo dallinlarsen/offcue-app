@@ -1,32 +1,147 @@
-import { useNavigation, useRouter } from "expo-router";
-import { useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigation, useRouter, useFocusEffect } from "expo-router";
+import { FlatList, TouchableOpacity, StyleSheet, View } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { AddIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-
+import { Text } from "@/components/ui/text";
+import { Switch } from "@/components/ui/switch";
+import colors from "tailwindcss/colors";
+import { fetchReminders, updateReminderMuted, wipeDatabase } from "@/lib/database";
+import { Button, ButtonText } from "@/components/ui/button";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const router = useRouter();
+  const [reminders, setReminders] = useState<any[]>([]);
+
+  const loadReminders = async () => {
+    const data = await fetchReminders();
+    setReminders(data);
+    console.log(data);
+  };
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
+    loadReminders();
   }, [navigation]);
-  
+
+  // Refresh reminders whenever the screen comes into focus.
+  useFocusEffect(
+    useCallback(() => {
+      loadReminders();
+    }, [])
+  );
+
+  const handleToggleMute = async (id: number, currentMuted: number) => {
+    const newMuted = currentMuted ? false : true;
+    await updateReminderMuted(id, newMuted);
+    loadReminders(); // Refresh list after updating
+  };
+
+  const renderItem = ({ item }: { item: any }) => {
+    return (
+      <TouchableOpacity style={styles.reminderBox} onPress={() => { }}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.frequency}>
+          {item.frequency} {item.frequencyType}
+        </Text>
+        <View style={styles.muteContainer}>
+          <Text style={styles.muteLabel}>Mute</Text>
+          <Switch
+            value={item.muted === 1}
+            onValueChange={() => handleToggleMute(item.id, item.muted)}
+            trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
+            thumbColor={colors.gray[50]}
+            ios_backgroundColor={colors.gray[300]}
+          />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <ThemedContainer>
-      <Box>
+      <Box style={styles.header}>
         <Heading size="3xl">Reminders</Heading>
       </Box>
+      <Button
+        onPress={async () => {
+          await wipeDatabase();
+          loadReminders();
+        }}
+      >
+        <ButtonText>Wipe Database</ButtonText>
+      </Button>
+      <FlatList
+        data={
+          reminders.length % 2 === 0
+            ? reminders
+            : [...reminders, { id: "placeholder", isPlaceholder: true }]
+        }
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) =>
+          item.isPlaceholder ? (
+            <View style={[styles.reminderBox, styles.placeholderBox]} />
+          ) : (
+            renderItem({ item })
+          )
+        }
+        numColumns={2}
+        contentContainerStyle={styles.listContainer}
+      />
       <Fab
         size="lg"
         placement="bottom center"
         onPress={() => router.push("/new-reminder")}
       >
-        <FabIcon size='xl' as={AddIcon} />
+        <FabIcon size="xl" as={AddIcon} />
       </Fab>
     </ThemedContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    padding: 16,
+  },
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 80,
+  },
+  reminderBox: {
+    flex: 1,
+    backgroundColor: "#fff",
+    margin: 8,
+    padding: 16,
+    borderRadius: 8,
+    aspectRatio: 1,
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  placeholderBox: {
+    backgroundColor: "transparent",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  frequency: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  muteContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  muteLabel: {
+    marginRight: 8,
+    fontSize: 14,
+  },
+});

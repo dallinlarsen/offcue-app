@@ -1,21 +1,39 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "jsx": "react-native",
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ],
-      "tailwind.config": [
-        "./tailwind.config.js"
+      "expo-module-scripts/tsconfig.base": [
+        "node_modules/expo-module-scripts/tsconfig.base.json"
       ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "nativewind-env.d.ts",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
-  ]
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { fetchReminders, fetchNotificationsForReminder } from "@/lib/database";
+import { getAllReminders, getReminderNotifications } from "@/lib/db-source";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
@@ -20,12 +20,12 @@ export default function ReminderDetails() {
         async function loadData() {
             setLoading(true);
             // Fetch reminders and find the one matching the id
-            const reminders = await fetchReminders();
+            const reminders = await getAllReminders();
             const foundReminder = reminders.find((r: any) => r.id === reminderId);
             setReminder(foundReminder);
 
             // Fetch notifications for this reminder
-            const notifs = await fetchNotificationsForReminder(reminderId);
+            const notifs = await getReminderNotifications(reminderId);
             setNotifications(notifs);
             setLoading(false);
         }

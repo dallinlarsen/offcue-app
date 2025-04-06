@@ -28,7 +28,7 @@ import { Text } from "@/components/ui/text";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { saveReminder } from "@/lib/database";
+import { createReminder } from "@/lib/db-service";
 import * as SQLite from "expo-sqlite";
 import { FREQUENCY_TYPES } from "@/constants/utils";
 import { ScrollView } from "react-native";
@@ -67,7 +67,7 @@ export default function NewReminder() {
     const timesNum = parseInt(times, 10);
 
     try {
-      await saveReminder(title, description, intervalType, parseInt(intervalNum), parseInt(times), trackStreak, false, false);
+      await createReminder(title, description, intervalType, parseInt(intervalNum), parseInt(times), trackStreak, false, false);
       router.back();
     } catch (error) {
       console.error("Error saving reminder:", error);

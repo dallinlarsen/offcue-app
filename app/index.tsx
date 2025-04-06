@@ -9,7 +9,7 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { fetchReminders, updateReminderMuted, wipeDatabase } from "@/lib/database";
+import { getAllReminders, updateReminderMuted, wipeDatabase } from "@/lib/db-service";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { chunkIntoPairs, formatFrequencyString } from "@/lib/utils";
@@ -22,7 +22,7 @@ export default function HomeScreen() {
   const [reminders, setReminders] = useState<any[]>([]);
 
   const loadReminders = async () => {
-    const data = await fetchReminders();
+    const data = await getAllReminders();
     setReminders(data);
     // console.log(data);
   };

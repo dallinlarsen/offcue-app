@@ -69,12 +69,16 @@ export default function HomeScreen() {
                     variant="outline"
                     className="bg-background-50 p-3 flex-1 aspect-square justify-between"
                   >
-                    <VStack>
-                      <Heading className="font-quicksand-bold" size="lg">
-                        {r.title}
-                      </Heading>
-                      <Text>{formatFrequencyString(r.times, r.interval_num, r.interval_type)}</Text>
-                    </VStack>
+                    <TouchableOpacity
+                      onPress={() => router.push(`/reminder?id=${r.id}`)}
+                    >
+                      <VStack>
+                        <Heading className="font-quicksand-bold" size="lg">
+                          {r.title}
+                        </Heading>
+                        <Text>{formatFrequencyString(r.times, r.interval_num, r.interval_type)}</Text>
+                      </VStack>
+                    </TouchableOpacity>
                     <Box className="flex flex-row">
                       <Box className="flex-grow" />
                       <HStack space="sm" className="items-center">
@@ -82,8 +86,8 @@ export default function HomeScreen() {
                           Mute
                         </Text>
                         <Switch
-                          value={r.muted === 1}
-                          onValueChange={() => handleToggleMute(r.id, r.muted)}
+                          value={r.is_muted === 1}
+                          onValueChange={() => handleToggleMute(r.id, r.is_muted)}
                           trackColor={{
                             false: colors.gray[300],
                             true: colors.gray[500],

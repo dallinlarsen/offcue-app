@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigation, useRouter, useFocusEffect } from "expo-router";
-import { FlatList, TouchableOpacity, StyleSheet, View, ScrollView } from "react-native";
+import {
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  View,
+  ScrollView,
+} from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
@@ -9,10 +15,18 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { getAllReminders, updateReminderMuted, wipeDatabase } from "@/lib/db-service";
+import {
+  getAllReminders,
+  updateReminderMuted,
+  wipeDatabase,
+} from "@/lib/db-service";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { chunkIntoPairs, formatFrequencyString } from "@/lib/utils";
+import {
+  chunkIntoPairs,
+  formatFrequencyString,
+  formatScheduleString,
+} from "@/lib/utils";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 
@@ -24,7 +38,7 @@ export default function HomeScreen() {
   const loadReminders = async () => {
     const data = await getAllReminders();
     setReminders(data);
-    // console.log(data);
+    console.log(data);
   };
 
   useEffect(() => {
@@ -76,7 +90,32 @@ export default function HomeScreen() {
                         <Heading className="font-quicksand-bold" size="lg">
                           {r.title}
                         </Heading>
-                        <Text>{formatFrequencyString(r.times, r.interval_num, r.interval_type)}</Text>
+                        <Text>
+                          {formatFrequencyString(
+                            r.times,
+                            r.interval_num,
+                            r.interval_type
+                          )}
+                        </Text>
+                        <Text>
+                          {r.schedules
+                            .map((s) =>
+                              formatScheduleString(
+                                s.start_time,
+                                s.end_time,
+                                [
+                                  s.is_sunday && "sunday",
+                                  s.is_monday && "monday",
+                                  s.is_tuesday && "tuesday",
+                                  s.is_wednesday && "wednesday",
+                                  s.is_thursday && "thursday",
+                                  s.is_friday && "friday",
+                                  s.is_saturday && "saturday",
+                                ].filter((d) => !!d)
+                              )
+                            )
+                            .join("; ")}
+                        </Text>
                       </VStack>
                     </TouchableOpacity>
                     <Box className="flex flex-row">
@@ -87,7 +126,9 @@ export default function HomeScreen() {
                         </Text>
                         <Switch
                           value={r.is_muted === 1}
-                          onValueChange={() => handleToggleMute(r.id, r.is_muted)}
+                          onValueChange={() =>
+                            handleToggleMute(r.id, r.is_muted)
+                          }
                           trackColor={{
                             false: colors.gray[300],
                             true: colors.gray[500],

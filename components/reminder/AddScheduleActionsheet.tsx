@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import { Box } from "../ui/box";
 import { ScrollView } from "react-native";
 import { createSchedule } from "@/lib/db-service";
+import useWatch from "@/hooks/useWatch";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
@@ -41,6 +42,23 @@ export function AddScheduleActionsheet({
   const [startTime, setStartTime] = useState(dayjs('2000-01-01 00:00').toDate());
   const [endTime, setEndTime] = useState(dayjs("2000-01-02 00:00").toDate());
   const [label, setLabel] = useState("");
+
+  useWatch(isOpen, (val) => {
+    if (val) {
+        setLabel('');
+        setStartTime(dayjs("2000-01-01 00:00").toDate());
+        setEndTime(dayjs("2000-01-02 00:00").toDate());
+        setDays([
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ]);
+    }
+  });
 
   const handleSave = async () => {
     const schedule = {

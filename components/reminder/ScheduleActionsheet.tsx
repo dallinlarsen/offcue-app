@@ -18,15 +18,20 @@ import { Card } from "../ui/card";
 import { VStack } from "../ui/vstack";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
+import { Pressable } from "../ui/pressable";
 
 type ScheduleActionsheetProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  addSchedule: (schedule: object) => void;
+  filterIds: number[];
 };
 
 export function ScheduleActionsheet({
   isOpen,
   setIsOpen,
+  addSchedule,
+  filterIds,
 }: ScheduleActionsheetProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -41,7 +46,7 @@ export function ScheduleActionsheet({
     const loadSchedules = async () => {
       try {
         const data = await getAllSchedules();
-        setSchedules(data);
+        setSchedules(data.filter(s => !filterIds.includes(s.id)));
         console.log(data);
       } catch (error) {
         console.error("Error loading schedules:", error);
@@ -55,6 +60,11 @@ export function ScheduleActionsheet({
       setIsOpen(true);
     }
   });
+
+  const schedulePressedHandler = (schedule: object) => {
+    addSchedule(schedule);
+    setIsOpen(false);
+  };
 
   return (
     <>
@@ -76,31 +86,36 @@ export function ScheduleActionsheet({
             <VStack space="sm">
               {schedules.length > 0 ? (
                 schedules.map((schedule) => (
-                  <Card key={schedule.id} variant="filled">
-                    <HStack className="justify-between">
-                      <HStack space="md" className="items-end">
-                        <Text size="xl" className="font-semibold">
-                          {schedule.label || "No Label"}
-                        </Text>
-                        <Text>
-                          {formatScheduleString(
-                            schedule.start_time,
-                            schedule.end_time,
-                            [
-                              schedule.is_sunday && "sunday",
-                              schedule.is_monday && "monday",
-                              schedule.is_tuesday && "tuesday",
-                              schedule.is_wednesday && "wednesday",
-                              schedule.is_thursday && "thursday",
-                              schedule.is_friday && "friday",
-                              schedule.is_saturday && "saturday",
-                            ].filter((d) => !!d)
-                          )}
-                        </Text>
+                  <Pressable
+                    key={schedule.id}
+                    onPress={() => schedulePressedHandler(schedule)}
+                  >
+                    <Card variant="filled">
+                      <HStack className="justify-between items-center">
+                        <HStack space="md" className="items-end">
+                          <Text size="xl" className="font-semibold">
+                            {schedule.label || "No Label"}
+                          </Text>
+                          <Text>
+                            {formatScheduleString(
+                              schedule.start_time,
+                              schedule.end_time,
+                              [
+                                schedule.is_sunday && "sunday",
+                                schedule.is_monday && "monday",
+                                schedule.is_tuesday && "tuesday",
+                                schedule.is_wednesday && "wednesday",
+                                schedule.is_thursday && "thursday",
+                                schedule.is_friday && "friday",
+                                schedule.is_saturday && "saturday",
+                              ].filter((d) => !!d)
+                            )}
+                          </Text>
+                        </HStack>
+                        <Icon as={TrashIcon}></Icon>
                       </HStack>
-                      <Icon as={TrashIcon}></Icon>
-                    </HStack>
-                  </Card>
+                    </Card>
+                  </Pressable>
                 ))
               ) : (
                 <Text>No schedules found.</Text>

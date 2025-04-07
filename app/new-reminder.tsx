@@ -8,6 +8,7 @@ import {
   ArrowLeftIcon,
   ChevronDownIcon,
   AddIcon,
+  CloseIcon,
 } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { Input, InputField } from "@/components/ui/input";
@@ -36,6 +37,8 @@ import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Actionsheet } from "@/components/ui/actionsheet";
 import { ScheduleActionsheet } from "@/components/reminder/ScheduleActionsheet";
+import { Card } from "@/components/ui/card";
+import { formatScheduleString } from "@/lib/utils";
 
 export default function NewReminder() {
   const navigation = useNavigation();
@@ -47,6 +50,7 @@ export default function NewReminder() {
   const [intervalType, setIntervalType] = useState("");
   const [intervalNum, setIntervalNum] = useState<string | undefined>(undefined);
   const [times, setTimes] = useState("");
+  const [schedules, setSchedules] = useState<object[]>([]);
   const [trackStreak, setTrackStreak] = useState(false);
 
   // Schedule Actionsheet
@@ -72,7 +76,17 @@ export default function NewReminder() {
     const timesNum = parseInt(times, 10);
 
     try {
-      await createReminder(title, description, intervalType, parseInt(intervalNum), parseInt(times), trackStreak, false, false);
+      await createReminder(
+        title,
+        description,
+        intervalType,
+        parseInt(intervalNum),
+        parseInt(times),
+        schedules.map(s => s.id),
+        trackStreak,
+        false,
+        false
+      );
       router.back();
     } catch (error) {
       console.error("Error saving reminder:", error);
@@ -137,7 +151,11 @@ export default function NewReminder() {
                       <SelectDragIndicator />
                     </SelectDragIndicatorWrapper>
                     {FREQUENCY_TYPES.map((t) => (
-                      <SelectItem key={t.value} label={t.label} value={t.value} />
+                      <SelectItem
+                        key={t.value}
+                        label={t.label}
+                        value={t.value}
+                      />
                     ))}
                   </SelectContent>
                 </SelectPortal>
@@ -162,10 +180,68 @@ export default function NewReminder() {
           </Box>
           <VStack>
             <Heading size="xl">But Only On</Heading>
-            <Button size="xl" variant="outline" onPress={() => setSchedulesOpen(true)}>
-              <ButtonIcon as={AddIcon} />
-              <ButtonText>Schedule</ButtonText>
-            </Button>
+            {schedules.length > 0 ? (
+              <>
+                <VStack space="sm">
+                  {schedules.map((schedule) => (
+                    <Card key={schedule.id} variant="filled">
+                      <HStack className="justify-between items-center">
+                        <HStack space="md" className="items-end">
+                          <Text size="xl" className="font-semibold">
+                            {schedule.label || "No Label"}
+                          </Text>
+                          <Text>
+                            {formatScheduleString(
+                              schedule.start_time,
+                              schedule.end_time,
+                              [
+                                schedule.is_sunday && "sunday",
+                                schedule.is_monday && "monday",
+                                schedule.is_tuesday && "tuesday",
+                                schedule.is_wednesday && "wednesday",
+                                schedule.is_thursday && "thursday",
+                                schedule.is_friday && "friday",
+                                schedule.is_saturday && "saturday",
+                              ].filter((d) => !!d)
+                            )}
+                          </Text>
+                        </HStack>
+                        <Pressable
+                          onPress={() =>
+                            setSchedules(
+                              schedules.filter((s) => s.id !== schedule.id)
+                            )
+                          }
+                          className="p-3 -m-3"
+                        >
+                          <Icon as={CloseIcon} size="lg" />
+                        </Pressable>
+                      </HStack>
+                    </Card>
+                  ))}
+                </VStack>
+                <HStack className="justify-between">
+                  <Box></Box>
+                  <Button
+                    variant="link"
+                    size="xl"
+                    onPress={() => setSchedulesOpen(true)}
+                  >
+                    <ButtonIcon as={AddIcon} />
+                    <ButtonText>Schedule</ButtonText>
+                  </Button>
+                </HStack>
+              </>
+            ) : (
+              <Button
+                size="xl"
+                variant="outline"
+                onPress={() => setSchedulesOpen(true)}
+              >
+                <ButtonIcon as={AddIcon} />
+                <ButtonText>Schedule</ButtonText>
+              </Button>
+            )}
           </VStack>
           <HStack space="xl" className="items-center">
             <Text size="xl" className="font-quicksand-semibold">
@@ -184,7 +260,12 @@ export default function NewReminder() {
       <Button size="xl" onPress={handleSave}>
         <ButtonText>Save Reminder</ButtonText>
       </Button>
-      <ScheduleActionsheet isOpen={schedulesOpen} setIsOpen={setSchedulesOpen} />
+      <ScheduleActionsheet
+        isOpen={schedulesOpen}
+        setIsOpen={setSchedulesOpen}
+        addSchedule={(schedule) => setSchedules([...schedules, schedule])}
+        filterIds={schedules.map((s) => s.id)}
+      />
     </ThemedContainer>
   );
 }

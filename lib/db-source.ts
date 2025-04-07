@@ -89,6 +89,7 @@ export const createReminder = async (
   intervalType: string,
   intervalNum: number,
   times: number,
+  scheduleIds: number[],
   trackStreak: boolean,
   trackNotes: boolean,
   muted: boolean
@@ -101,13 +102,48 @@ export const createReminder = async (
   );
   console.log("✅ Reminder saved successfully", result);
 
+  const reminder_id = result.lastInsertRowId;
+
+  for (const schedule_id of scheduleIds) {
+    await db.runAsync(
+      `INSERT INTO reminder_schedule (reminder_id, schedule_id)
+      VALUES (?, ?);`,
+      [reminder_id, schedule_id]
+    );
+  }
+
   return result.lastInsertRowId;
 };
 
 // function to fetch a specific reminder by ID
 export const getReminder = async (id: number): Promise<any> => {
   const db = await openDB();
-  const reminder = await db.getFirstAsync(`SELECT * FROM reminders WHERE id = ?;`, [id]);
+  const reminder = await db.getFirstAsync(`
+    SELECT  r.*,
+            json_group_array(
+              json_object(
+                'id', s.id, 
+                'label', s.label,
+                'is_sunday', s.is_sunday,
+                'is_monday', s.is_monday,
+                'is_tuesday', s.is_tuesday,
+                'is_wednesday', s.is_wednesday,
+                'is_thursday', s.is_thursday,
+                'is_friday', s.is_friday,
+                'is_saturday', s.is_saturday,
+                'start_time', s.start_time,
+                'end_time', s.end_time
+              )
+            ) AS schedules
+    FROM reminders r
+    JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    JOIN schedules s ON s.id = rs.schedule_id
+    WHERE r.id = ?
+    GROUP BY r.id;
+    `,
+    [id]
+  );
+
   return reminder;
 };
 
@@ -337,8 +373,30 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 // Function to fetch all reminders
 export const getAllReminders = async (): Promise<any[]> => {
   const db = await openDB();
-  const reminders = await db.getAllAsync(`SELECT * FROM reminders;`, []);
-  return reminders;
+  const reminders = await db.getAllAsync(`
+    SELECT  r.*,
+            json_group_array(
+              json_object(
+                'id', s.id, 
+                'label', s.label,
+                'is_sunday', s.is_sunday,
+                'is_monday', s.is_monday,
+                'is_tuesday', s.is_tuesday,
+                'is_wednesday', s.is_wednesday,
+                'is_thursday', s.is_thursday,
+                'is_friday', s.is_friday,
+                'is_saturday', s.is_saturday,
+                'start_time', s.start_time,
+                'end_time', s.end_time
+              )
+            ) AS schedules
+    FROM reminders r
+    JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    JOIN schedules s ON s.id = rs.schedule_id
+    GROUP BY r.id;
+  `, []);
+
+  return reminders.map(r => ({ ...r, schedules: JSON.parse(r.schedules) }));
 };
 
 // Function to fetch all schedules

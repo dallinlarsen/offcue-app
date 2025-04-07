@@ -1,27 +1,37 @@
 import { useEffect, useState } from "react";
-import { View, Text } from "react-native";
 import {
   Actionsheet,
   ActionsheetBackdrop,
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
+  ActionsheetScrollView,
 } from "../ui/actionsheet";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { Heading } from "../ui/heading";
-import { AddIcon } from "../ui/icon";
+import { AddIcon, Icon, TrashIcon } from "../ui/icon";
 import { AddScheduleActionsheet } from "./AddScheduleActionsheet";
 import useWatch from "@/hooks/useWatch";
 import { getAllSchedules } from "@/lib/db-service";
+import { formatScheduleString } from "@/lib/utils";
+import { Card } from "../ui/card";
+import { VStack } from "../ui/vstack";
+import { HStack } from "../ui/hstack";
+import { Text } from "../ui/text";
+import { Pressable } from "../ui/pressable";
 
 type ScheduleActionsheetProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  addSchedule: (schedule: object) => void;
+  filterIds: number[];
 };
 
 export function ScheduleActionsheet({
   isOpen,
   setIsOpen,
+  addSchedule,
+  filterIds,
 }: ScheduleActionsheetProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -36,7 +46,8 @@ export function ScheduleActionsheet({
     const loadSchedules = async () => {
       try {
         const data = await getAllSchedules();
-        setSchedules(data);
+        setSchedules(data.filter(s => !filterIds.includes(s.id)));
+        console.log(data);
       } catch (error) {
         console.error("Error loading schedules:", error);
       }
@@ -50,9 +61,18 @@ export function ScheduleActionsheet({
     }
   });
 
+  const schedulePressedHandler = (schedule: object) => {
+    addSchedule(schedule);
+    setIsOpen(false);
+  };
+
   return (
     <>
-      <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Actionsheet
+        snapPoints={[50]}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      >
         <ActionsheetBackdrop />
         <ActionsheetContent className="items-start">
           <ActionsheetDragIndicatorWrapper>
@@ -61,48 +81,55 @@ export function ScheduleActionsheet({
           <Heading size="xl" className="mb-2">
             Schedules
           </Heading>
+          {/* List of existing schedules */}
+          <ActionsheetScrollView>
+            <VStack space="sm">
+              {schedules.length > 0 ? (
+                schedules.map((schedule) => (
+                  <Pressable
+                    key={schedule.id}
+                    onPress={() => schedulePressedHandler(schedule)}
+                  >
+                    <Card variant="filled">
+                      <HStack className="justify-between items-center">
+                        <HStack space="md" className="items-end">
+                          <Text size="xl" className="font-semibold">
+                            {schedule.label || "No Label"}
+                          </Text>
+                          <Text>
+                            {formatScheduleString(
+                              schedule.start_time,
+                              schedule.end_time,
+                              [
+                                schedule.is_sunday && "sunday",
+                                schedule.is_monday && "monday",
+                                schedule.is_tuesday && "tuesday",
+                                schedule.is_wednesday && "wednesday",
+                                schedule.is_thursday && "thursday",
+                                schedule.is_friday && "friday",
+                                schedule.is_saturday && "saturday",
+                              ].filter((d) => !!d)
+                            )}
+                          </Text>
+                        </HStack>
+                        <Icon as={TrashIcon}></Icon>
+                      </HStack>
+                    </Card>
+                  </Pressable>
+                ))
+              ) : (
+                <Text>No schedules found.</Text>
+              )}
+            </VStack>
+          </ActionsheetScrollView>
           <Button
-            className="w-full"
+            className="w-full mt-2"
             size="xl"
             onPress={handleNewSchedulePressed}
           >
             <ButtonIcon as={AddIcon} />
             <ButtonText>New Schedule</ButtonText>
           </Button>
-          {/* List of existing schedules */}
-          <View style={{ marginTop: 16, width: "100%" }}>
-            {schedules.length > 0 ? (
-              schedules.map((schedule) => (
-                <View
-                  key={schedule.id}
-                  style={{
-                    marginVertical: 4,
-                    padding: 8,
-                    backgroundColor: "#eee",
-                    borderRadius: 4,
-                  }}
-                >
-                  <Text style={{ fontWeight: "bold" }}>
-                    {schedule.label || "No Label"}
-                  </Text>
-                  <Text>
-                    {schedule.startTime} - {schedule.endTime}
-                  </Text>
-                  <Text>
-                    {schedule.isSunday ? "Sun " : ""}
-                    {schedule.isMonday ? "Mon " : ""}
-                    {schedule.isTuesday ? "Tue " : ""}
-                    {schedule.isWednesday ? "Wed " : ""}
-                    {schedule.isThursday ? "Thu " : ""}
-                    {schedule.isFriday ? "Fri " : ""}
-                    {schedule.isSaturday ? "Sat " : ""}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text>No schedules found.</Text>
-            )}
-          </View>
         </ActionsheetContent>
       </Actionsheet>
       <AddScheduleActionsheet isOpen={addOpen} setIsOpen={setAddOpen} />

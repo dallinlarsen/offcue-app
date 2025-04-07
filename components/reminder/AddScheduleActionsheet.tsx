@@ -5,6 +5,7 @@ import {
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
+  ActionsheetScrollView,
 } from "../ui/actionsheet";
 import { Button, ButtonText } from "../ui/button";
 import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from "../ui/checkbox";
@@ -18,6 +19,7 @@ import dayjs from 'dayjs';
 import { Box } from "../ui/box";
 import { ScrollView } from "react-native";
 import { createSchedule } from "@/lib/db-service";
+import useWatch from "@/hooks/useWatch";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
@@ -40,6 +42,23 @@ export function AddScheduleActionsheet({
   const [startTime, setStartTime] = useState(dayjs('2000-01-01 00:00').toDate());
   const [endTime, setEndTime] = useState(dayjs("2000-01-02 00:00").toDate());
   const [label, setLabel] = useState("");
+
+  useWatch(isOpen, (val) => {
+    if (val) {
+        setLabel('');
+        setStartTime(dayjs("2000-01-01 00:00").toDate());
+        setEndTime(dayjs("2000-01-02 00:00").toDate());
+        setDays([
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ]);
+    }
+  });
 
   const handleSave = async () => {
     const schedule = {
@@ -80,7 +99,7 @@ export function AddScheduleActionsheet({
   };
 
   return (
-    <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
+    <Actionsheet snapPoints={[90]} isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <ActionsheetBackdrop />
       <ActionsheetContent className="items-start">
         <ActionsheetDragIndicatorWrapper>
@@ -89,14 +108,14 @@ export function AddScheduleActionsheet({
         <Heading size="xl" className="mb-2">
           New Schedule
         </Heading>
-        <ScrollView>
-            <Input size="xl">
+        <ActionsheetScrollView>
+          <Input size="xl">
             <InputField
               placeholder="Label"
               value={label}
               onChangeText={(text) => setLabel(text)}
             />
-            </Input>
+          </Input>
           <CheckboxGroup
             value={days}
             onChange={(keys) => {
@@ -148,12 +167,8 @@ export function AddScheduleActionsheet({
               />
             </Box>
           </VStack>
-        </ScrollView>
-        <Button
-          className="w-full mt-4"
-          size="xl"
-          onPress={handleSave}
-        >
+        </ActionsheetScrollView>
+        <Button className="w-full mt-4" size="xl" onPress={handleSave}>
           <ButtonText>Create Schedule</ButtonText>
         </Button>
       </ActionsheetContent>

@@ -15,10 +15,11 @@ export const createReminder = async (title: string,
     intervalType: string,
     intervalNum: number,
     times: number,
+    scheduleIds: number[],
     trackStreak: boolean,
     trackNotes: boolean,
     muted: boolean) => {
-    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, trackStreak, trackNotes, muted);
+    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted);
 
     // Create notifications for the reminder
     handleReminderNotifications(result);

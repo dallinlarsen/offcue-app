@@ -10,6 +10,6 @@ export function chunkIntoPairs<T>(list: T[]) {
   return result;
 }
 
-export function formatFrequencyString(times: number, frequency: number, frequencyType: 'minute' | 'hour' | 'day') {
-    return `${times === 1 ? "once" : `${times} times`} every ${frequency === 1 ? frequencyType : `${frequency} ${frequencyType + "s"}`}`;
+export function formatFrequencyString(times: number, interval_num: number, interval_type: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year') {
+    return `${times === 1 ? "once" : `${times} times`} every ${interval_num === 1 ? interval_type : `${interval_num} ${interval_type + "s"}`}`;
 }

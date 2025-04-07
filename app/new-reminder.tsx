@@ -28,7 +28,7 @@ import { Text } from "@/components/ui/text";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { saveReminder, initDatabase } from "@/lib/database";
+import { createReminder } from "@/lib/db-service";
 import * as SQLite from "expo-sqlite";
 import { FREQUENCY_TYPES } from "@/constants/utils";
 import { ScrollView } from "react-native";
@@ -44,8 +44,8 @@ export default function NewReminder() {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [frequency, setFrequency] = useState("");
-  const [frequencyType, setFrequencyType] = useState<string | null>(null);
+  const [intervalType, setIntervalType] = useState("");
+  const [intervalNum, setIntervalNum] = useState<string | undefined>(undefined);
   const [times, setTimes] = useState("");
   const [trackStreak, setTrackStreak] = useState(false);
 
@@ -54,7 +54,6 @@ export default function NewReminder() {
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
-    initDatabase();
 
     // Check if SQLite is available; if not, log a warning.
     if (typeof SQLite.openDatabaseSync !== "function") {
@@ -65,23 +64,15 @@ export default function NewReminder() {
   }, [navigation]);
 
   const handleSave = async () => {
-    if (!title || !frequency || !times || !frequencyType) {
-      alert("Please fill in all required fields: Title, Frequency, Frequency Type and Times.");
+    if (!title || !intervalNum || !times) {
+      alert("Please fill in all required fields: Title, Frequency, and Times.");
       return;
     }
-    const freqNum = parseInt(frequency, 10);
+    const freqNum = parseInt(intervalNum, 10);
     const timesNum = parseInt(times, 10);
 
     try {
-      await saveReminder(
-        title,
-        description,
-        freqNum,
-        frequencyType || 'minute',
-        timesNum,
-        trackStreak,
-        false
-      );
+      await createReminder(title, description, intervalType, parseInt(intervalNum), parseInt(times), trackStreak, false, false);
       router.back();
     } catch (error) {
       console.error("Error saving reminder:", error);
@@ -121,15 +112,15 @@ export default function NewReminder() {
               <Input size="xl" className="flex-1">
                 <InputField
                   placeholder="Frequency"
-                  value={frequency}
-                  onChangeText={setFrequency}
+                  value={intervalNum}
+                  onChangeText={setIntervalNum}
                   keyboardType="number-pad"
                 />
               </Input>
               <Select
                 className="flex-1"
-                selectedValue={frequencyType}
-                onValueChange={(value) => setFrequencyType(value)}
+                selectedValue={intervalType}
+                onValueChange={(value) => setIntervalType(value)}
               >
                 <SelectTrigger
                   variant="outline"

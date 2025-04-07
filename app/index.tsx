@@ -9,7 +9,7 @@ import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
-import { fetchReminders, updateReminderMuted, wipeDatabase } from "@/lib/database";
+import { getAllReminders, updateReminderMuted, wipeDatabase } from "@/lib/db-service";
 import { Button, ButtonText } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { chunkIntoPairs, formatFrequencyString } from "@/lib/utils";
@@ -22,9 +22,9 @@ export default function HomeScreen() {
   const [reminders, setReminders] = useState<any[]>([]);
 
   const loadReminders = async () => {
-    const data = await fetchReminders();
+    const data = await getAllReminders();
     setReminders(data);
-    console.log(data);
+    // console.log(data);
   };
 
   useEffect(() => {
@@ -69,12 +69,16 @@ export default function HomeScreen() {
                     variant="outline"
                     className="bg-background-50 p-3 flex-1 aspect-square justify-between"
                   >
-                    <VStack>
-                      <Heading className="font-quicksand-bold" size="lg">
-                        {r.title}
-                      </Heading>
-                      <Text>{formatFrequencyString(r.times, r.frequency, r.frequencyType)}</Text>
-                    </VStack>
+                    <TouchableOpacity
+                      onPress={() => router.push(`/reminder?id=${r.id}`)}
+                    >
+                      <VStack>
+                        <Heading className="font-quicksand-bold" size="lg">
+                          {r.title}
+                        </Heading>
+                        <Text>{formatFrequencyString(r.times, r.interval_num, r.interval_type)}</Text>
+                      </VStack>
+                    </TouchableOpacity>
                     <Box className="flex flex-row">
                       <Box className="flex-grow" />
                       <HStack space="sm" className="items-center">
@@ -82,8 +86,8 @@ export default function HomeScreen() {
                           Mute
                         </Text>
                         <Switch
-                          value={r.muted === 1}
-                          onValueChange={() => handleToggleMute(r.id, r.muted)}
+                          value={r.is_muted === 1}
+                          onValueChange={() => handleToggleMute(r.id, r.is_muted)}
                           trackColor={{
                             false: colors.gray[300],
                             true: colors.gray[500],

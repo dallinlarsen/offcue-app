@@ -5,6 +5,7 @@ import {
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
+  ActionsheetScrollView,
 } from "../ui/actionsheet";
 import { Button, ButtonText } from "../ui/button";
 import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel } from "../ui/checkbox";
@@ -80,7 +81,7 @@ export function AddScheduleActionsheet({
   };
 
   return (
-    <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
+    <Actionsheet snapPoints={[90]} isOpen={isOpen} onClose={() => setIsOpen(false)}>
       <ActionsheetBackdrop />
       <ActionsheetContent className="items-start">
         <ActionsheetDragIndicatorWrapper>
@@ -89,14 +90,14 @@ export function AddScheduleActionsheet({
         <Heading size="xl" className="mb-2">
           New Schedule
         </Heading>
-        <ScrollView>
-            <Input size="xl">
+        <ActionsheetScrollView>
+          <Input size="xl">
             <InputField
               placeholder="Label"
               value={label}
               onChangeText={(text) => setLabel(text)}
             />
-            </Input>
+          </Input>
           <CheckboxGroup
             value={days}
             onChange={(keys) => {
@@ -148,12 +149,8 @@ export function AddScheduleActionsheet({
               />
             </Box>
           </VStack>
-        </ScrollView>
-        <Button
-          className="w-full mt-4"
-          size="xl"
-          onPress={handleSave}
-        >
+        </ActionsheetScrollView>
+        <Button className="w-full mt-4" size="xl" onPress={handleSave}>
           <ButtonText>Create Schedule</ButtonText>
         </Button>
       </ActionsheetContent>

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useNavigation, useRouter } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Pressable } from "@/components/ui/pressable";
@@ -8,28 +8,26 @@ import {
   ArrowLeftIcon,
 } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
+import { getReminder } from "@/lib/db-service";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { Reminder } from "@/lib/types";
 
-export default function NewReminder() {
+export default function EditReminder() {
+  const { id } = useLocalSearchParams();
   const navigation = useNavigation();
   const router = useRouter();
 
+  const [reminder, setReminder] = useState<Reminder | null>(null);
+
+  async function fetchReminder() {
+    const data = await getReminder(parseInt(id as string));
+    setReminder(data);
+  }
+
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
+    fetchReminder();
   }, [navigation]);
-
-  const blankReminder: Reminder = {
-    title: '',
-    description: '',
-    interval_num: '' as any,
-    interval_type: '',
-    times: '' as any,
-    schedules: [],
-    track_streak: false,
-    track_notes: false,
-    is_muted: false,
-  }
 
   return (
     <ThemedContainer>
@@ -37,9 +35,11 @@ export default function NewReminder() {
         <Pressable className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </Pressable>
-        <Heading size="3xl">New Reminder</Heading>
+        <Heading size="3xl">Edit Reminder</Heading>
       </Box>
-      <AddEditReminder data={blankReminder} onSave={() => router.back()} />
+      {reminder ? (
+        <AddEditReminder data={reminder} onSave={() => router.back()} />
+      ) : null}
     </ThemedContainer>
   );
 }

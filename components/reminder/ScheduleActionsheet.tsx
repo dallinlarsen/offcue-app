@@ -19,11 +19,12 @@ import { VStack } from "../ui/vstack";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { Pressable } from "../ui/pressable";
+import { Schedule } from "@/lib/types";
 
 type ScheduleActionsheetProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  addSchedule: (schedule: object) => void;
+  addSchedule: (schedule: Schedule) => void;
   filterIds: number[];
 };
 
@@ -34,7 +35,7 @@ export function ScheduleActionsheet({
   filterIds,
 }: ScheduleActionsheetProps) {
   const [addOpen, setAddOpen] = useState(false);
-  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
 
   const handleNewSchedulePressed = () => {
     setAddOpen(true);
@@ -61,7 +62,7 @@ export function ScheduleActionsheet({
     }
   });
 
-  const schedulePressedHandler = (schedule: object) => {
+  const schedulePressedHandler = (schedule: Schedule) => {
     addSchedule(schedule);
     setIsOpen(false);
   };
@@ -108,7 +109,7 @@ export function ScheduleActionsheet({
                                 schedule.is_thursday && "thursday",
                                 schedule.is_friday && "friday",
                                 schedule.is_saturday && "saturday",
-                              ].filter((d) => !!d)
+                              ].filter((d) => !!d) as any
                             )}
                           </Text>
                         </HStack>

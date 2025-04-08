@@ -40,10 +40,11 @@ export const updateReminder = async (id: number,
     intervalType: string,
     intervalNum: number,
     times: number,
+    scheduleIds: number[],
     trackStreak: boolean,
     trackNotes: boolean,
     isMuted: boolean) => {
-    const result = await db_source.updateReminder(id, title, description, intervalType, intervalNum, times, trackStreak, trackNotes, isMuted);
+    const result = await db_source.updateReminder(id, title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, isMuted);
     return result;
 };
 

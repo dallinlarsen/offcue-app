@@ -6,6 +6,8 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
+import { Fab, FabIcon } from "@/components/ui/fab";
+import { EditIcon } from "@/components/ui/icon";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -90,6 +92,9 @@ export default function ReminderDetails() {
             <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
                 <Text style={{ color: "blue" }}>Go Back</Text>
             </TouchableOpacity>
+            <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
+                <FabIcon as={EditIcon} />
+            </Fab>
         </ThemedContainer>
     );
 }

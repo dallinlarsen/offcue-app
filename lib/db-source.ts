@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { Reminder, Schedule } from './types';
 
 export async function openDB() {
   return await SQLite.openDatabaseAsync('reminders.db');
@@ -116,9 +117,9 @@ export const createReminder = async (
 };
 
 // function to fetch a specific reminder by ID
-export const getReminder = async (id: number): Promise<any> => {
+export const getReminder = async (id: number) => {
   const db = await openDB();
-  const reminder = await db.getFirstAsync(`
+  const reminder = await db.getFirstAsync<Reminder>(`
     SELECT  r.*,
             json_group_array(
               json_object(
@@ -144,7 +145,7 @@ export const getReminder = async (id: number): Promise<any> => {
     [id]
   );
 
-  return reminder;
+  return reminder ? { ...reminder, schedules: JSON.parse(reminder.schedules as unknown as string) } : null;
 };
 
 // Function to update a reminder
@@ -155,6 +156,7 @@ export const updateReminder = async (
   intervalType: string,
   intervalNum: number,
   times: number,
+  scheduleIds: number[],
   trackStreak: boolean,
   trackNotes: boolean,
   isMuted: boolean
@@ -166,6 +168,29 @@ export const updateReminder = async (
      WHERE id = ?;`,
     [title, description, intervalType, intervalNum, times, trackStreak ? 1 : 0, trackNotes ? 1 : 0, isMuted ? 1 : 0, id]
   );
+
+  const currentSchedules = await getReminderSchedules(id);
+  const currentScheduleIds = currentSchedules.map(s => s.id);
+  const schedulesToRemove = currentScheduleIds.filter(s => !scheduleIds.includes(s));
+  const schedulesToAdd = scheduleIds.filter(s => !currentScheduleIds.includes(s));
+
+  for (const schedule_id of schedulesToRemove) {
+    await db.runAsync(
+      `DELETE 
+       FROM reminder_schedule
+       WHERE reminder_id = ? AND schedule_id = ?;`,
+      [id, schedule_id]
+    );
+  }
+
+  for (const schedule_id of schedulesToAdd) {
+    await db.runAsync(
+      `INSERT INTO reminder_schedule (reminder_id, schedule_id)
+      VALUES (?, ?);`,
+      [id, schedule_id]
+    );
+  }
+
   console.log("✅ Reminder updated successfully");
 };
 
@@ -373,7 +398,7 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 // Function to fetch all reminders
 export const getAllReminders = async (): Promise<any[]> => {
   const db = await openDB();
-  const reminders = await db.getAllAsync(`
+  const reminders = await db.getAllAsync<Reminder>(`
     SELECT  r.*,
             json_group_array(
               json_object(
@@ -396,7 +421,7 @@ export const getAllReminders = async (): Promise<any[]> => {
     GROUP BY r.id;
   `, []);
 
-  return reminders.map(r => ({ ...r, schedules: JSON.parse(r.schedules) }));
+  return reminders.map(r => ({ ...r, schedules: JSON.parse(r.schedules as unknown as string) }));
 };
 
 // Function to fetch all schedules
@@ -431,10 +456,10 @@ export const getUnrespondedReminderNotifications = async (reminderId: number): P
 };
 
 // Helper function to get schedules for a given reminder
-export const getReminderSchedules = async (reminderId: number): Promise<any[]> => {
+export const getReminderSchedules = async (reminderId: number) => {
   const db = await openDB();
   // Join the reminder_schedule table with the schedule table to get the schedule details
-  const schedules = await db.getAllAsync(
+  const schedules = await db.getAllAsync<Schedule>(
     `SELECT s.* FROM schedules s 
      INNER JOIN reminder_schedule rs ON rs.schedule_id = s.id 
      WHERE rs.reminder_id = ?;`,

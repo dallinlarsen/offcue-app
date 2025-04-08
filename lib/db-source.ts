@@ -174,6 +174,7 @@ export const updateReminder = async (
   const schedulesToRemove = currentScheduleIds.filter(s => !scheduleIds.includes(s));
   const schedulesToAdd = scheduleIds.filter(s => !currentScheduleIds.includes(s));
 
+  //TODO: We should break this insert and delete into their own functions
   for (const schedule_id of schedulesToRemove) {
     await db.runAsync(
       `DELETE 

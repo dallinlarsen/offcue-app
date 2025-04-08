@@ -18,8 +18,8 @@ import { Card } from "../ui/card";
 import { VStack } from "../ui/vstack";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
-import { Pressable } from "../ui/pressable";
 import { Schedule } from "@/lib/types";
+import { TouchableOpacity } from "react-native";
 
 type ScheduleActionsheetProps = {
   isOpen: boolean;
@@ -47,7 +47,7 @@ export function ScheduleActionsheet({
     const loadSchedules = async () => {
       try {
         const data = await getAllSchedules();
-        setSchedules(data.filter(s => !filterIds.includes(s.id)));
+        setSchedules(data.filter((s) => !filterIds.includes(s.id)));
         console.log(data);
       } catch (error) {
         console.error("Error loading schedules:", error);
@@ -87,7 +87,7 @@ export function ScheduleActionsheet({
             <VStack space="sm">
               {schedules.length > 0 ? (
                 schedules.map((schedule) => (
-                  <Pressable
+                  <TouchableOpacity
                     key={schedule.id}
                     onPress={() => schedulePressedHandler(schedule)}
                   >
@@ -97,26 +97,12 @@ export function ScheduleActionsheet({
                           <Text size="xl" className="font-semibold">
                             {schedule.label || "No Label"}
                           </Text>
-                          <Text>
-                            {formatScheduleString(
-                              schedule.start_time,
-                              schedule.end_time,
-                              [
-                                schedule.is_sunday && "sunday",
-                                schedule.is_monday && "monday",
-                                schedule.is_tuesday && "tuesday",
-                                schedule.is_wednesday && "wednesday",
-                                schedule.is_thursday && "thursday",
-                                schedule.is_friday && "friday",
-                                schedule.is_saturday && "saturday",
-                              ].filter((d) => !!d) as any
-                            )}
-                          </Text>
+                          <Text>{formatScheduleString(schedule)}</Text>
                         </HStack>
                         <Icon as={TrashIcon}></Icon>
                       </HStack>
                     </Card>
-                  </Pressable>
+                  </TouchableOpacity>
                 ))
               ) : (
                 <Text>No schedules found.</Text>

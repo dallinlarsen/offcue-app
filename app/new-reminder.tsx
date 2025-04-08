@@ -2,14 +2,11 @@ import React, { useEffect } from "react";
 import { useNavigation, useRouter } from "expo-router";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
-import { Pressable } from "@/components/ui/pressable";
-import {
-  Icon,
-  ArrowLeftIcon,
-} from "@/components/ui/icon";
+import { Icon, ArrowLeftIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
-import { Reminder } from "@/lib/types";
+import { IntervalType, Reminder } from "@/lib/types";
+import { TouchableOpacity } from "react-native";
 
 export default function NewReminder() {
   const navigation = useNavigation();
@@ -20,23 +17,23 @@ export default function NewReminder() {
   }, [navigation]);
 
   const blankReminder: Reminder = {
-    title: '',
-    description: '',
-    interval_num: '' as any,
-    interval_type: '',
-    times: '' as any,
+    title: "",
+    description: "",
+    interval_num: "" as any,
+    interval_type: "" as IntervalType,
+    times: "" as any,
     schedules: [],
     track_streak: false,
     track_notes: false,
     is_muted: false,
-  }
+  };
 
   return (
     <ThemedContainer>
       <Box className="flex flex-row items-center -mt-2 mb-4">
-        <Pressable className="p-3" onPress={() => router.back()}>
+        <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
-        </Pressable>
+        </TouchableOpacity>
         <Heading size="3xl">New Reminder</Heading>
       </Box>
       <AddEditReminder data={blankReminder} onSave={() => router.back()} />

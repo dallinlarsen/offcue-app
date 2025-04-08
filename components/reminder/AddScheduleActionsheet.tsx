@@ -20,6 +20,7 @@ import { Box } from "../ui/box";
 import { ScrollView } from "react-native";
 import { createSchedule } from "@/lib/db-service";
 import useWatch from "@/hooks/useWatch";
+import { Pressable } from "../ui/pressable";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
@@ -43,6 +44,8 @@ export function AddScheduleActionsheet({
   const [endTime, setEndTime] = useState(dayjs("2000-01-02 00:00").toDate());
   const [label, setLabel] = useState("");
 
+  const [showDatePicker, setShowDatePicker] = useState<'start' | 'end' | null>(null);
+
   useWatch(isOpen, (val) => {
     if (val) {
         setLabel('');
@@ -57,6 +60,7 @@ export function AddScheduleActionsheet({
           "friday",
           "saturday",
         ]);
+        setShowDatePicker(null);
     }
   });
 
@@ -99,7 +103,11 @@ export function AddScheduleActionsheet({
   };
 
   return (
-    <Actionsheet snapPoints={[90]} isOpen={isOpen} onClose={() => setIsOpen(false)}>
+    <Actionsheet
+      snapPoints={[75]}
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+    >
       <ActionsheetBackdrop />
       <ActionsheetContent className="items-start">
         <ActionsheetDragIndicatorWrapper>
@@ -139,33 +147,45 @@ export function AddScheduleActionsheet({
           </CheckboxGroup>
           <Heading>Between</Heading>
           <VStack space="xs" className="w-full">
-            <Input size="xl" isReadOnly>
+            <Input
+              size="xl"
+              isReadOnly
+              onTouchEnd={() => setShowDatePicker("start")}
+            >
               <InputField
                 placeholder="Start Time"
                 value={dayjs(startTime).format("h:mm a")}
               />
             </Input>
-            <Box className="flex w-full items-center">
-              <DatePicker
-                mode="time"
-                date={startTime}
-                onDateChange={setStartTime}
-              />
-            </Box>
+            {showDatePicker === "start" ? (
+              <Box className="flex w-full items-center">
+                <DatePicker
+                  mode="time"
+                  date={startTime}
+                  onDateChange={setStartTime}
+                />
+              </Box>
+            ) : null}
             <Heading size="md">And</Heading>
-            <Input size="xl" isReadOnly>
+            <Input
+              size="xl"
+              isReadOnly
+              onTouchEnd={() => setShowDatePicker("end")}
+            >
               <InputField
                 placeholder="End Time"
                 value={dayjs(endTime).format("h:mm a")}
               />
             </Input>
-            <Box className="flex w-full items-center">
-              <DatePicker
-                mode="time"
-                date={endTime}
-                onDateChange={setEndTime}
-              />
-            </Box>
+            {showDatePicker === "end" ? (
+              <Box className="flex w-full items-center">
+                <DatePicker
+                  mode="time"
+                  date={endTime}
+                  onDateChange={setEndTime}
+                />
+              </Box>
+            ) : null}
           </VStack>
         </ActionsheetScrollView>
         <Button className="w-full mt-4" size="xl" onPress={handleSave}>

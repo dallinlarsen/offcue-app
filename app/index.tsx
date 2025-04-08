@@ -29,11 +29,12 @@ import {
 } from "@/lib/utils";
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
+import { Reminder } from "@/lib/types";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const router = useRouter();
-  const [reminders, setReminders] = useState<any[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   const loadReminders = async () => {
     const data = await getAllReminders();
@@ -53,9 +54,8 @@ export default function HomeScreen() {
     }, [])
   );
 
-  const handleToggleMute = async (id: number, currentMuted: number) => {
-    const newMuted = currentMuted ? false : true;
-    await updateReminderMuted(id, newMuted);
+  const handleToggleMute = async (id: number, muted: boolean) => {
+    await updateReminderMuted(id, muted);
     loadReminders(); // Refresh list after updating
   };
 
@@ -84,10 +84,15 @@ export default function HomeScreen() {
                     className="bg-background-50 p-3 flex-1 aspect-square justify-between"
                   >
                     <TouchableOpacity
-                      onPress={() => router.push(`/reminder?id=${r.id}`)}
+                      onPress={() => router.push(`/reminder/${r.id}`)}
+                      className="flex-1"
                     >
                       <VStack>
-                        <Heading className="font-quicksand-bold" size="lg">
+                        <Heading
+                          numberOfLines={2}
+                          className="font-quicksand-bold"
+                          size="lg"
+                        >
                           {r.title}
                         </Heading>
                         <Text>
@@ -97,25 +102,12 @@ export default function HomeScreen() {
                             r.interval_type
                           )}
                         </Text>
-                        <Text>
-                          {r.schedules
-                            .map((s) =>
-                              formatScheduleString(
-                                s.start_time,
-                                s.end_time,
-                                [
-                                  s.is_sunday && "sunday",
-                                  s.is_monday && "monday",
-                                  s.is_tuesday && "tuesday",
-                                  s.is_wednesday && "wednesday",
-                                  s.is_thursday && "thursday",
-                                  s.is_friday && "friday",
-                                  s.is_saturday && "saturday",
-                                ].filter((d) => !!d)
-                              )
-                            )
-                            .join("; ")}
-                        </Text>
+                        <Text>{formatScheduleString(r.schedules[0])}</Text>
+                        {r.schedules.slice(1).length > 0 ? (
+                          <Text size="sm" className="-mt-1">
+                            +{r.schedules.slice(1).length} More
+                          </Text>
+                        ) : null}
                       </VStack>
                     </TouchableOpacity>
                     <Box className="flex flex-row">
@@ -125,9 +117,9 @@ export default function HomeScreen() {
                           Mute
                         </Text>
                         <Switch
-                          value={r.is_muted === 1}
-                          onValueChange={() =>
-                            handleToggleMute(r.id, r.is_muted)
+                          value={r.is_muted}
+                          onValueChange={(muted) =>
+                            handleToggleMute(r.id!, muted)
                           }
                           trackColor={{
                             false: colors.gray[300],

@@ -1,8 +1,8 @@
 export type Reminder = {
-  id?: number
+  id?: number;
   title: string;
   description?: string;
-  interval_type: string;
+  interval_type: IntervalType;
   interval_num: number;
   times: number;
   schedules: Schedule[];
@@ -24,3 +24,5 @@ export type Schedule = {
   start_time: string;
   end_time: string;
 };
+
+export type IntervalType = "minute" | "hour" | "day" | "week" | "month" | "year";

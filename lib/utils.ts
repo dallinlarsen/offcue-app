@@ -1,4 +1,5 @@
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
+import { IntervalType, Schedule } from "./types";
 
 export function chunkIntoPairs<T>(list: T[]) {
   const result = [];
@@ -12,11 +13,19 @@ export function chunkIntoPairs<T>(list: T[]) {
   return result;
 }
 
-export function formatFrequencyString(times: number, interval_num: number, interval_type: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year') {
-    return `${times === 1 ? "once" : `${times} times`} every ${interval_num === 1 ? interval_type : `${interval_num} ${interval_type + "s"}`}`;
+export function formatFrequencyString(
+  times: number,
+  interval_num: number,
+  interval_type: IntervalType
+) {
+  return `${times === 1 ? "once" : `${times} times`} every ${
+    interval_num === 1
+      ? interval_type
+      : `${interval_num} ${interval_type + "s"}`
+  }`;
 }
 
-type DAYS_TYPE = (
+type DayList = (
   | "monday"
   | "tuesday"
   | "wednesday"
@@ -27,7 +36,7 @@ type DAYS_TYPE = (
 )[];
 
 const weekDays = [
-    "sunday",
+  "sunday",
   "monday",
   "tuesday",
   "wednesday",
@@ -37,7 +46,7 @@ const weekDays = [
 ] as const;
 
 const DAY_LABEL_MAP: Record<(typeof weekDays)[number], string> = {
-    sunday: "Su",
+  sunday: "Su",
   monday: "M",
   tuesday: "Tu",
   wednesday: "W",
@@ -57,7 +66,7 @@ function formatTime(t: string) {
  * and a wrap-around range such as ['friday','saturday','sunday','monday','tuesday']
  * becomes "F-Tu".
  */
-function compressDays(days: DAYS_TYPE): string {
+function compressDays(days: DayList): string {
   const daySet = new Set(days.map((d) => d.toLowerCase()));
   if (daySet.size === 0) return "";
 
@@ -103,15 +112,23 @@ function compressDays(days: DAYS_TYPE): string {
   return formattedSegments.join(", ");
 }
 
-export function formatScheduleString(
-  startTime: string,
-  endTime: string,
-  days: DAYS_TYPE
-) {
+export function formatScheduleString(schedule: Schedule) {
+  const days = [
+    schedule.is_sunday && "sunday",
+    schedule.is_monday && "monday",
+    schedule.is_tuesday && "tuesday",
+    schedule.is_wednesday && "wednesday",
+    schedule.is_thursday && "thursday",
+    schedule.is_friday && "friday",
+    schedule.is_saturday && "saturday",
+  ].filter((d) => !!d) as DayList;
+
   // Create a set of all days for checking if every day is included.
   const inputSet = new Set(days.map((d) => d.toLowerCase()));
 
-  const timeString = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  const timeString = `${formatTime(schedule.start_time)} - ${formatTime(
+    schedule.end_time
+  )}`;
 
   // If every day of the week is selected, return only the time string.
   if (weekDays.every((d) => inputSet.has(d))) {

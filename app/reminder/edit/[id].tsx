@@ -2,15 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
-import { Pressable } from "@/components/ui/pressable";
-import {
-  Icon,
-  ArrowLeftIcon,
-} from "@/components/ui/icon";
+import { Icon, ArrowLeftIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { getReminder } from "@/lib/db-service";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { Reminder } from "@/lib/types";
+import { TouchableOpacity } from "react-native";
 
 export default function EditReminder() {
   const { id } = useLocalSearchParams();
@@ -32,13 +29,17 @@ export default function EditReminder() {
   return (
     <ThemedContainer>
       <Box className="flex flex-row items-center -mt-2 mb-4">
-        <Pressable className="p-3" onPress={() => router.back()}>
+        <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
-        </Pressable>
+        </TouchableOpacity>
         <Heading size="3xl">Edit Reminder</Heading>
       </Box>
       {reminder ? (
-        <AddEditReminder data={reminder} onSave={() => router.back()} />
+        <AddEditReminder
+          data={reminder}
+          onSave={() => router.back()}
+          onCancel={() => router.back()}
+        />
       ) : null}
     </ThemedContainer>
   );

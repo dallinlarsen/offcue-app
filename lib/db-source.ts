@@ -145,7 +145,14 @@ export const getReminder = async (id: number) => {
     [id]
   );
 
-  return reminder ? { ...reminder, schedules: JSON.parse(reminder.schedules as unknown as string) } : null;
+  return reminder
+    ? {
+        ...reminder,
+        track_streak: reminder.track_streak === (1 as unknown as boolean),
+        is_muted: reminder.is_muted === (1 as unknown as boolean),
+        schedules: JSON.parse(reminder.schedules as unknown as string),
+      }
+    : null;
 };
 
 // Function to update a reminder
@@ -422,7 +429,12 @@ export const getAllReminders = async (): Promise<any[]> => {
     GROUP BY r.id;
   `, []);
 
-  return reminders.map(r => ({ ...r, schedules: JSON.parse(r.schedules as unknown as string) }));
+  return reminders.map((r) => ({
+    ...r,
+    track_streak: r.track_streak === (1 as unknown as boolean),
+    is_muted: r.is_muted === (1 as unknown as boolean),
+    schedules: JSON.parse(r.schedules as unknown as string),
+  }));
 };
 
 // Function to fetch all schedules

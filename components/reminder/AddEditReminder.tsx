@@ -1,4 +1,4 @@
-import { ScrollView, Switch } from "react-native";
+import { ScrollView, Switch, TouchableOpacity } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Input, InputField } from "../ui/input";
 import { Textarea, TextareaInput } from "../ui/textarea";
@@ -21,24 +21,21 @@ import { FREQUENCY_TYPES } from "@/constants/utils";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
 import { formatScheduleString } from "@/lib/utils";
-import { Pressable } from "../ui/pressable";
 import { AddIcon, ChevronDownIcon, CloseIcon, Icon } from "../ui/icon";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
 import { ScheduleActionsheet } from "./ScheduleActionsheet";
-import { Reminder } from "@/lib/types";
+import { IntervalType, Reminder } from "@/lib/types";
 import { useState } from "react";
 import { createReminder, updateReminder } from "@/lib/db-service";
 
 type AddEditReminderProps = {
   data: Reminder;
   onSave: () => void;
+  onCancel?: () => void;
 };
 
-export default function AddEditReminder({
-  data,
-  onSave,
-}: AddEditReminderProps) {
+export default function AddEditReminder({ data, onSave, onCancel }: AddEditReminderProps) {
   const [model, setModel] = useState(data);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
 
@@ -65,7 +62,7 @@ export default function AddEditReminder({
       } else {
         await createReminder(
           model.title,
-          model.description || '',
+          model.description || "",
           model.interval_type,
           model.interval_num,
           model.times,
@@ -121,7 +118,7 @@ export default function AddEditReminder({
                 className="flex-1"
                 selectedValue={model.interval_type}
                 onValueChange={(value) =>
-                  setModel({ ...model, interval_type: value })
+                  setModel({ ...model, interval_type: value as IntervalType })
                 }
               >
                 <SelectTrigger
@@ -180,23 +177,9 @@ export default function AddEditReminder({
                           <Text size="xl" className="font-semibold">
                             {schedule.label || "No Label"}
                           </Text>
-                          <Text>
-                            {formatScheduleString(
-                              schedule.start_time,
-                              schedule.end_time,
-                              [
-                                schedule.is_sunday && "sunday",
-                                schedule.is_monday && "monday",
-                                schedule.is_tuesday && "tuesday",
-                                schedule.is_wednesday && "wednesday",
-                                schedule.is_thursday && "thursday",
-                                schedule.is_friday && "friday",
-                                schedule.is_saturday && "saturday",
-                              ].filter((d) => !!d) as any
-                            )}
-                          </Text>
+                          <Text>{formatScheduleString(schedule)}</Text>
                         </HStack>
-                        <Pressable
+                        <TouchableOpacity
                           onPress={() =>
                             setModel({
                               ...model,
@@ -208,7 +191,7 @@ export default function AddEditReminder({
                           className="p-3 -m-3"
                         >
                           <Icon as={CloseIcon} size="lg" />
-                        </Pressable>
+                        </TouchableOpacity>
                       </HStack>
                     </Card>
                   ))}
@@ -252,9 +235,21 @@ export default function AddEditReminder({
           </HStack>
         </VStack>
       </ScrollView>
-      <Button size="xl" onPress={handleSave}>
-        <ButtonText>Save Reminder</ButtonText>
-      </Button>
+      <HStack space="md">
+        {onCancel ? (
+          <Button
+            size="xl"
+            onPress={() => onCancel()}
+            className="flex-1"
+            variant="outline"
+          >
+            <ButtonText>Cancel</ButtonText>
+          </Button>
+        ) : null}
+        <Button size="xl" onPress={handleSave} className="flex-1">
+          <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
+        </Button>
+      </HStack>
       <ScheduleActionsheet
         isOpen={schedulesOpen}
         setIsOpen={setSchedulesOpen}

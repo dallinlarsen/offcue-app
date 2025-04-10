@@ -1,3 +1,10 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import weekOfYear from 'dayjs/plugin/weekOfYear';
+
+dayjs.extend(utc);
+dayjs.extend(weekOfYear);
+
 import * as db_source from './db-source';
 // import { getReminderSchedules } from "./db-service";
 
@@ -43,12 +50,35 @@ export const deleteNotification = async (id: number) => {
 ////////// Notification Logic //////////
 ///////////////////////////////////////
 
+export const defineCurrentIntervalDates = async (reminderId: number): Promise<{ start: Date; end: Date; index: number }> => {
+    const reminder = await db_source.getReminder(reminderId);
+    const startDate = new Date(reminder.created_at);
+
+    // Retrieve the next unscheduled notification to determine the interval_index
+    const nextNotification = await db_source.getNextNotification(reminderId);
+    const intervalIndex = nextNotification ? nextNotification.interval_index : 0;
+    console.log("Current interval index:", intervalIndex);
+
+    // Calculate the interval start and end based on the intervalIndex
+    let intervalStart = new Date(startDate);
+    for (let i = 0; i < intervalIndex; i++) {
+        intervalStart = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num);
+    }
+
+    const intervalEnd = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num);
+
+    console.log("Interval Start:", intervalStart);
+    console.log("Interval End:", intervalEnd);
+    console.log("Interval Index:", intervalIndex);
+
+    return { start: intervalStart, end: intervalEnd, index: intervalIndex };
+};
+
 export const handleReminderNotifications = async (reminderId: number): Promise<void> => {
     try {
         console.log("Starting step 1...");
         // 1. Fetch the reminder record
-        const reminders = await db_source.getAllReminders();
-        const reminder = reminders.find((r: any) => r.id === reminderId);
+        const reminder = await db_source.getReminder(reminderId);
         if (!reminder) {
             console.error(`Reminder with id ${reminderId} not found.`);
             return;
@@ -170,31 +200,68 @@ export const createNotificationsForInterval = async (reminder: any, intervalInde
     }
 };
 
-export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number): Date => {
-    const endDate = new Date(startDate);
+export const calculateIntervalStart = (startDate: Date, intervalType: string): Date => {
+    const localDate = dayjs(startDate).local(); // Convert to user’s local time before calculation
+
+    let intervalStart;
     switch (intervalType) {
         case 'minute':
-            endDate.setMinutes(endDate.getMinutes() + intervalNum);
+            intervalStart = localDate.startOf('minute');
             break;
         case 'hour':
-            endDate.setHours(endDate.getHours() + intervalNum);
+            intervalStart = localDate.startOf('hour');
             break;
         case 'day':
-            endDate.setDate(endDate.getDate() + intervalNum);
+            intervalStart = localDate.startOf('day');
             break;
         case 'week':
-            endDate.setDate(endDate.getDate() + intervalNum * 7);
+            intervalStart = localDate.startOf('week'); // Assumes ISO week, starting on Monday
             break;
         case 'month':
-            endDate.setMonth(endDate.getMonth() + intervalNum);
+            intervalStart = localDate.startOf('month');
             break;
         case 'year':
-            endDate.setFullYear(endDate.getFullYear() + intervalNum);
+            intervalStart = localDate.startOf('year');
             break;
         default:
+            intervalStart = localDate;
             break;
     }
-    return endDate;
+
+    // Convert back to UTC before returning
+    return intervalStart.utc().toDate();
+};
+
+export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number): Date => {
+    const localDate = dayjs(startDate).local(); // Convert to user’s local time before calculation
+
+    let intervalEnd;
+    switch (intervalType) {
+        case 'minute':
+            intervalEnd = localDate.add(intervalNum, 'minute').subtract(1, 'second').endOf('minute');
+            break;
+        case 'hour':
+            intervalEnd = localDate.add(intervalNum, 'hour').subtract(1, 'minute').endOf('hour');
+            break;
+        case 'day':
+            intervalEnd = localDate.add(intervalNum, 'day').subtract(1, 'hour').endOf('day');
+            break;
+        case 'week':
+            intervalEnd = localDate.add(intervalNum, 'week').subtract(1, 'day').endOf('week');
+            break;
+        case 'month':
+            intervalEnd = localDate.add(intervalNum, 'month').subtract(1, 'day').endOf('month');
+            break;
+        case 'year':
+            intervalEnd = localDate.add(intervalNum, 'year').subtract(1, 'month').endOf('year');
+            break;
+        default:
+            intervalEnd = localDate;
+            break;
+    }
+    
+    // Convert back to UTC before returning
+    return intervalEnd.utc().toDate();
 };
 
 export const getScheduleWindowsWithinInterval = (schedule: any, intervalStart: Date, intervalEnd: Date): { start: Date, end: Date }[] => {
@@ -376,4 +443,15 @@ export const scheduleNextNotification = async (reminderId: number): Promise<void
         );
         console.log("✅ Next notification scheduled", nextNotification.id);
     }
+};
+
+// Calculate the start and end date of the starting interval of a reminder
+export const calculateStartingInterval = async (reminderId: number): Promise<{ start: Date; end: Date; }> => {
+    const reminder = await db_source.getReminder(reminderId);
+    const startDate = new Date(reminder.created_at);
+    const intervalStart = new Date(startDate);
+    const intervalEnd = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num);
+    console.log("Interval Start:", intervalStart);
+    console.log("Interval End:", intervalEnd);
+    return { start: intervalStart, end: intervalEnd };
 };

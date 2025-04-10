@@ -501,6 +501,21 @@ export const getNotificationsByInterval = async (reminderId: number, intervalInd
   return notifications;
 };
 
+////////////////////////////////////////////////////
+////////// Get All Entities For Schedule //////////
+//////////////////////////////////////////////////
+
+// Helper function to get reminders for a given schedule
+export const getScheduleReminders = async (scheduleId: number) => {
+  const db = await openDB();
+  return await db.getAllAsync<Reminder>(
+    `SELECT r.* FROM reminders r
+     JOIN reminder_schedule rs ON rs.reminder_id = r.id 
+     WHERE rs.schedule_id = ?;`,
+    [scheduleId]
+  );
+};
+
 ////////////////////////////////////////////
 ////////// Functions for testing //////////
 //////////////////////////////////////////

@@ -112,6 +112,7 @@ export const handleReminderNotifications = async (reminderId: number): Promise<v
 
     } catch (error) {
         console.error("Error in refreshReminderNotifications:", error);
+        throw error;
     }
 };
 

@@ -131,7 +131,7 @@ export const handleReminderNotifications = async (reminderId: number): Promise<v
         for (const notif of newNotifications) {
             // Here, we set isScheduled to true for the first notification (segment_index 0)
             await createNotification(
-                reminder.id,
+                reminder.id!,
                 notif.scheduled_at,
                 notif.segment_index === 0,
                 notif.interval_index,
@@ -201,27 +201,34 @@ export const createNotificationsForInterval = async (reminder: any, intervalInde
     }
 };
 
-export const calculateIntervalStart = (startDate: Date, intervalType: string, intervalNum: number, intervalIndex: number = 0): Date => {
-    // Convert to local time
-    const localDate = dayjs.utc(startDate).local()
-    // Truncate to the start of the interval
-    const truncatedDate = localDate.startOf(intervalType as dayjs.OpUnitType);
-    // Advance by the correct multiple if this is not the first interval
-    const intervalStart = truncatedDate.add(intervalNum * intervalIndex, intervalType as dayjs.ManipulateType);
-    // Convert back to UTC before returning
-    return intervalStart.utc().toDate();
+export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number): Date => {
+    const endDate = new Date(startDate);
+    switch (intervalType) {
+        case 'minute':
+            endDate.setMinutes(endDate.getMinutes() + intervalNum);
+            break;
+        case 'hour':
+            endDate.setHours(endDate.getHours() + intervalNum);
+            break;
+        case 'day':
+            endDate.setDate(endDate.getDate() + intervalNum);
+            break;
+        case 'week':
+            endDate.setDate(endDate.getDate() + intervalNum * 7);
+            break;
+        case 'month':
+            endDate.setMonth(endDate.getMonth() + intervalNum);
+            break;
+        case 'year':
+            endDate.setFullYear(endDate.getFullYear() + intervalNum);
+            break;
+        default:
+            break;
+    }
+    return endDate;
 };
 
-export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number, intervalIndex: number = 0): Date => {
-    // Convert to local time
-    const localDate = dayjs.utc(startDate).local()
-    // Calculate the start of the next interval
-    const nextIntervalStart = localDate.startOf(intervalType as dayjs.OpUnitType).add(intervalNum * (intervalIndex + 1), intervalType as dayjs.ManipulateType);
-    // Subtract 1 millisecond to get the exact end of the current interval
-    const intervalEnd = nextIntervalStart.subtract(1, 'millisecond');
-    // Convert back to UTC before returning
-    return intervalEnd.utc().toDate();
-};
+
 
 export const getScheduleWindowsWithinInterval = (schedule: any, intervalStart: Date, intervalEnd: Date): { start: Date, end: Date }[] => {
     const windows: { start: Date, end: Date }[] = [];

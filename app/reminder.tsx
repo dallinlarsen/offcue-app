@@ -48,8 +48,9 @@ export default function ReminderDetails() {
             setIntervalStart(intervalInfo.start.toLocaleDateString());
             setIntervalEnd(intervalInfo.end.toLocaleDateString());
             setIntervalIndex(intervalInfo.index);
-
-            console.log('Reminder Index: ', notifs[0].interval_index);
+            console.log("Interval Index:", intervalInfo.index);
+            console.log("Interval Start:", intervalInfo.start);
+            console.log("Interval End:", intervalInfo.end);
         }
         loadData();
     }, [reminderId]);
@@ -98,7 +99,7 @@ export default function ReminderDetails() {
             </Text>
             <Text>Times per interval: {reminder.times}</Text>
             <Text>
-                Current Interval: {intervalStart ? intervalStart.toLocaleString() : "N/A"} to {intervalEnd ? intervalEnd.toLocaleString() : "N/A"} for {intervalIndex}
+                Current Interval: {intervalStart ? intervalStart.toLocaleString() : "N/A"} to {intervalEnd ? intervalEnd.toLocaleString() : "N/A"} for {intervalIndex} 
             </Text>
 
             <Heading size="lg" style={{ marginTop: 20 }}>

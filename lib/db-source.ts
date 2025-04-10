@@ -137,8 +137,8 @@ export const getReminder = async (id: number) => {
               )
             ) AS schedules
     FROM reminders r
-    JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    LEFT JOIN schedules s ON s.id = rs.schedule_id
     WHERE r.id = ?
     GROUP BY r.id;
     `,
@@ -424,8 +424,8 @@ export const getAllReminders = async (): Promise<any[]> => {
               )
             ) AS schedules
     FROM reminders r
-    JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    LEFT JOIN schedules s ON s.id = rs.schedule_id
     GROUP BY r.id;
   `, []);
 
@@ -488,6 +488,7 @@ export const getNextNotification = async (reminderId: number): Promise<any> => {
     `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
     [reminderId]
   );
+  console.log("Next unscheduled notification:", notification);
   return notification;
 };
 
@@ -520,3 +521,13 @@ export const wipeDatabase = async (): Promise<void> => {
   await initDatabase();
   console.log("✅ Database reinitialized successfully");
 }
+
+// Function to delete all notifications in a specific interval index for a reminder
+export const deleteNotificationsInInterval = async (reminderId: number, intervalIndex: number): Promise<void> => {
+  const db = await openDB();
+  await db.runAsync(
+    `DELETE FROM notifications WHERE reminder_id = ? AND interval_index = ?;`,
+    [reminderId, intervalIndex]
+  );
+  console.log("✅ Notifications in interval deleted successfully");
+};

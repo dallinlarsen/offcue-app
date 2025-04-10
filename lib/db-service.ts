@@ -152,7 +152,7 @@ export const getOpenNotificationsForReminder = async (reminderId: number) => {
 
 // Handle the creation of notifications
 export const createNotifications = async (reminderId: number): Promise<void> => {
-    handleReminderNotifications(reminderId);
+    await handleReminderNotifications(reminderId);
 };
 
 ////////// Functions for testing //////////
@@ -162,4 +162,18 @@ export const createNotifications = async (reminderId: number): Promise<void> => 
 // There is a button on the home page that calls this function
 export const wipeDatabase = async () => {
     db_source.wipeDatabase();
+};
+
+// Force the recreation of notifications
+// First delete the existing notifications in the current interval index
+// Then create new notifications
+export const deleteNotificationsInInterval = async (reminderId: number): Promise<void> => {
+    // Get the interval index of the reminder
+    const currentNotification = await db_source.getUnrespondedReminderNotifications(reminderId);
+    console.log("Current Notification: ", currentNotification);
+    const currentIntervalIndex = currentNotification[0].interval_index;
+    console.log("Current Interval Index: ", currentIntervalIndex);
+
+    // Delete all notifications in the current interval index
+    await db_source.deleteNotificationsInInterval(reminderId, currentIntervalIndex);
 };

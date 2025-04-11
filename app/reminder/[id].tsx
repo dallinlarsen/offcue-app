@@ -137,7 +137,7 @@ export default function ReminderDetails() {
                   </Box>
 
                   <BlurView
-                    intensity={15}
+                    intensity={20}
                     className="absolute top-0 bottom-0 right-0 left-0"
                   />
                 </Box>

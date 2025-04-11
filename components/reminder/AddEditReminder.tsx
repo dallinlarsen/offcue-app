@@ -47,10 +47,21 @@ const ZodSchema = z.object({
   title: z.string().min(1, "Required"),
   description: z.string().nullish(),
   interval_type: z.string().min(1, "Required"),
-  interval_num: z.string().min(1, "Required"),
-  times: z.string().min(1, "Required"),
+  interval_num: z
+    .string()
+    .min(1, "Required")
+    .refine((num) => parseInt(num) < 60, "Must be less than 60")
+    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
+  times: z
+    .string()
+    .min(1, "Required")
+    .refine((num) => parseInt(num) < 20, "Must be less than 20")
+    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
   track_streak: z.boolean(),
-  schedules: z.array(z.any()).min(1, "At least one schedule is required"),
+  schedules: z
+    .array(z.any())
+    .min(1, "At least one schedule is required")
+    .max(3, "A maximum of 3 schedules can be selected"),
 });
 
 export default function AddEditReminder({
@@ -194,7 +205,13 @@ export default function AddEditReminder({
                   control={control}
                   name="interval_type"
                   render={({ field: { onChange, onBlur, value } }) => (
-                    <Select selectedValue={value} onValueChange={onChange}>
+                    <Select
+                      selectedValue={value}
+                      onValueChange={onChange}
+                      initialLabel={
+                        FREQUENCY_TYPES.find((t) => t.value === value)?.label
+                      }
+                    >
                       <SelectTrigger
                         variant="outline"
                         size="xl"
@@ -297,6 +314,7 @@ export default function AddEditReminder({
                     variant="link"
                     size="xl"
                     onPress={() => setSchedulesOpen(true)}
+                    isDisabled={schedules.length >= 3}
                   >
                     <ButtonIcon as={AddIcon} />
                     <ButtonText>Schedule</ButtonText>
@@ -307,6 +325,7 @@ export default function AddEditReminder({
               <Button
                 size="xl"
                 variant="outline"
+                action={errors.schedules ? 'negative' : undefined}
                 onPress={() => setSchedulesOpen(true)}
               >
                 <ButtonIcon as={AddIcon} />
@@ -314,7 +333,7 @@ export default function AddEditReminder({
               </Button>
             )}
             {errors.schedules && (
-              <Text className="text-red-700">{errors.schedules?.message}</Text>
+              <Text className="text-red-700 dark:text-red-500">{errors.schedules?.message}</Text>
             )}
           </VStack>
           <HStack space="xl" className="items-center">

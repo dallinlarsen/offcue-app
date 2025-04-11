@@ -30,11 +30,14 @@ import {
 import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import { Reminder } from "@/lib/types";
+import ReminderSelectCard from "@/components/reminder/ReminderSelectCard";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const router = useRouter();
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [dueReminders, setDueReminders] = useState<Reminder[]>([]);
+  const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
 
   const loadReminders = async () => {
     const data = await getAllReminders();
@@ -54,93 +57,68 @@ export default function HomeScreen() {
     }, [])
   );
 
-  const handleToggleMute = async (id: number, muted: boolean) => {
-    await updateReminderMuted(id, muted);
-    loadReminders(); // Refresh list after updating
-  };
+  useEffect(() => {
+    setDueReminders(reminders.filter((r) => r.due_scheduled_at));
+    setUpcomingReminders(reminders.filter((r) => !r.due_scheduled_at));
+  }, [reminders]);
 
   return (
     <ThemedContainer>
       <Box className="mb-2">
         <Heading size="3xl">Reminders</Heading>
-        <Button
+        {/* <Button
           onPress={async () => {
             await wipeDatabase();
             loadReminders();
           }}
         >
           <ButtonText>Wipe Database</ButtonText>
-        </Button>
+        </Button> */}
       </Box>
       <ScrollView>
-        <VStack space="lg">
-          {chunkIntoPairs(reminders).map((p, idx) => (
-            <Box className="flex flex-row gap-4" key={idx}>
-              {p.map((r, idx) =>
-                r ? (
-                  <Card
-                    key={idx}
-                    variant="outline"
-                    className="bg-background-50 p-3 flex-1 aspect-square justify-between"
-                  >
-                    <TouchableOpacity
-                      onPress={() => router.push(`/reminder/${r.id}`)}
-                      className="flex-1"
-                    >
-                      <VStack>
-                        <Heading
-                          numberOfLines={2}
-                          className="font-quicksand-bold"
-                          size="lg"
-                        >
-                          {r.title}
-                        </Heading>
-                        <Text>
-                          {formatFrequencyString(
-                            r.times,
-                            r.interval_num,
-                            r.interval_type
-                          )}
-                        </Text>
-                        <Text>{formatScheduleString(r.schedules[0])}</Text>
-                        {r.schedules.slice(1).length > 0 ? (
-                          <Text size="sm" className="-mt-1">
-                            +{r.schedules.slice(1).length} More
-                          </Text>
-                        ) : null}
-                      </VStack>
-                    </TouchableOpacity>
-                    <Box className="flex flex-row">
-                      <Box className="flex-grow" />
-                      <HStack space="sm" className="items-center">
-                        <Text size="lg" className="font-quicksand-semibold">
-                          Mute
-                        </Text>
-                        <Switch
-                          value={r.is_muted}
-                          onValueChange={(muted) =>
-                            handleToggleMute(r.id!, muted)
-                          }
-                          trackColor={{
-                            false: colors.gray[300],
-                            true: colors.gray[500],
-                          }}
-                          size="sm"
-                          thumbColor={colors.gray[50]}
-                          ios_backgroundColor={colors.gray[300]}
+        <VStack space="2xl">
+          {dueReminders.length > 0 && (
+            <VStack space="xs">
+              <Heading size="xl">Due</Heading>
+              <VStack space="lg">
+                {chunkIntoPairs(dueReminders).map((p, idx) => (
+                  <Box className="flex flex-row gap-4" key={idx}>
+                    {p.map((r, idx) =>
+                      r ? (
+                        <ReminderSelectCard key={r.id} reminder={r} />
+                      ) : (
+                        <Box
+                          key={`idx_${idx}`}
+                          className="p-3 flex-1 aspect-square opacity-0"
                         />
-                      </HStack>
-                    </Box>
-                  </Card>
-                ) : (
-                  <Box
-                    key={idx}
-                    className="p-3 flex-1 aspect-square opacity-0"
-                  />
-                )
-              )}
-            </Box>
-          ))}
+                      )
+                    )}
+                  </Box>
+                ))}
+              </VStack>
+            </VStack>
+          )}
+          {upcomingReminders.length > 0 && (
+            <VStack space="xs">
+              <Heading size="xl">Upcoming</Heading>
+              <VStack space="lg">
+                {chunkIntoPairs(upcomingReminders).map((p, idx) => (
+                  <Box className="flex flex-row gap-4" key={idx}>
+                    {p.map((r, idx) =>
+                      r ? (
+                        <ReminderSelectCard key={r.id} reminder={r} />
+                      ) : (
+                        <Box
+                          key={`idx_${idx}`}
+                          className="p-3 flex-1 aspect-square opacity-0"
+                        />
+                      )
+                    )}
+                  </Box>
+                ))}
+              </VStack>
+            </VStack>
+          )}
         </VStack>
       </ScrollView>
       <Fab

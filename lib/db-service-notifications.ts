@@ -132,8 +132,10 @@ export const generateNotificationTimes = (
         allowedWindows = allowedWindows.concat(windows);
     }
 
+    console.log('allowedWindows', allowedWindows);
     // 3. Merge overlapping allowed windows
     const mergedWindows = mergeTimeWindows(allowedWindows);
+    console.log('mergedWindows', mergedWindows)
 
     // 4. Calculate total allowed duration (in milliseconds)
     let totalAllowedDuration = 0;

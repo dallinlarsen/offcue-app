@@ -47,7 +47,7 @@ const buttonStyle = tva({
       positive:
         'bg-success-500 border-success-300 data-[hover=true]:bg-success-600 data-[hover=true]:border-success-400 data-[active=true]:bg-success-700 data-[active=true]:border-success-500 data-[focus-visible=true]:web:ring-indicator-info',
       negative:
-        'bg-error-500 border-error-300 data-[hover=true]:bg-error-600 data-[hover=true]:border-error-400 data-[active=true]:bg-error-700 data-[active=true]:border-error-500 data-[focus-visible=true]:web:ring-indicator-info',
+        'bg-error-700 border-error-700 data-[hover=true]:bg-error-600 data-[hover=true]:border-error-400 data-[active=true]:bg-error-700 data-[active=true]:border-error-500 data-[focus-visible=true]:web:ring-indicator-info',
       default:
         'bg-transparent data-[hover=true]:bg-background-50 data-[active=true]:bg-transparent',
     },
@@ -119,80 +119,80 @@ const buttonStyle = tva({
 });
 
 const buttonTextStyle = tva({
-  base: 'text-typography-0 font-semibold web:select-none',
+  base: "text-typography-0 font-semibold web:select-none",
   parentVariants: {
     action: {
       primary:
-        'text-primary-600 data-[hover=true]:text-primary-600 data-[active=true]:text-primary-700',
+        "text-primary-600 data-[hover=true]:text-primary-600 data-[active=true]:text-primary-700",
       secondary:
-        'text-typography-500 data-[hover=true]:text-typography-600 data-[active=true]:text-typography-700',
+        "text-typography-500 data-[hover=true]:text-typography-600 data-[active=true]:text-typography-700",
       positive:
-        'text-success-600 data-[hover=true]:text-success-600 data-[active=true]:text-success-700',
+        "text-success-600 data-[hover=true]:text-success-600 data-[active=true]:text-success-700",
       negative:
-        'text-error-600 data-[hover=true]:text-error-600 data-[active=true]:text-error-700',
+        "text-error-600 data-[hover=true]:text-error-600 data-[active=true]:text-error-700",
     },
     variant: {
-      link: 'data-[hover=true]:underline data-[active=true]:underline',
-      outline: '',
+      link: "data-[hover=true]:underline data-[active=true]:underline",
+      outline: "",
       solid:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        "text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0",
     },
     size: {
-      xs: 'text-xs',
-      sm: 'text-sm',
-      md: 'text-base',
-      lg: 'text-lg',
-      xl: 'text-xl',
+      xs: "text-xs",
+      sm: "text-sm",
+      md: "text-base",
+      lg: "text-lg",
+      xl: "text-xl",
     },
   },
   parentCompoundVariants: [
     {
-      variant: 'solid',
-      action: 'primary',
+      variant: "solid",
+      action: "primary",
       class:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        "text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0",
     },
     {
-      variant: 'solid',
-      action: 'secondary',
+      variant: "solid",
+      action: "secondary",
       class:
-        'text-typography-800 data-[hover=true]:text-typography-800 data-[active=true]:text-typography-800',
+        "text-typography-800 data-[hover=true]:text-typography-800 data-[active=true]:text-typography-800",
     },
     {
-      variant: 'solid',
-      action: 'positive',
+      variant: "solid",
+      action: "positive",
       class:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        "text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0",
     },
     {
-      variant: 'solid',
-      action: 'negative',
+      variant: "solid",
+      action: "negative",
       class:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        "text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0",
     },
     {
-      variant: 'outline',
-      action: 'primary',
+      variant: "outline",
+      action: "primary",
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        "text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500",
     },
     {
-      variant: 'outline',
-      action: 'secondary',
+      variant: "outline",
+      action: "secondary",
       class:
-        'text-typography-500 data-[hover=true]:text-primary-600 data-[active=true]:text-typography-700',
+        "text-typography-500 data-[hover=true]:text-primary-600 data-[active=true]:text-typography-700",
     },
     {
-      variant: 'outline',
-      action: 'positive',
+      variant: "outline",
+      action: "positive",
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        "text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500",
     },
     {
-      variant: 'outline',
-      action: 'negative',
+      variant: "outline",
+      action: "negative",
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        "text-red-700 dark:text-red-500 data-[hover=true]:text-red-800 data-[active=true]:text-red-800",
     },
   ],
 });
@@ -222,7 +222,7 @@ const buttonIconStyle = tva({
         'text-success-600 data-[hover=true]:text-success-600 data-[active=true]:text-success-700',
 
       negative:
-        'text-error-600 data-[hover=true]:text-error-600 data-[active=true]:text-error-700',
+        'text-error-700 data-[hover=true]:text-error-600 data-[active=true]:text-error-700',
     },
   },
   parentCompoundVariants: [

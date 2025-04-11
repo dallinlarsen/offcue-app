@@ -9,6 +9,7 @@ export type Reminder = {
   track_streak: boolean;
   track_notes: boolean;
   is_muted: boolean;
+  due_scheduled_at: string | null
   created_at: Date;
 };
 

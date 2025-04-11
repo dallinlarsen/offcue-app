@@ -135,10 +135,18 @@ export const getReminder = async (id: number) => {
                 'start_time', s.start_time,
                 'end_time', s.end_time
               )
-            ) AS schedules
+            ) AS schedules,
+            n.scheduled_at AS due_scheduled_at
     FROM reminders r
-    LEFT JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    LEFT JOIN schedules s ON s.id = rs.schedule_id
+    JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN (
+      SELECT *
+      FROM notifications
+      WHERE scheduled_at < CURRENT_TIMESTAMP AND response_at IS NULL
+      ORDER BY scheduled_at DESC
+      LIMIT 1
+    ) n ON n.reminder_id = r.id
     WHERE r.id = ?
     GROUP BY r.id;
     `,
@@ -423,10 +431,18 @@ export const getAllReminders = async (): Promise<any[]> => {
                 'start_time', s.start_time,
                 'end_time', s.end_time
               )
-            ) AS schedules
+            ) AS schedules,
+            n.scheduled_at AS due_scheduled_at
     FROM reminders r
-    LEFT JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    LEFT JOIN schedules s ON s.id = rs.schedule_id
+    JOIN reminder_schedule rs ON rs.reminder_id = r.id
+    JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN (
+      SELECT *
+      FROM notifications
+      WHERE scheduled_at < CURRENT_TIMESTAMP AND response_at IS NULL
+      ORDER BY scheduled_at DESC
+      LIMIT 1
+    ) n ON n.reminder_id = r.id
     GROUP BY r.id;
   `, []);
 

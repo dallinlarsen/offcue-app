@@ -5,7 +5,6 @@ import weekOfYear from 'dayjs/plugin/weekOfYear';
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
 
-
 import * as db_source from './db-source';
 // import { getReminderSchedules } from "./db-service";
 
@@ -134,7 +133,7 @@ export const handleReminderNotifications = async (reminderId: number): Promise<v
             // Here, we set isScheduled to true for the first notification (segment_index 0)
             await createNotification(
                 reminder.id,
-                notif.scheduled_at,
+                dayjs(notif.scheduled_at).format('YYYY-MM-DD HH:mm'),
                 notif.segment_index === 0,
                 notif.interval_index,
                 notif.segment_index
@@ -165,8 +164,10 @@ export const generateNotificationTimes = (
         allowedWindows = allowedWindows.concat(windows);
     }
 
+    console.log('allowedWindows', allowedWindows);
     // 3. Merge overlapping allowed windows
     const mergedWindows = mergeTimeWindows(allowedWindows);
+    console.log('mergedWindows', mergedWindows)
 
     // 4. Calculate total allowed duration (in milliseconds)
     let totalAllowedDuration = 0;

@@ -6,11 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
-import * as SQLite from "expo-sqlite";
-import { createDatabase } from "@/lib/db-service";
-
-const db = SQLite.openDatabaseSync("reminders.db");
+import { markDoneSkipNotificationCategoryListener, setupAndConfigureNotifications } from "@/lib/device-notifications.service";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -26,6 +22,13 @@ export default function RootLayout() {
     "Quicksand-SemiBold": require("../assets/fonts/Quicksand/Quicksand-SemiBold.ttf"),
     "Quicksand-Bold": require("../assets/fonts/Quicksand/Quicksand-Bold.ttf"),
   });
+
+  useEffect(() => {
+    setupAndConfigureNotifications();
+    const subscription = markDoneSkipNotificationCategoryListener();
+
+    return () => subscription.remove();
+  }, [])
 
   useEffect(() => {
     if (loaded) {

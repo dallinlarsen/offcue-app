@@ -4,7 +4,7 @@ import { ScrollView } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon } from "@/components/ui/icon";
+import { AddIcon, Icon, SettingsIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { getAllReminders } from "@/lib/db-service";
 import { chunkIntoPairs } from "@/lib/utils";
@@ -48,7 +48,10 @@ export default function HomeScreen() {
     <ThemedContainer>
       <Box className="mb-2">
         <Heading size="3xl">Reminders</Heading>
-        {/* <Button
+        <TouchableOpacity onPress={() => router.push('/notifications-test')}>
+          <Icon as={SettingsIcon} />
+        </TouchableOpacity>
+        <Button
           onPress={async () => {
             await wipeDatabase();
             loadReminders();

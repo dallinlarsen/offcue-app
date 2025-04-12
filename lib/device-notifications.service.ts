@@ -54,8 +54,8 @@ export function markDoneSkipNotificationCategoryListener() {
 export async function createDeviceNotification(
   title: string,
   body: string,
-  identifier: string,
   timestamp: string,
+  identifier?: string,
   categoryIdentifier?: CategoryIdentifier,
   data?: { [key: string]: number | string | boolean }
 ) {

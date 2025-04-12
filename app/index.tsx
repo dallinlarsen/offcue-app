@@ -10,7 +10,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon } from "@/components/ui/icon";
+import { AddIcon, Icon, SettingsIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { Text } from "@/components/ui/text";
 import { Switch } from "@/components/ui/switch";
@@ -63,6 +63,9 @@ export default function HomeScreen() {
     <ThemedContainer>
       <Box className="mb-2">
         <Heading size="3xl">Reminders</Heading>
+        <TouchableOpacity onPress={() => router.push('/notifications-test')}>
+          <Icon as={SettingsIcon} />
+        </TouchableOpacity>
         <Button
           onPress={async () => {
             await wipeDatabase();

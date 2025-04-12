@@ -57,7 +57,7 @@ export default function ReminderDetailsPage() {
           {reminder.title}
         </Heading>
       </Box>
-      <ReminderDetails reminder={reminder} />
+      <ReminderDetails reminder={reminder} onNotificationResponse={() => fetchData()} />
       <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
         <FabIcon as={EditIcon} />
       </Fab>

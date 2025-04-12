@@ -9,8 +9,11 @@ import { HStack } from "../ui/hstack";
 import colors from "tailwindcss/colors";
 import { Switch } from "../ui/switch";
 import { useRouter } from "expo-router";
-import { updateReminderMuted } from "@/lib/db-service";
-import { Reminder } from "@/lib/types";
+import {
+  updateNotificationResponse,
+  updateReminderMuted,
+} from "@/lib/db-service";
+import { NotificationResponseStatus, Reminder } from "@/lib/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,36 +22,46 @@ import { Button, ButtonText } from "../ui/button";
 
 type Props = {
   reminder: Reminder;
+  onNotificationResponse: () => void;
 };
 
 const ZodSchema = z.object({
   is_muted: z.boolean(),
 });
 
-export default function ({ reminder }: Props) {
+export default function ({ reminder, onNotificationResponse }: Props) {
   const router = useRouter();
 
-  const {watch, setValue} = useForm({
+  const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
       is_muted: reminder.is_muted,
     },
   });
 
-  const is_muted = watch('is_muted');
+  const is_muted = watch("is_muted");
 
   useWatch(is_muted, async (newVal) => {
     await updateReminderMuted(reminder.id!, newVal);
   });
 
   useWatch(reminder, (r) => {
-    setValue('is_muted', r.is_muted);
+    setValue("is_muted", r.is_muted);
   });
+
+  async function handleNotificationAction(
+    response: NotificationResponseStatus
+  ) {
+    if (reminder.due_notification_id) {
+      await updateNotificationResponse(reminder.due_notification_id, response);
+      onNotificationResponse();
+    }
+  }
 
   return (
     <Card
-      variant="outline"
-      className="bg-background-50 p-3 flex-1 aspect-square justify-between"
+      variant={reminder.due_scheduled_at ? 'outline' : 'filled'}
+      className={`${ reminder.due_scheduled_at ? 'bg-background-50' : 'bg-background-100' } p-3 flex-1 aspect-square justify-between`}
     >
       <TouchableOpacity
         onPress={() => router.push(`/reminder/${reminder.id}`)}
@@ -79,12 +92,16 @@ export default function ({ reminder }: Props) {
       </TouchableOpacity>
       {reminder.due_scheduled_at ? (
         <VStack space="sm">
-            <Button size="xl" variant="outline">
-                <ButtonText>Skip</ButtonText>
-            </Button>
-            <Button size="xl">
-                <ButtonText>Done</ButtonText>
-            </Button>
+          <Button
+            size="xl"
+            variant="outline"
+            onPress={() => handleNotificationAction("skip")}
+          >
+            <ButtonText>Skip</ButtonText>
+          </Button>
+          <Button size="xl" onPress={() => handleNotificationAction("done")}>
+            <ButtonText>Done</ButtonText>
+          </Button>
         </VStack>
       ) : (
         <Box className="flex flex-row">

@@ -1,36 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigation, useRouter, useFocusEffect } from "expo-router";
-import {
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  View,
-  ScrollView,
-} from "react-native";
+import { ScrollView } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { AddIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-import { Text } from "@/components/ui/text";
-import { Switch } from "@/components/ui/switch";
-import colors from "tailwindcss/colors";
-import {
-  getAllReminders,
-  updateReminderMuted,
-  wipeDatabase,
-} from "@/lib/db-service";
-import { Button, ButtonText } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  chunkIntoPairs,
-  formatFrequencyString,
-  formatScheduleString,
-} from "@/lib/utils";
+import { getAllReminders } from "@/lib/db-service";
+import { chunkIntoPairs } from "@/lib/utils";
 import { VStack } from "@/components/ui/vstack";
-import { HStack } from "@/components/ui/hstack";
 import { Reminder } from "@/lib/types";
 import ReminderSelectCard from "@/components/reminder/ReminderSelectCard";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -85,7 +67,11 @@ export default function HomeScreen() {
                   <Box className="flex flex-row gap-4" key={idx}>
                     {p.map((r, idx) =>
                       r ? (
-                        <ReminderSelectCard key={r.id} reminder={r} />
+                        <ReminderSelectCard
+                          key={r.id}
+                          reminder={r}
+                          onNotificationResponse={() => loadReminders()}
+                        />
                       ) : (
                         <Box
                           key={`idx_${idx}`}
@@ -106,7 +92,11 @@ export default function HomeScreen() {
                   <Box className="flex flex-row gap-4" key={idx}>
                     {p.map((r, idx) =>
                       r ? (
-                        <ReminderSelectCard key={r.id} reminder={r} />
+                        <ReminderSelectCard
+                          key={r.id}
+                          reminder={r}
+                          onNotificationResponse={() => loadReminders}
+                        />
                       ) : (
                         <Box
                           key={`idx_${idx}`}
@@ -120,6 +110,7 @@ export default function HomeScreen() {
             </VStack>
           )}
         </VStack>
+        <Box className="h-36"></Box>
       </ScrollView>
       <Fab
         size="lg"
@@ -128,6 +119,48 @@ export default function HomeScreen() {
       >
         <FabIcon size="xl" as={AddIcon} />
       </Fab>
+      <Box
+        className="absolute bottom-0 right-0 left-0 h-40 dark:h-0"
+        pointerEvents="none"
+      >
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            "rgba(251, 251, 251, 0)",
+            "rgba(251, 251, 251, .5)",
+            "rgba(251, 251, 251, .7)",
+            "rgba(251, 251, 251, .9)",
+            "rgba(251, 251, 251, 1)",
+          ]}
+          style={styles.background}
+        />
+      </Box>
+      <Box
+        className="absolute bottom-0 right-0 left-0 h-0 dark:h-40"
+        pointerEvents="none"
+      >
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            "rgba(24, 23, 25, 0)",
+            "rgba(24, 23, 25, .5)",
+            "rgba(24, 23, 25, .7)",
+            "rgba(24, 23, 25, .9)",
+            "rgba(24, 23, 25, 1)",
+          ]}
+          style={styles.background}
+        />
+      </Box>
     </ThemedContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+  },
+});

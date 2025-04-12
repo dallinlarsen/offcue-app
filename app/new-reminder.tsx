@@ -26,7 +26,8 @@ export default function NewReminder() {
     track_streak: false,
     track_notes: false,
     is_muted: false,
-    due_scheduled_at: null
+    due_scheduled_at: null,
+    due_notification_id: null,
   };
 
   return (

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import * as db_source from './db-source';
 // import { getReminderSchedules } from "./db-service";
 
@@ -101,7 +102,7 @@ export const handleReminderNotifications = async (reminderId: number): Promise<v
             // Here, we set isScheduled to true for the first notification (segment_index 0)
             await createNotification(
                 reminder.id,
-                notif.scheduled_at,
+                dayjs(notif.scheduled_at).format('YYYY-MM-DD HH:mm'),
                 notif.segment_index === 0,
                 notif.interval_index,
                 notif.segment_index

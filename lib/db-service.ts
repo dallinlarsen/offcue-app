@@ -1,7 +1,7 @@
 import * as db_source from './db-source';
 import { handleReminderNotifications } from './db-service-notifications';
 
-export { getScheduleReminders } from './db-source';
+export { getScheduleReminders, getReminderPastNotifications, updateNotificationResponse } from "./db-source";
 
 export const createDatabase = async () => {
     db_source.initDatabase();

@@ -13,6 +13,7 @@ import { Reminder } from "@/lib/types";
 import ReminderSelectCard from "@/components/reminder/ReminderSelectCard";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
+import { HStack } from "@/components/ui/hstack";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -47,10 +48,15 @@ export default function HomeScreen() {
   return (
     <ThemedContainer>
       <Box className="mb-2">
-        <Heading size="3xl">Reminders</Heading>
-        <TouchableOpacity onPress={() => router.push('/notifications-test')}>
-          <Icon as={SettingsIcon} />
-        </TouchableOpacity>
+        <HStack className="justify-between items-start">
+          <Heading size="3xl">Reminders</Heading>
+          <TouchableOpacity
+            className="p-3"
+            onPress={() => router.push("/notifications-test")}
+          >
+            <Icon as={SettingsIcon} size="xl" />
+          </TouchableOpacity>
+        </HStack>
         {/* <Button
         <Button
           onPress={async () => {

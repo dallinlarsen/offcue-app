@@ -5,6 +5,7 @@ import weekOfYear from 'dayjs/plugin/weekOfYear';
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
 
+
 import * as db_source from './db-source';
 // import { getReminderSchedules } from "./db-service";
 
@@ -52,6 +53,7 @@ export const deleteNotification = async (id: number) => {
 
 export const defineCurrentIntervalDates = async (reminderId: number): Promise<{ start: Date; end: Date; index: number }> => {
     const reminder = await db_source.getReminder(reminderId);
+
 
     //I'm not sure what this function should return if the reminder isn't found...!
     if(!reminder) return { 
@@ -212,6 +214,8 @@ export const calculateIntervalStart = (startDate: Date, intervalType: string, in
     return intervalStart.utc().toDate();
 };
 
+
+
 export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number, intervalIndex: number = 0): Date => {
     // Convert to local time
     const localDate = dayjs.utc(startDate).local()
@@ -221,6 +225,7 @@ export const calculateIntervalEnd = (startDate: Date, intervalType: string, inte
     const intervalEnd = nextIntervalStart.subtract(1, 'millisecond');
     // Convert back to UTC before returning
     return intervalEnd.utc().toDate();
+
 };
 
 export const getScheduleWindowsWithinInterval = (schedule: any, intervalStart: Date, intervalEnd: Date): { start: Date, end: Date }[] => {

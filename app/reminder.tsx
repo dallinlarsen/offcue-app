@@ -6,11 +6,9 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
-import { defineCurrentIntervalDates, handleReminderNotifications } from "@/lib/db-service-notifications";
-import { createNotifications, deleteNotificationsInInterval } from "@/lib/db-service";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { EditIcon } from "@/components/ui/icon";
-import dayjs from "dayjs";
+import { defineCurrentIntervalDates } from "@/lib/db-service-notifications";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -50,6 +48,7 @@ export default function ReminderDetails() {
             setIntervalIndex(intervalInfo.index);
 
             console.log('Reminder Index: ', notifs[0].interval_index);
+ 
         }
         loadData();
     }, [reminderId]);

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { ActivityIndicator, Button, FlatList, TouchableOpacity, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { getAllReminders, getReminderNotifications } from "@/lib/db-source";
+import { getReminder, getReminderNotifications } from "@/lib/db-source";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { defineCurrentIntervalDates, handleReminderNotifications } from "@/lib/db-service-notifications";
 import { createNotifications, deleteNotificationsInInterval } from "@/lib/db-service";
+import { Fab, FabIcon } from "@/components/ui/fab";
+import { EditIcon } from "@/components/ui/icon";
+import dayjs from "dayjs";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -25,9 +28,15 @@ export default function ReminderDetails() {
         async function loadData() {
             setLoading(true);
             // Fetch reminders and find the one matching the id
-            const reminders = await getAllReminders();
-            const foundReminder = reminders.find((r: any) => r.id === reminderId);
-            setReminder(foundReminder);
+            const reminder = await getReminder(reminderId);
+            if (!reminder) {
+                setLoading(false);
+                return;
+            }
+            setReminder(reminder);
+
+            console.log("THIS REMINDER WAS CREATED AT: ", reminder.created_at);
+
 
             // Fetch notifications for this reminder
             const notifs = await getReminderNotifications(reminderId);
@@ -39,9 +48,8 @@ export default function ReminderDetails() {
             setIntervalStart(intervalInfo.start.toLocaleDateString());
             setIntervalEnd(intervalInfo.end.toLocaleDateString());
             setIntervalIndex(intervalInfo.index);
-            console.log("Interval Index:", intervalInfo.index);
-            console.log("Interval Start:", intervalInfo.start);
-            console.log("Interval End:", intervalInfo.end);
+
+            console.log('Reminder Index: ', notifs[0].interval_index);
         }
         loadData();
     }, [reminderId]);
@@ -90,7 +98,7 @@ export default function ReminderDetails() {
             </Text>
             <Text>Times per interval: {reminder.times}</Text>
             <Text>
-                Current Interval: {intervalStart ? intervalStart.toLocaleString() : "N/A"} to {intervalEnd ? intervalEnd.toLocaleString() : "N/A"} for {intervalIndex} 
+                Current Interval: {intervalStart ? intervalStart.toLocaleString() : "N/A"} to {intervalEnd ? intervalEnd.toLocaleString() : "N/A"} for {intervalIndex}
             </Text>
 
             <Heading size="lg" style={{ marginTop: 20 }}>

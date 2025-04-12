@@ -84,7 +84,7 @@ export default function HomeScreen() {
                     className="bg-background-50 p-3 flex-1 aspect-square justify-between"
                   >
                     <TouchableOpacity
-                      onPress={() => router.push(`/reminder/${r.id}`)}
+                      onPress={() => router.push(`/reminder?id=${r.id}`)}
                       className="flex-1"
                     >
                       <VStack>

@@ -52,24 +52,25 @@ export const deleteNotification = async (id: number) => {
 
 export const defineCurrentIntervalDates = async (reminderId: number): Promise<{ start: Date; end: Date; index: number }> => {
     const reminder = await db_source.getReminder(reminderId);
-    const startDate = new Date(reminder.created_at);
+
+    //I'm not sure what this function should return if the reminder isn't found...!
+    if(!reminder) return { 
+        start: new Date(),
+        end: new Date(),
+        index: -1
+    };
 
     // Retrieve the next unscheduled notification to determine the interval_index
     const nextNotification = await db_source.getNextNotification(reminderId);
     const intervalIndex = nextNotification ? nextNotification.interval_index : 0;
-    console.log("Current interval index:", intervalIndex);
 
-    // Calculate the interval start and end based on the intervalIndex
-    let intervalStart = new Date(startDate);
-    for (let i = 0; i < intervalIndex; i++) {
-        intervalStart = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num);
-    }
+    // Calculate the interval boundaries directly using the new functions
+    const intervalStart = calculateIntervalStart(reminder.created_at, reminder.interval_type, reminder.interval_num, intervalIndex);
+    const intervalEnd = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num, intervalIndex);
 
-    const intervalEnd = calculateIntervalEnd(intervalStart, reminder.interval_type, reminder.interval_num);
-
-    console.log("Interval Start:", intervalStart);
-    console.log("Interval End:", intervalEnd);
-    console.log("Interval Index:", intervalIndex);
+    console.log("Interval Start Date/Time:", intervalStart.toLocaleString());
+    console.log("Interval End Date/Time:", intervalEnd.toLocaleString());
+    console.log("Interval Index:", intervalIndex.toString());
 
     return { start: intervalStart, end: intervalEnd, index: intervalIndex };
 };
@@ -200,66 +201,24 @@ export const createNotificationsForInterval = async (reminder: any, intervalInde
     }
 };
 
-export const calculateIntervalStart = (startDate: Date, intervalType: string): Date => {
-    const localDate = dayjs(startDate).local(); // Convert to user’s local time before calculation
-
-    let intervalStart;
-    switch (intervalType) {
-        case 'minute':
-            intervalStart = localDate.startOf('minute');
-            break;
-        case 'hour':
-            intervalStart = localDate.startOf('hour');
-            break;
-        case 'day':
-            intervalStart = localDate.startOf('day');
-            break;
-        case 'week':
-            intervalStart = localDate.startOf('week'); // Assumes ISO week, starting on Monday
-            break;
-        case 'month':
-            intervalStart = localDate.startOf('month');
-            break;
-        case 'year':
-            intervalStart = localDate.startOf('year');
-            break;
-        default:
-            intervalStart = localDate;
-            break;
-    }
-
+export const calculateIntervalStart = (startDate: Date, intervalType: string, intervalNum: number, intervalIndex: number = 0): Date => {
+    // Convert to local time
+    const localDate = dayjs.utc(startDate).local()
+    // Truncate to the start of the interval
+    const truncatedDate = localDate.startOf(intervalType as dayjs.OpUnitType);
+    // Advance by the correct multiple if this is not the first interval
+    const intervalStart = truncatedDate.add(intervalNum * intervalIndex, intervalType as dayjs.ManipulateType);
     // Convert back to UTC before returning
     return intervalStart.utc().toDate();
 };
 
-export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number): Date => {
-    const localDate = dayjs(startDate).local(); // Convert to user’s local time before calculation
-
-    let intervalEnd;
-    switch (intervalType) {
-        case 'minute':
-            intervalEnd = localDate.add(intervalNum, 'minute').subtract(1, 'second').endOf('minute');
-            break;
-        case 'hour':
-            intervalEnd = localDate.add(intervalNum, 'hour').subtract(1, 'minute').endOf('hour');
-            break;
-        case 'day':
-            intervalEnd = localDate.add(intervalNum, 'day').subtract(1, 'hour').endOf('day');
-            break;
-        case 'week':
-            intervalEnd = localDate.add(intervalNum, 'week').subtract(1, 'day').endOf('week');
-            break;
-        case 'month':
-            intervalEnd = localDate.add(intervalNum, 'month').subtract(1, 'day').endOf('month');
-            break;
-        case 'year':
-            intervalEnd = localDate.add(intervalNum, 'year').subtract(1, 'month').endOf('year');
-            break;
-        default:
-            intervalEnd = localDate;
-            break;
-    }
-    
+export const calculateIntervalEnd = (startDate: Date, intervalType: string, intervalNum: number, intervalIndex: number = 0): Date => {
+    // Convert to local time
+    const localDate = dayjs.utc(startDate).local()
+    // Calculate the start of the next interval
+    const nextIntervalStart = localDate.startOf(intervalType as dayjs.OpUnitType).add(intervalNum * (intervalIndex + 1), intervalType as dayjs.ManipulateType);
+    // Subtract 1 millisecond to get the exact end of the current interval
+    const intervalEnd = nextIntervalStart.subtract(1, 'millisecond');
     // Convert back to UTC before returning
     return intervalEnd.utc().toDate();
 };
@@ -338,7 +297,7 @@ export const getRandomTime = (startTime: Date, endTime: Date): Date => {
 };
 
 export const calculateScheduledTime = (reminder: any, intervalIndex: number, segmentIndex: number): string => {
-    const startDate = new Date(reminder.created_at);
+    const startDate = dayjs.utc(reminder.created_at).toDate();
     let intervalStartDate = new Date(startDate);
     switch (reminder.interval_type) {
         case 'minute':

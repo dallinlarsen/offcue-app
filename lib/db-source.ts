@@ -151,6 +151,7 @@ export const getReminder = async (id: number) => {
         track_streak: reminder.track_streak === (1 as unknown as boolean),
         is_muted: reminder.is_muted === (1 as unknown as boolean),
         schedules: JSON.parse(reminder.schedules as unknown as string),
+        created_at: reminder.created_at,
       }
     : null;
 };
@@ -482,14 +483,14 @@ export const getReminderSchedules = async (reminderId: number) => {
 };
 
 // Helper function to get the next unscheduled notification for a reminder
-export const getNextNotification = async (reminderId: number): Promise<any> => {
+export const getNextNotification = async (reminderId: number): Promise<any | null> => {
   const db = await openDB();
   const notification = await db.getFirstAsync(
     `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
     [reminderId]
   );
   console.log("Next unscheduled notification:", notification);
-  return notification;
+  return notification || null;
 };
 
 // Helper function return all notifications given a specific interval_index

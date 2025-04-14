@@ -62,6 +62,7 @@ export async function createDeviceNotification(
   categoryIdentifier?: CategoryIdentifier,
   data?: { [key: string]: number | string | boolean }
 ) {
+  console.log(utcTimestamp);
   return await Notifications.scheduleNotificationAsync({
     identifier,
     content: {

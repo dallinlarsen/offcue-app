@@ -51,7 +51,7 @@ export default function NotificationsTest() {
       const result = await createDeviceNotification(
         "This is a test",
         "Hello there",
-        dayjs().utc().add(1, "minute").format("YYYY-MM-DD hh:mm"),
+        dayjs().utc().add(1, "minute").format("YYYY-MM-DD HH:mm:ss"),
         undefined,
         "reminder-actions",
         { someData: "Hello" }

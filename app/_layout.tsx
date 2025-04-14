@@ -37,8 +37,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
       createDatabase();
+      setTimeout(() => SplashScreen.hideAsync(), 1000);
     }
   }, [loaded]);
 

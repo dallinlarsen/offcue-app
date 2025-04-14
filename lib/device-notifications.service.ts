@@ -1,5 +1,8 @@
 import dayjs from "dayjs";
 import * as Notifications from "expo-notifications";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 type CategoryIdentifier = "reminder-actions";
 
@@ -54,7 +57,7 @@ export function markDoneSkipNotificationCategoryListener() {
 export async function createDeviceNotification(
   title: string,
   body: string,
-  timestamp: string,
+  utcTimestamp: string,
   identifier?: string,
   categoryIdentifier?: CategoryIdentifier,
   data?: { [key: string]: number | string | boolean }
@@ -68,7 +71,7 @@ export async function createDeviceNotification(
       data,
     },
     trigger: {
-      date: dayjs(timestamp).toDate(),
+      date: dayjs(utcTimestamp).utc(true).toDate(),
       type: Notifications.SchedulableTriggerInputTypes.DATE,
     },
   });
@@ -83,4 +86,8 @@ export async function getAllScheduledNotifications() {
     data: n.content.data,
     original: n,
   }));
+}
+
+export async function cancelScheduledNotifications() {
+  return await Notifications.cancelAllScheduledNotificationsAsync();
 }

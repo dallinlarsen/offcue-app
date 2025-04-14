@@ -4,44 +4,61 @@ import { Button, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
 import { ArrowLeftIcon, Icon } from "@/components/ui/icon";
-import { Table, TableBody, TableData, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableData,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import {
+  cancelScheduledNotifications,
   createDeviceNotification,
   getAllScheduledNotifications,
 } from "@/lib/device-notifications.service";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { NotificationRequest } from "expo-notifications";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 
+dayjs.extend(utc);
+
 export default function NotificationsTest() {
   const navigation = useNavigation();
   const router = useRouter();
 
-  const [allNotifications, setAllNotifications] = useState<{
-    identifier: string;
-    title: string | null;
-    body: string | null;
-    data: Record<string, any>;
-    original: NotificationRequest;
-}[]>([]);
+  const [allNotifications, setAllNotifications] = useState<
+    {
+      identifier: string;
+      title: string | null;
+      body: string | null;
+      data: Record<string, any>;
+      original: NotificationRequest;
+    }[]
+  >([]);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
 
   async function createNotificationForTest() {
-    await createDeviceNotification(
-      "This is a test",
-      "Hello there",
-      dayjs().add(1, "minute").format("YYYY-MM-DD hh:mm"),
-      undefined,
-      "reminder-actions",
-      { someData: "Hello" }
-    );
+    try {
+      const result = await createDeviceNotification(
+        "This is a test",
+        "Hello there",
+        dayjs().utc().add(1, "minute").format("YYYY-MM-DD hh:mm"),
+        undefined,
+        "reminder-actions",
+        { someData: "Hello" }
+      );
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async function getAllNotifications() {
@@ -72,6 +89,13 @@ export default function NotificationsTest() {
             <ButtonText>View All Notifications</ButtonText>
           </Button>
         </HStack>
+        <Button
+          className="mt-2"
+          variant="outline"
+          onPress={cancelScheduledNotifications}
+        >
+          <ButtonText>Cancel All Notifications</ButtonText>
+        </Button>
       </VStack>
       <Box className="rounded overflow-hidden w-full border border-background-300 mt-4">
         <Table className="w-full">
@@ -83,15 +107,9 @@ export default function NotificationsTest() {
           </TableHeader>
           <TableBody>
             {allNotifications.map((n, idx) => (
-              <TableRow
-                key={idx}
-              >
-                <TableData>
-                  {n.identifier}
-                </TableData>
-                <TableData>
-                    {parseInt(n.original.trigger.seconds)}
-                </TableData>
+              <TableRow key={idx}>
+                <TableData>{n.identifier}</TableData>
+                <TableData>{parseInt(n.original.trigger.seconds)}</TableData>
               </TableRow>
             ))}
           </TableBody>

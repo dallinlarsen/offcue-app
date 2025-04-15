@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigation, useRouter, useFocusEffect } from "expo-router";
-import { ScrollView } from "react-native";
+import { Button, ScrollView, TouchableOpacity } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { AddIcon, Icon, SettingsIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-import { getAllReminders } from "@/lib/db-service";
+import { getAllReminders, wipeDatabase } from "@/lib/db-service";
 import { chunkIntoPairs } from "@/lib/utils";
 import { VStack } from "@/components/ui/vstack";
 import { Reminder } from "@/lib/types";
@@ -57,15 +57,13 @@ export default function HomeScreen() {
             <Icon as={SettingsIcon} size="xl" />
           </TouchableOpacity>
         </HStack>
-        {/* <Button
         <Button
+          title="Wipe Database"
           onPress={async () => {
             await wipeDatabase();
             loadReminders();
           }}
-        >
-          <ButtonText>Wipe Database</ButtonText>
-        </Button> */}
+        />
       </Box>
       <ScrollView>
         <VStack space="2xl">

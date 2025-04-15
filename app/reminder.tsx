@@ -10,7 +10,8 @@ import { defineCurrentIntervalDates, handleReminderNotifications } from "@/lib/d
 import { createNotifications, deleteNotificationsInInterval } from "@/lib/db-service";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { EditIcon } from "@/components/ui/icon";
-import dayjs from "dayjs";
+import { processReminderNotifications } from "@/lib/db-service-notifications";
+import { deleteNotificationsInInterval } from "@/lib/db-service";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -42,15 +43,6 @@ export default function ReminderDetails() {
             const notifs = await getReminderNotifications(reminderId);
             setNotifications(notifs);
             setLoading(false);
-
-            // Calculate the current interval
-            const intervalInfo = await defineCurrentIntervalDates(reminderId)
-            setIntervalStart(intervalInfo.start.toLocaleDateString());
-            setIntervalEnd(intervalInfo.end.toLocaleDateString());
-            setIntervalIndex(intervalInfo.index);
-            console.log("Interval Index:", intervalInfo.index);
-            console.log("Interval Start:", intervalInfo.start);
-            console.log("Interval End:", intervalInfo.end);
         }
         loadData();
     }, [reminderId]);
@@ -88,7 +80,7 @@ export default function ReminderDetails() {
             <Button
                 title="Create Notifications"
                 onPress={async () => {
-                    await createNotifications(reminderId);
+                    await processReminderNotifications(reminderId);
                     const notifs = await getReminderNotifications(reminderId);
                     setNotifications(notifs);
                 }}

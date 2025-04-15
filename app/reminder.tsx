@@ -6,8 +6,6 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
-import { defineCurrentIntervalDates, handleReminderNotifications } from "@/lib/db-service-notifications";
-import { createNotifications, deleteNotificationsInInterval } from "@/lib/db-service";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { EditIcon } from "@/components/ui/icon";
 import { processReminderNotifications } from "@/lib/db-service-notifications";

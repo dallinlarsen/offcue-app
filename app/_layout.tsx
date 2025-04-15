@@ -6,7 +6,12 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import * as SQLite from "expo-sqlite";
+import { createDatabase } from "@/lib/db-service";
 import { markDoneSkipNotificationCategoryListener, setupAndConfigureNotifications } from "@/lib/device-notifications.service";
+
+const db = SQLite.openDatabaseSync("reminders.db");
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -32,8 +37,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
       createDatabase();
+      setTimeout(() => SplashScreen.hideAsync(), 1000);
     }
   }, [loaded]);
 
@@ -42,7 +47,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider mode="light">
+    <GluestackUIProvider mode="dark">
       <SafeAreaProvider>
         <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
           <Stack

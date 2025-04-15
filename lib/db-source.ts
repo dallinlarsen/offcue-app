@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { Reminder, Schedule } from './types';
+import { NotificationResponseStatus, Reminder, ReminderNotification, Schedule } from './types';
 
 export async function openDB() {
   return await SQLite.openDatabaseAsync('reminders.db');
@@ -119,7 +119,15 @@ export const createReminder = async (
 // function to fetch a specific reminder by ID
 export const getReminder = async (id: number) => {
   const db = await openDB();
-  const reminder = await db.getFirstAsync<Reminder>(`
+  const reminder = await db.getFirstAsync<Reminder>(
+    `
+    WITH latest_notifications AS (
+        SELECT n.*,
+              ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
+        FROM notifications n
+        WHERE scheduled_at < CURRENT_TIMESTAMP
+          AND response_at IS NULL
+    )
     SELECT  r.*,
             json_group_array(
               json_object(
@@ -135,10 +143,16 @@ export const getReminder = async (id: number) => {
                 'start_time', s.start_time,
                 'end_time', s.end_time
               )
-            ) AS schedules
+            ) AS schedules,
+            ln.scheduled_at AS due_scheduled_at,
+            ln.id AS due_notification_id
     FROM reminders r
     JOIN reminder_schedule rs ON rs.reminder_id = r.id
     JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN (
+        SELECT * FROM latest_notifications
+        WHERE rn = 1
+    ) ln ON ln.reminder_id = r.id
     WHERE r.id = ?
     GROUP BY r.id;
     `,
@@ -269,6 +283,34 @@ export const updateNotification = async (
     [scheduledAt, isScheduled ? 1 : 0, intervalIndex, segmentIndex, responseAt, responseStatus, id]
   );
   console.log("✅ Notification updated successfully");
+};
+
+// Function to update a notification given a status and an id
+export const updateNotificationResponse = async (id: number, responseStatus: NotificationResponseStatus) => {
+  const db = await openDB();
+  await db.runAsync(
+    `UPDATE notifications
+    SET response_at = CURRENT_TIMESTAMP, response_status = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?;`,
+    [responseStatus, id]
+  );
+  console.log(id, responseStatus)
+
+  // Set all the notifications that were missed to missed.
+  await db.runAsync(
+    ` UPDATE notifications
+      SET response_at = CURRENT_TIMESTAMP,
+          response_status = 'missed',
+          updated_at = CURRENT_TIMESTAMP
+      WHERE scheduled_at < CURRENT_TIMESTAMP
+        AND response_status IS NULL
+        AND reminder_id = (
+          SELECT reminder_id
+          FROM notifications
+          WHERE id = ?
+        );`,
+    [id]
+  );
 };
 
 // Function to delete a notification
@@ -407,6 +449,13 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 export const getAllReminders = async (): Promise<any[]> => {
   const db = await openDB();
   const reminders = await db.getAllAsync<Reminder>(`
+    WITH latest_notifications AS (
+        SELECT n.*,
+              ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
+        FROM notifications n
+        WHERE scheduled_at < CURRENT_TIMESTAMP
+          AND response_at IS NULL
+    )
     SELECT  r.*,
             json_group_array(
               json_object(
@@ -422,10 +471,16 @@ export const getAllReminders = async (): Promise<any[]> => {
                 'start_time', s.start_time,
                 'end_time', s.end_time
               )
-            ) AS schedules
+            ) AS schedules,
+            ln.scheduled_at AS due_scheduled_at,
+            ln.id AS due_notification_id
     FROM reminders r
     JOIN reminder_schedule rs ON rs.reminder_id = r.id
     JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN (
+        SELECT * FROM latest_notifications
+        WHERE rn = 1
+    ) ln ON ln.reminder_id = r.id
     GROUP BY r.id;
   `, []);
 
@@ -458,10 +513,21 @@ export const getReminderNotifications = async (reminderId: number): Promise<any[
   return notifications;
 };
 
-// Function to fetch all notifications that have no response
-export const getUnrespondedReminderNotifications = async (reminderId: number): Promise<any[]> => {
+export const getReminderPastNotifications = async (reminderId: number): Promise<any[]> => {
   const db = await openDB();
-  const notifications = await db.getAllAsync(
+  const notifications = await db.getAllAsync<ReminderNotification>(
+    `SELECT * FROM notifications WHERE reminder_id = ? AND scheduled_at < CURRENT_TIMESTAMP ORDER BY scheduled_at DESC;`,
+    [reminderId]
+  );
+  return notifications;
+};
+
+// Function to fetch all notifications that have no response
+export const getUnrespondedReminderNotifications = async (
+  reminderId: number
+) => {
+  const db = await openDB();
+  const notifications = await db.getAllAsync<ReminderNotification>(
     `SELECT * FROM notifications WHERE reminder_id = ? AND response_status IS NULL;`,
     [reminderId]
   );
@@ -486,6 +552,15 @@ export const getNextNotification = async (reminderId: number): Promise<any> => {
   const db = await openDB();
   const notification = await db.getFirstAsync(
     `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
+    [reminderId]
+  );
+  return notification;
+};
+
+export const getNextUpcomingNotification = async (reminderId: number) => {
+  const db = await openDB();
+  const notification = await db.getFirstAsync<ReminderNotification>(
+    `SELECT * FROM notifications WHERE reminder_id = ? AND response_status IS NULL ORDER BY scheduled_at ASC;`,
     [reminderId]
   );
   return notification;

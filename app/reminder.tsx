@@ -8,7 +8,8 @@ import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { EditIcon } from "@/components/ui/icon";
-import { defineCurrentIntervalDates } from "@/lib/db-service-notifications";
+import { processReminderNotifications } from "@/lib/db-service-notifications";
+import { deleteNotificationsInInterval } from "@/lib/db-service";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -40,15 +41,6 @@ export default function ReminderDetails() {
             const notifs = await getReminderNotifications(reminderId);
             setNotifications(notifs);
             setLoading(false);
-
-            // Calculate the current interval
-            const intervalInfo = await defineCurrentIntervalDates(reminderId)
-            setIntervalStart(intervalInfo.start.toLocaleDateString());
-            setIntervalEnd(intervalInfo.end.toLocaleDateString());
-            setIntervalIndex(intervalInfo.index);
-
-            console.log('Reminder Index: ', notifs[0].interval_index);
- 
         }
         loadData();
     }, [reminderId]);
@@ -86,7 +78,7 @@ export default function ReminderDetails() {
             <Button
                 title="Create Notifications"
                 onPress={async () => {
-                    await createNotifications(reminderId);
+                    await processReminderNotifications(reminderId);
                     const notifs = await getReminderNotifications(reminderId);
                     setNotifications(notifs);
                 }}

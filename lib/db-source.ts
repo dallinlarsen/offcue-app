@@ -578,6 +578,32 @@ export const getNotificationsByInterval = async (reminderId: number, intervalInd
   return notifications;
 };
 
+// Append these functions to db-source.ts, e.g., near the bottom.
+
+export const getFutureNotifications = async (reminderId: number): Promise<any[]> => {
+  const db = await openDB();
+  const notifications = await db.getAllAsync(
+    `SELECT * FROM notifications 
+     WHERE reminder_id = ? 
+       AND response_at IS NULL 
+       AND scheduled_at > CURRENT_TIMESTAMP;`,
+    [reminderId]
+  );
+  return notifications;
+};
+
+export const deleteFutureNotifications = async (reminderId: number): Promise<void> => {
+  const db = await openDB();
+  await db.runAsync(
+    `DELETE FROM notifications 
+     WHERE reminder_id = ? 
+       AND response_at IS NULL 
+       AND scheduled_at > CURRENT_TIMESTAMP;`,
+    [reminderId]
+  );
+  console.log("✅ Future notifications deleted successfully for reminder", reminderId);
+};
+
 ////////////////////////////////////////////////////
 ////////// Get All Entities For Schedule //////////
 //////////////////////////////////////////////////

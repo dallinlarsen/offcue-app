@@ -1,7 +1,8 @@
 import * as db_source from './db-source';
-import { handleReminderNotifications } from './db-service-notifications';
+import { createInitialNotifications } from './db-service-notifications';
 
 export { getScheduleReminders, getReminderPastNotifications, updateNotificationResponse } from "./db-source";
+export { processReminderNotifications, recalcFutureNotifications } from "./db-service-notifications";
 
 export const createDatabase = async () => {
     db_source.initDatabase();
@@ -24,7 +25,7 @@ export const createReminder = async (title: string,
     const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted);
 
     // Create notifications for the reminder
-    handleReminderNotifications(result);
+    createInitialNotifications(result);
 
     return result;
 };
@@ -148,16 +149,10 @@ export const getOpenNotificationsForReminder = async (reminderId: number) => {
     return notifications;
 };
 
-/////////////////////////////////////////
-////////// Notification Logic //////////
-///////////////////////////////////////
 
-// Handle the creation of notifications
-export const createNotifications = async (reminderId: number): Promise<void> => {
-    await handleReminderNotifications(reminderId);
-};
-
+////////////////////////////////////////////
 ////////// Functions for testing //////////
+//////////////////////////////////////////
 
 // Function to wipe the database and reinitialize it
 // This is useful for development purposes or when you want to reset the database

@@ -2441,9 +2441,11 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 1dca942403ed9342f98334bf4c3621f011aa7946
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  EXApplication: 27a524f5c3e671c6218220fba04752629466a1a9
   EXConstants: a1f35b9aabbb3c6791f8e67722579b1ffcdd3f18
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
   EXManifests: 77e77c283c4c53a50b9bddebed25abe93f0b48f1
+  EXNotifications: c024b19d69d31fbc22ed63682559cef38523da9e
   Expo: 83a0ca93325155885341b6cfc988c9c711dd0048
   expo-dev-client: ca3ebc270cb0d3f26e6d9c3e1da19957ef4fcac1
   expo-dev-launcher: dc460ac52ccec6e72f80de7c6fbe011ee312873c
@@ -2456,6 +2458,7 @@ SPEC CHECKSUMS:
   ExpoHaptics: e01cce0741d68c281853118eb0267f88d42c6b7a
   ExpoHead: 15cd0b1168451650dafe3983b99beea3befb3590
   ExpoKeepAwake: 2a5f15dd4964cba8002c9a36676319a3394c85c7
+  ExpoLinearGradient: ee9efc5acb988b911320e964fab9b4cbdeb198c4
   ExpoLinking: 0381341519ca7180a3a057d20edb1cf6a908aaf4
   ExpoModulesCore: dd965804a882f1dbb6036fceea4d912461aeaa0d
   ExpoSplashScreen: 643666b96a84e8d97d55fac43926fb4183c692d9

@@ -165,6 +165,7 @@ export const getReminder = async (id: number) => {
         track_streak: reminder.track_streak === (1 as unknown as boolean),
         is_muted: reminder.is_muted === (1 as unknown as boolean),
         schedules: JSON.parse(reminder.schedules as unknown as string),
+        created_at: reminder.created_at,
       }
     : null;
 };
@@ -548,13 +549,14 @@ export const getReminderSchedules = async (reminderId: number) => {
 };
 
 // Helper function to get the next unscheduled notification for a reminder
-export const getNextNotification = async (reminderId: number): Promise<any> => {
+export const getNextNotification = async (reminderId: number): Promise<any | null> => {
   const db = await openDB();
   const notification = await db.getFirstAsync(
     `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
     [reminderId]
   );
-  return notification;
+  console.log("Next unscheduled notification:", notification);
+  return notification || null;
 };
 
 export const getNextUpcomingNotification = async (reminderId: number) => {
@@ -574,6 +576,32 @@ export const getNotificationsByInterval = async (reminderId: number, intervalInd
     [reminderId, intervalIndex]
   );
   return notifications;
+};
+
+// Append these functions to db-source.ts, e.g., near the bottom.
+
+export const getFutureNotifications = async (reminderId: number): Promise<any[]> => {
+  const db = await openDB();
+  const notifications = await db.getAllAsync(
+    `SELECT * FROM notifications 
+     WHERE reminder_id = ? 
+       AND response_at IS NULL 
+       AND scheduled_at > CURRENT_TIMESTAMP;`,
+    [reminderId]
+  );
+  return notifications;
+};
+
+export const deleteFutureNotifications = async (reminderId: number): Promise<void> => {
+  const db = await openDB();
+  await db.runAsync(
+    `DELETE FROM notifications 
+     WHERE reminder_id = ? 
+       AND response_at IS NULL 
+       AND scheduled_at > CURRENT_TIMESTAMP;`,
+    [reminderId]
+  );
+  console.log("✅ Future notifications deleted successfully for reminder", reminderId);
 };
 
 ////////////////////////////////////////////////////
@@ -610,3 +638,13 @@ export const wipeDatabase = async (): Promise<void> => {
   await initDatabase();
   console.log("✅ Database reinitialized successfully");
 }
+
+// Function to delete all notifications in a specific interval index for a reminder
+export const deleteNotificationsInInterval = async (reminderId: number, intervalIndex: number): Promise<void> => {
+  const db = await openDB();
+  await db.runAsync(
+    `DELETE FROM notifications WHERE reminder_id = ? AND interval_index = ?;`,
+    [reminderId, intervalIndex]
+  );
+  console.log("✅ Notifications in interval deleted successfully");
+};

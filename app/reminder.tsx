@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Button, FlatList, TouchableOpacity, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { getAllReminders, getReminderNotifications } from "@/lib/db-source";
+import { getReminder, getReminderNotifications } from "@/lib/db-source";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Heading } from "@/components/ui/heading";
 import { Text } from "@/components/ui/text";
 import { Card } from "@/components/ui/card";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { EditIcon } from "@/components/ui/icon";
+import { processReminderNotifications } from "@/lib/db-service-notifications";
+import { deleteNotificationsInInterval } from "@/lib/db-service";
 
 export default function ReminderDetails() {
     const { id } = useLocalSearchParams();
@@ -17,14 +19,23 @@ export default function ReminderDetails() {
     const [reminder, setReminder] = useState<any>(null);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [intervalStart, setIntervalStart] = useState<String>();
+    const [intervalEnd, setIntervalEnd] = useState<String>();
+    const [intervalIndex, setIntervalIndex] = useState<number>(0);
 
     useEffect(() => {
         async function loadData() {
             setLoading(true);
             // Fetch reminders and find the one matching the id
-            const reminders = await getAllReminders();
-            const foundReminder = reminders.find((r: any) => r.id === reminderId);
-            setReminder(foundReminder);
+            const reminder = await getReminder(reminderId);
+            if (!reminder) {
+                setLoading(false);
+                return;
+            }
+            setReminder(reminder);
+
+            console.log("THIS REMINDER WAS CREATED AT: ", reminder.created_at);
+
 
             // Fetch notifications for this reminder
             const notifs = await getReminderNotifications(reminderId);
@@ -56,11 +67,30 @@ export default function ReminderDetails() {
     return (
         <ThemedContainer>
             <Heading size="2xl">{reminder.title}</Heading>
+            <Button
+                title="Delete Notifications"
+                onPress={async () => {
+                    await deleteNotificationsInInterval(reminderId);
+                    const notifs = await getReminderNotifications(reminderId);
+                    setNotifications(notifs);
+                }}
+            />
+            <Button
+                title="Create Notifications"
+                onPress={async () => {
+                    await processReminderNotifications(reminderId);
+                    const notifs = await getReminderNotifications(reminderId);
+                    setNotifications(notifs);
+                }}
+            />
             <Text>{reminder.description}</Text>
             <Text>
                 Interval: {reminder.interval_num} {reminder.interval_type}
             </Text>
             <Text>Times per interval: {reminder.times}</Text>
+            <Text>
+                Current Interval: {intervalStart ? intervalStart.toLocaleString() : "N/A"} to {intervalEnd ? intervalEnd.toLocaleString() : "N/A"} for {intervalIndex} 
+            </Text>
 
             <Heading size="lg" style={{ marginTop: 20 }}>
                 Notifications

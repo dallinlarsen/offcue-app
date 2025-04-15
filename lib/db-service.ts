@@ -1,7 +1,8 @@
 import * as db_source from './db-source';
-import { handleReminderNotifications } from './db-service-notifications';
+import { createInitialNotifications } from './db-service-notifications';
 
 export { getScheduleReminders, getReminderPastNotifications, updateNotificationResponse } from "./db-source";
+export { processReminderNotifications, recalcFutureNotifications } from "./db-service-notifications";
 
 export const createDatabase = async () => {
     db_source.initDatabase();
@@ -24,7 +25,7 @@ export const createReminder = async (title: string,
     const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted);
 
     // Create notifications for the reminder
-    handleReminderNotifications(result);
+    createInitialNotifications(result);
 
     return result;
 };
@@ -148,20 +149,28 @@ export const getOpenNotificationsForReminder = async (reminderId: number) => {
     return notifications;
 };
 
-/////////////////////////////////////////
-////////// Notification Logic //////////
-///////////////////////////////////////
 
-// Handle the creation of notifications
-export const createNotifications = async (reminderId: number): Promise<void> => {
-    handleReminderNotifications(reminderId);
-};
-
+////////////////////////////////////////////
 ////////// Functions for testing //////////
+//////////////////////////////////////////
 
 // Function to wipe the database and reinitialize it
 // This is useful for development purposes or when you want to reset the database
 // There is a button on the home page that calls this function
 export const wipeDatabase = async () => {
     db_source.wipeDatabase();
+};
+
+// Force the recreation of notifications
+// First delete the existing notifications in the current interval index
+// Then create new notifications
+export const deleteNotificationsInInterval = async (reminderId: number): Promise<void> => {
+    // Get the interval index of the reminder
+    const currentNotification = await db_source.getUnrespondedReminderNotifications(reminderId);
+    console.log("Current Notification: ", currentNotification);
+    const currentIntervalIndex = currentNotification[0].interval_index;
+    console.log("Current Interval Index: ", currentIntervalIndex);
+
+    // Delete all notifications in the current interval index
+    await db_source.deleteNotificationsInInterval(reminderId, currentIntervalIndex);
 };

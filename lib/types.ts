@@ -14,6 +14,14 @@ export type Reminder = {
   due_notification_id: number | null
 };
 
+export type NotificationReminder = {
+  title: string;
+  description?: string;
+  interval_type: IntervalType;
+  interval_num: number;
+  times: number;
+};
+
 export type Schedule = {
   id: number;
   label: string;

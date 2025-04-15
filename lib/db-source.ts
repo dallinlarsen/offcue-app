@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
-import { NotificationResponseStatus, Reminder, ReminderNotification, Schedule } from './types';
+import { NotificationReminder, NotificationResponseStatus, Reminder, ReminderNotification, Schedule } from './types';
+import { scheduleAllUpcomingNotifications } from './device-notifications.service';
 
 export async function openDB() {
   return await SQLite.openDatabaseAsync('reminders.db');
@@ -525,7 +526,7 @@ export const getReminderPastNotifications = async (reminderId: number): Promise<
 
 // Function to fetch all notifications that have no response
 export const getUnrespondedReminderNotifications = async (
-  reminderId: number
+  reminderId: number,
 ) => {
   const db = await openDB();
   const notifications = await db.getAllAsync<ReminderNotification>(
@@ -580,9 +581,30 @@ export const getNotificationsByInterval = async (reminderId: number, intervalInd
 
 // Append these functions to db-source.ts, e.g., near the bottom.
 
-export const getFutureNotifications = async (reminderId: number): Promise<any[]> => {
+export const getSoonestFutureNotificationsToSchedule = async (amount: number = 64) => {
   const db = await openDB();
-  const notifications = await db.getAllAsync(
+  const notifications = await db.getAllAsync<
+    ReminderNotification & NotificationReminder
+  >(
+    `SELECT n.*,
+            r.title,
+            r.description,
+            r.interval_type,
+            r.interval_num,
+            r.times
+     FROM notifications n
+     JOIN reminders r ON r.id = n.reminder_id
+     WHERE response_at IS NULL AND scheduled_at > CURRENT_TIMESTAMP
+     ORDER BY scheduled_at
+     LIMIT ?;`,
+    [amount]
+  );
+  return notifications;
+};
+
+export const getFutureNotifications = async (reminderId: number) => {
+  const db = await openDB();
+  const notifications = await db.getAllAsync<ReminderNotification>(
     `SELECT * FROM notifications 
      WHERE reminder_id = ? 
        AND response_at IS NULL 

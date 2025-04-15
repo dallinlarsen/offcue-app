@@ -1,7 +1,14 @@
 import * as db_source from './db-source';
 import { createInitialNotifications } from './db-service-notifications';
+import { NotificationResponseStatus } from './types';
+import { scheduleAllUpcomingNotifications } from './device-notifications.service';
 
-export { getScheduleReminders, getReminderPastNotifications, updateNotificationResponse } from "./db-source";
+export {
+  getScheduleReminders,
+  getReminderPastNotifications,
+  getFutureNotifications,
+  getSoonestFutureNotificationsToSchedule,
+} from "./db-source";
 export { processReminderNotifications, recalcFutureNotifications } from "./db-service-notifications";
 
 export const createDatabase = async () => {
@@ -149,6 +156,14 @@ export const getOpenNotificationsForReminder = async (reminderId: number) => {
     return notifications;
 };
 
+
+export async function updateNotificationResponse(
+  id: number,
+  responseStatus: NotificationResponseStatus
+) {
+  await db_source.updateNotificationResponse(id, responseStatus);
+  await scheduleAllUpcomingNotifications();
+};
 
 ////////////////////////////////////////////
 ////////// Functions for testing //////////

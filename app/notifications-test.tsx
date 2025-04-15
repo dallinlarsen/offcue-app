@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
+import { wipeDatabase } from "@/lib/db-service";
 import {
   cancelScheduledNotifications,
   createDeviceNotification,
@@ -24,7 +25,7 @@ import utc from "dayjs/plugin/utc";
 import { NotificationRequest } from "expo-notifications";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
 
 dayjs.extend(utc);
 
@@ -48,14 +49,18 @@ export default function NotificationsTest() {
 
   async function createNotificationForTest() {
     try {
-      const result = await createDeviceNotification(
-        "This is a test",
-        "Hello there",
-        dayjs().utc().add(1, "minute").format("YYYY-MM-DD HH:mm:ss"),
-        undefined,
-        "reminder-actions",
-        { someData: "Hello" }
-      );
+      const result = await createDeviceNotification({
+        title: "This is a test",
+        body: "Hello there",
+        utcTimestamp: dayjs()
+          .utc()
+          .add(10, "second")
+          .utc()
+          .format("YYYY-MM-DD HH:mm:ss"),
+        identifier: undefined,
+        categoryIdentifier: "reminder-actions",
+        data: { someData: "Hello" },
+      });
     } catch (e) {
       console.error(e);
     }
@@ -75,46 +80,69 @@ export default function NotificationsTest() {
         </TouchableOpacity>
         <Heading size="3xl">Notifications Test</Heading>
       </Box>
-      <VStack space="xs">
-        <Text>Creates notification 1 minute from now</Text>
+      <VStack space="sm">
+        <Text>Creates notification 10 seconds from now</Text>
         <HStack space="md">
           <Button
             onPress={createNotificationForTest}
             className="flex-1"
             size="md"
           >
-            <ButtonText>Create Notification</ButtonText>
+            <ButtonText>Create</ButtonText>
           </Button>
           <Button onPress={getAllNotifications} className="flex-1" size="md">
-            <ButtonText>View All Notifications</ButtonText>
+            <ButtonText>View All</ButtonText>
           </Button>
         </HStack>
-        <Button
-          className="mt-2"
-          variant="outline"
-          onPress={cancelScheduledNotifications}
-        >
-          <ButtonText>Cancel All Notifications</ButtonText>
-        </Button>
+        <HStack space="md">
+          <Button
+            className="flex-1"
+            variant="outline"
+            onPress={cancelScheduledNotifications}
+          >
+            <ButtonText>Cancel All</ButtonText>
+          </Button>
+          <Button
+            onPress={wipeDatabase}
+            variant="outline"
+            className="flex-1"
+            size="md"
+          >
+            <ButtonText>Wipe DB</ButtonText>
+          </Button>
+        </HStack>
       </VStack>
-      <Box className="rounded overflow-hidden w-full border border-background-300 mt-4">
-        <Table className="w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Seconds</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {allNotifications.map((n, idx) => (
-              <TableRow key={idx}>
-                <TableData>{n.identifier}</TableData>
-                <TableData>{parseInt(n.original.trigger.seconds)}</TableData>
+      <Text>Total: {allNotifications.length}</Text>
+      <ScrollView>
+        <Box className="rounded overflow-hidden w-full border border-background-300 mt-4">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-5">ID</TableHead>
+                <TableHead>Seconds</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Box>
+            </TableHeader>
+            <TableBody>
+              {allNotifications
+                .sort((a, b) =>
+                  dayjs(a.original.content.data.scheduledAt).isAfter(
+                    dayjs(b.original.content.data.scheduledAt)
+                  )
+                    ? 1
+                    : -1
+                )
+                .map((n, idx) => (
+                  <TableRow key={idx}>
+                    <TableData className="w-5">{n.identifier}</TableData>
+                    <TableData>
+                      {JSON.stringify(n.original.content.data.scheduledAt)}
+                    </TableData>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </Box>
+      </ScrollView>
     </ThemedContainer>
   );
 }

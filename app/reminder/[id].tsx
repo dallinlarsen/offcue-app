@@ -45,7 +45,7 @@ export default function ReminderDetailsPage() {
   return reminder ? (
     <ThemedContainer>
       <Box className="flex flex-row items-center -mt-2">
-        <TouchableOpacity className="p-3" onPress={() => router.back()}>
+        <TouchableOpacity className="p-3" onPress={() => router.replace('/')}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
         <Heading

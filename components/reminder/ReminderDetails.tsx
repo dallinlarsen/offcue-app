@@ -6,7 +6,7 @@ import {
   EyeOffIcon,
   RepeatIcon,
 } from "@/components/ui/icon";
-import { updateNotificationResponse, updateReminderMuted } from "@/lib/db-service";
+import { recalcFutureNotifications, updateNotificationResponse, updateReminderMuted } from "@/lib/db-service";
 import { NotificationResponseStatus, Reminder, ReminderNotification } from "@/lib/types";
 import { formatFrequencyString, formatScheduleString } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -200,10 +200,18 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                       {hideNextNotification ? "Show" : "Hide"}
                     </ButtonText>
                   </Button>
-                  <Button size="lg" variant="outline" className="flex-1">
+                    <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onPress={async () => {
+                      await recalcFutureNotifications(reminder.id!);
+                      await fetchData();
+                    }}
+                    >
                     <ButtonIcon as={RepeatIcon} />
                     <ButtonText>Reschedule</ButtonText>
-                  </Button>
+                    </Button>
                 </HStack>
               </VStack>
             ) : null}

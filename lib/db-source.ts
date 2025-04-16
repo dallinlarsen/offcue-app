@@ -594,7 +594,7 @@ export const getSoonestFutureNotificationsToSchedule = async (amount: number = 6
             r.times
      FROM notifications n
      JOIN reminders r ON r.id = n.reminder_id
-     WHERE response_at IS NULL AND scheduled_at > CURRENT_TIMESTAMP
+     WHERE response_at IS NULL AND scheduled_at >= CURRENT_TIMESTAMP
      ORDER BY scheduled_at
      LIMIT ?;`,
     [amount]

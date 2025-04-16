@@ -127,6 +127,17 @@ export async function scheduleAllUpcomingNotifications() {
     (s) => s.identifier
   );
 
+  // Remove scheduled notifications not in the notification set
+  const notificationIds = notifications.map(n => n.id.toString());
+  const notificationsToDelete = scheduledNotificationsIds.filter((s) =>
+    !notificationIds.includes(s)
+  );
+
+  for (const notificationId of notificationsToDelete) {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+  }
+
+  // Add all not scheduled notifications
   for (const notification of notifications) {
     if (!scheduledNotificationsIds.includes(notification.id.toString())) {
       await createDeviceNotification({

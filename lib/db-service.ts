@@ -61,6 +61,14 @@ export const updateReminder = async (id: number,
 //Update Muted
 export const updateReminderMuted = async (id: number, isMuted: boolean) => {
     const result = await db_source.updateReminderMuted(id, isMuted);
+    if (isMuted) {
+        await db_source.deleteFutureNotifications(id);
+    } else {
+        // TODO: When future notification generation is implemented call it here.
+    }
+
+    await scheduleAllUpcomingNotifications();
+
     return result;
 };
 

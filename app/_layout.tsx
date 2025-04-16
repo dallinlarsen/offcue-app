@@ -1,7 +1,7 @@
 import "@/global.css";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
@@ -18,6 +18,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useDrizzleStudio(db);
+  const router = useRouter();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -30,7 +31,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     setupAndConfigureNotifications();
-    const subscription = markDoneSkipNotificationCategoryListener();
+    const subscription = markDoneSkipNotificationCategoryListener((reminderId: number) => {
+      router.replace(`/reminder/${reminderId}`);
+    });
 
     return () => subscription.remove();
   }, [])

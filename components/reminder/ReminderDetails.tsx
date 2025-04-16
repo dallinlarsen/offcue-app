@@ -6,7 +6,7 @@ import {
   EyeOffIcon,
   RepeatIcon,
 } from "@/components/ui/icon";
-import { updateReminderMuted } from "@/lib/db-service";
+import { updateNotificationResponse, updateReminderMuted } from "@/lib/db-service";
 import { NotificationResponseStatus, Reminder, ReminderNotification } from "@/lib/types";
 import { formatFrequencyString, formatScheduleString } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -19,7 +19,6 @@ import { Alert, AlertIcon, AlertText } from "@/components/ui/alert";
 import {
   getNextUpcomingNotification,
   getReminderPastNotifications,
-  updateNotificationResponse,
 } from "@/lib/db-source";
 import dayjs from "dayjs";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";

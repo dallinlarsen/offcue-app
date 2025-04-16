@@ -6,6 +6,7 @@ dayjs.extend(utc);
 dayjs.extend(weekOfYear);
 
 import * as db_source from './db-source';
+import { scheduleAllUpcomingNotifications } from './device-notifications.service';
 
 /////////////////////////////////////////////
 ////////// CRUD for notifications //////////
@@ -141,6 +142,8 @@ export const createInitialNotifications = async (
   } else {
     console.error("No notifications were created in the initial intervals.");
   }
+
+  scheduleAllUpcomingNotifications();
 };
 
 // Function to recalculate (delete and recreate) all future notifications for a reminder.
@@ -504,8 +507,8 @@ export const createNotifications = async (reminder: any, notifications: Notifica
   for (const notif of notifications) {
     await db_source.createNotification(
       reminder.id,
-      dayjs(notif.scheduled_at).format('YYYY-MM-DD HH:mm'),
-      notif.segment_index === 0, // Only the first notification in an interval is marked as scheduled.
+      dayjs(notif.scheduled_at).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+      false, // By default the notification isn't set
       notif.interval_index,
       notif.segment_index
     );

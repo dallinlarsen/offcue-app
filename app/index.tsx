@@ -82,7 +82,7 @@ export default function HomeScreen() {
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
             persist
-            emptyMessage="No Reminders Due! 👍"
+            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
           />
           <ReminderGroupDropDown
             title="Upcoming"
@@ -91,7 +91,7 @@ export default function HomeScreen() {
             onMuted={() => loadReminders()}
             open={accordiansOpen.includes("upcoming")}
             setOpen={(open) => setOpenHandler(open, "upcoming")}
-            emptyMessage="No Upcoming Reminders"
+            emptyMessage="No Upcoming Reminders."
           />
           {mutedReminders.length > 0 && (
             <ReminderGroupDropDown

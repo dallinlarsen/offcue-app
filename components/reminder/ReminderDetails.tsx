@@ -48,6 +48,7 @@ import { Badge, BadgeText } from "../ui/badge";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { STATUS_COLOR_MAP } from "@/constants/utils";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
+import { useConfetti } from "@/hooks/useConfetti";
 
 type Props = {
   reminder: Reminder;
@@ -59,6 +60,8 @@ const ZodSchema = z.object({
 });
 
 export default function ({ reminder, onNotificationResponse }: Props) {
+  const confetti = useConfetti();
+
   const [pastNotifications, setPastNotificatons] = useState<
     ReminderNotification[]
   >([]);
@@ -110,6 +113,10 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     response: NotificationResponseStatus
   ) {
     if (reminder.due_notification_id) {
+      if (response === "done") {
+        confetti.current?.restart();
+        setTimeout(() => confetti.current?.reset(), 9000);
+      }
       await updateNotificationResponse(reminder.due_notification_id, response);
       fetchData();
       onNotificationResponse();

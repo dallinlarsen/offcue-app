@@ -28,6 +28,7 @@ export default function NewReminder() {
     is_muted: false,
     due_scheduled_at: null,
     due_notification_id: null,
+    created_at: ''
   };
 
   return (

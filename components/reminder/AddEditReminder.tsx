@@ -21,7 +21,15 @@ import { FREQUENCY_TYPES } from "@/constants/utils";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
 import { formatScheduleString } from "@/lib/utils";
-import { AddIcon, ChevronDownIcon, CloseIcon, Icon, PaperclipIcon, PushPinIcon, RepeatIcon } from "../ui/icon";
+import {
+  AddIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  Icon,
+  PaperclipIcon,
+  PushPinIcon,
+  RepeatIcon,
+} from "../ui/icon";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
 import { ScheduleActionsheet } from "./ScheduleActionsheet";
@@ -44,27 +52,42 @@ type AddEditReminderProps = {
   onCancel?: () => void;
 };
 
-const ZodSchema = z.object({
-  title: z.string().min(1, "Required"),
-  description: z.string().nullish(),
-  interval_type: z.string().min(1, "Required"),
-  interval_num: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => parseInt(num) < 60, "Must be less than 60")
-    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
-  times: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => parseInt(num) < 20, "Must be less than 20")
-    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
-  track_streak: z.boolean(),
-  schedules: z
-    .array(z.any())
-    .min(1, "At least one schedule is required")
-    .max(3, "A maximum of 3 schedules can be selected"),
-  recurring: z.boolean(),
-});
+const ZodSchema = z
+  .object({
+    title: z.string().min(1, "Required"),
+    description: z.string().nullish(),
+    interval_type: z.string().nullish(),
+    interval_num: z
+      .string()
+      .nullish()
+      .refine((num) => !num || parseInt(num) < 60, "Must be less than 60")
+      .refine((num) => !num || parseInt(num) > 0, "Must be greater than 0"),
+    times: z
+      .string()
+      .min(1, "Required")
+      .refine((num) => parseInt(num) < 20, "Must be less than 20")
+      .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
+    track_streak: z.boolean(),
+    schedules: z
+      .array(z.any())
+      .min(1, "At least one schedule is required")
+      .max(3, "A maximum of 3 schedules can be selected"),
+    recurring: z.boolean(),
+  })
+  .refine(
+    ({ recurring, interval_num }) => (recurring ? !!interval_num : true),
+    {
+      message: "Required",
+      path: ["interval_num"],
+    }
+  )
+  .refine(
+    ({ recurring, interval_type }) => (recurring ? !!interval_type : true),
+    {
+      message: "Required",
+      path: ["interval_type"],
+    }
+  );
 
 export default function AddEditReminder({
   data,
@@ -84,19 +107,27 @@ export default function AddEditReminder({
       ...data,
       interval_num: data.interval_num.toString(),
       times: data.times.toString(),
-      recurring: true,
+      recurring: data.is_recurring,
     },
   });
 
   const onSubmit = handleSubmit(async (model) => {
+    let interval_type = model.interval_type;
+    let interval_num = model.interval_num;
+
+    if (!model.recurring) {
+      interval_type = 'day'
+      interval_num = '1';
+    }
+
     try {
       if (data.id) {
         await updateReminder(
           data.id,
           model.title,
           model.description || "",
-          model.interval_type,
-          parseInt(model.interval_num),
+          interval_type!,
+          parseInt(interval_num!),
           parseInt(model.times),
           model.schedules.map((s) => s.id),
           model.track_streak,
@@ -107,13 +138,14 @@ export default function AddEditReminder({
         await createReminder(
           model.title,
           model.description || "",
-          model.interval_type,
-          parseInt(model.interval_num),
+          interval_type!,
+          parseInt(interval_num!),
           parseInt(model.times),
           model.schedules.map((s) => s.id),
           model.track_streak,
           false,
-          false
+          false,
+          model.recurring
         );
       }
       onSave();
@@ -123,7 +155,11 @@ export default function AddEditReminder({
     }
   });
 
-  const [schedules, track_streak, recurring] = watch(["schedules", "track_streak", "recurring"]);
+  const [schedules, track_streak, recurring] = watch([
+    "schedules",
+    "track_streak",
+    "recurring",
+  ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
 
   return (
@@ -175,7 +211,7 @@ export default function AddEditReminder({
               </FormControlError>
             </FormControl>
           </VStack>
-          <HStack className="rounded border border-background-900">
+          {!data.id && <HStack className="rounded border border-background-900">
             <Button
               size="xl"
               className="flex-1 rounded-none border-0"
@@ -192,10 +228,16 @@ export default function AddEditReminder({
               onPress={() => setValue("recurring", false)}
             >
               {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
-              <ButtonIcon as={PushPinIcon} size="2xl" className={recurring ? 'fill-typography-600' : 'fill-typography-0'} />
+              <ButtonIcon
+                as={PushPinIcon}
+                size="2xl"
+                className={
+                  recurring ? "fill-typography-600" : "fill-typography-0"
+                }
+              />
               <ButtonText>One-time</ButtonText>
             </Button>
-          </HStack>
+          </HStack>}
           <Box>
             <Heading size="xl">Remind Me</Heading>
             <Box className="flex flex-row w-full gap-2 items-center">
@@ -241,7 +283,7 @@ export default function AddEditReminder({
                       <Input size="xl">
                         <InputField
                           placeholder="Frequency"
-                          value={value}
+                          value={value || ""}
                           onBlur={onBlur}
                           onChangeText={onChange}
                           keyboardType="number-pad"
@@ -367,18 +409,20 @@ export default function AddEditReminder({
               </Text>
             )}
           </VStack>
-          <HStack space="xl" className="items-center">
-            <Text size="xl" className="font-quicksand-semibold">
-              Track Streak
-            </Text>
-            <Switch
-              value={track_streak}
-              onValueChange={(track) => setValue("track_streak", track)}
-              trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
-              thumbColor={colors.gray[50]}
-              ios_backgroundColor={colors.gray[300]}
-            />
-          </HStack>
+          {recurring && (
+            <HStack space="xl" className="items-center">
+              <Text size="xl" className="font-quicksand-semibold">
+                Track Streak
+              </Text>
+              <Switch
+                value={track_streak}
+                onValueChange={(track) => setValue("track_streak", track)}
+                trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
+                thumbColor={colors.gray[50]}
+                ios_backgroundColor={colors.gray[300]}
+              />
+            </HStack>
+          )}
         </VStack>
       </ScrollView>
       <HStack space="md">

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/icon";
 import {
   updateNotificationResponse,
+  updateNotificationResponseOneTime,
   updateReminderMuted,
 } from "@/lib/db-service";
 import {
@@ -109,18 +110,27 @@ export default function ({ reminder, onNotificationResponse }: Props) {
       await updateReminderMuted(reminder.id!, newVal);
   });
 
+  function sendConfetti() {
+    confetti.current?.restart();
+    setTimeout(() => confetti.current?.reset(), 9000);
+  }
+
   async function handleNotificationAction(
     response: NotificationResponseStatus
   ) {
-    if (reminder.due_notification_id) {
-      if (response === "done") {
-        confetti.current?.restart();
-        setTimeout(() => confetti.current?.reset(), 9000);
-      }
-      await updateNotificationResponse(reminder.due_notification_id, response);
-      fetchData();
-      onNotificationResponse();
+    if (reminder.is_recurring && !reminder.due_notification_id) return;
+    if (reminder.is_recurring) {
+      await updateNotificationResponse(reminder.due_notification_id!, response);
+    } else {
+      await updateNotificationResponseOneTime(reminder.id!, response);
     }
+
+    if (response === "done") {
+      sendConfetti();
+    }
+    fetchData();
+
+    onNotificationResponse();
   }
 
   async function handleNotificationEditOpen(
@@ -155,22 +165,24 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                   ))}
                 </Box>
               </VStack>
-              <HStack space="xl" className="items-center ">
-                <Text size="xl" className="font-quicksand-semibold">
-                  Mute
-                </Text>
-                <Switch
-                  isDisabled={!!reminder.due_scheduled_at}
-                  value={is_muted}
-                  onValueChange={(value) => setValue("is_muted", value)}
-                  trackColor={{
-                    false: colors.gray[300],
-                    true: colors.gray[500],
-                  }}
-                  thumbColor={colors.gray[50]}
-                  ios_backgroundColor={colors.gray[300]}
-                />
-              </HStack>
+              {reminder.is_recurring && (
+                <HStack space="xl" className="items-center ">
+                  <Text size="xl" className="font-quicksand-semibold">
+                    Mute
+                  </Text>
+                  <Switch
+                    isDisabled={!!reminder.due_scheduled_at}
+                    value={is_muted}
+                    onValueChange={(value) => setValue("is_muted", value)}
+                    trackColor={{
+                      false: colors.gray[300],
+                      true: colors.gray[500],
+                    }}
+                    thumbColor={colors.gray[50]}
+                    ios_backgroundColor={colors.gray[300]}
+                  />
+                </HStack>
+              )}
             </HStack>
           </Box>
           {reminder.due_scheduled_at ? (
@@ -179,9 +191,15 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 size="xl"
                 variant="outline"
                 className="flex-1"
-                onPress={() => handleNotificationAction("skip")}
+                onPress={() =>
+                  handleNotificationAction(
+                    reminder.is_recurring ? "skip" : "later"
+                  )
+                }
               >
-                <ButtonText>Skip</ButtonText>
+                <ButtonText>
+                  {reminder.is_recurring ? "Skip" : "Do It Later"}
+                </ButtonText>
               </Button>
               <Button
                 size="xl"
@@ -243,6 +261,16 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               ) : null}
             </>
           )}
+          {reminder.is_completed && (
+            <Alert>
+              <AlertIcon as={CheckCircleIcon} />
+              <AlertText size="lg">
+                Completed on{" "}
+                {dayjs(pastNotifications[0]?.response_at).format("YYYY-MM-DD")}{" "}
+                at {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
+              </AlertText>
+            </Alert>
+          )}
           <Heading size="xl" className="mt-4">
             Notifications
           </Heading>
@@ -300,6 +328,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         setIsOpen={setNotificationStatusUpdateOpen}
         notification={notificationToUpdate!}
         onUpdate={() => fetchData()}
+        recurring={reminder.is_recurring}
       />
     </>
   );

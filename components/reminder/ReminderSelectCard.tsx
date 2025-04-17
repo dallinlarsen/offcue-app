@@ -19,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import useWatch from "@/hooks/useWatch";
 import { Button, ButtonText } from "../ui/button";
+import { useConfetti } from "@/hooks/useConfetti";
 
 type Props = {
   reminder: Reminder;
@@ -32,6 +33,7 @@ const ZodSchema = z.object({
 
 export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
   const router = useRouter();
+  const confetti = useConfetti();
 
   const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -55,6 +57,10 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
     response: NotificationResponseStatus
   ) {
     if (reminder.due_notification_id) {
+      if (response === 'done') {
+        confetti.current?.restart();
+        setTimeout(() => confetti.current?.reset(), 9000);
+      }
       await updateNotificationResponse(reminder.due_notification_id, response);
       onNotificationResponse();
     }
@@ -65,7 +71,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
       variant={reminder.due_scheduled_at ? "outline" : "filled"}
       className={`${
         reminder.due_scheduled_at ? "bg-background-50" : "bg-background-100"
-      } p-3 flex-1 aspect-square justify-between`}
+      } p-3 flex-1 aspect-square justify-between rounded-2xl border-background-500`}
     >
       <TouchableOpacity
         onPress={() => router.push(`/reminder/${reminder.id}`)}

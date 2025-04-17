@@ -50,7 +50,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider mode="dark">
+    <GluestackUIProvider mode='system'>
       <SafeAreaProvider>
         <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
           <Stack

@@ -23,13 +23,14 @@ import { Button, ButtonText } from "../ui/button";
 type Props = {
   reminder: Reminder;
   onNotificationResponse: () => void;
+  onMuted: () => void;
 };
 
 const ZodSchema = z.object({
   is_muted: z.boolean(),
 });
 
-export default function ({ reminder, onNotificationResponse }: Props) {
+export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
   const router = useRouter();
 
   const { watch, setValue } = useForm({
@@ -43,6 +44,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   useWatch(is_muted, async (newVal) => {
     await updateReminderMuted(reminder.id!, newVal);
+    onMuted();
   });
 
   useWatch(reminder, (r) => {
@@ -60,27 +62,37 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   return (
     <Card
-      variant={reminder.due_scheduled_at ? 'outline' : 'filled'}
-      className={`${ reminder.due_scheduled_at ? 'bg-background-50' : 'bg-background-100' } p-3 flex-1 aspect-square justify-between`}
+      variant={reminder.due_scheduled_at ? "outline" : "filled"}
+      className={`${
+        reminder.due_scheduled_at ? "bg-background-50" : "bg-background-100"
+      } p-3 flex-1 aspect-square justify-between`}
     >
       <TouchableOpacity
         onPress={() => router.push(`/reminder/${reminder.id}`)}
         className="flex-1"
       >
         <VStack>
-          <Heading numberOfLines={2} className="font-quicksand-bold" size="lg">
+          <Heading
+            numberOfLines={2}
+            className={`font-quicksand-bold ${
+              is_muted ? "text-typography-500" : ""
+            }`}
+            size="lg"
+          >
             {reminder.title}
           </Heading>
           {!reminder.due_scheduled_at && (
             <>
-              <Text>
+              <Text className={is_muted ? "text-typography-500" : ""}>
                 {formatFrequencyString(
                   reminder.times,
                   reminder.interval_num,
                   reminder.interval_type
                 )}
               </Text>
-              <Text>{formatScheduleString(reminder.schedules[0])}</Text>
+              <Text className={is_muted ? "text-typography-500" : ""}>
+                {formatScheduleString(reminder.schedules[0])}
+              </Text>
               {reminder.schedules.slice(1).length > 0 ? (
                 <Text size="sm" className="-mt-1">
                   +{reminder.schedules.slice(1).length} More

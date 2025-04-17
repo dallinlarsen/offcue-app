@@ -2,11 +2,7 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { Heading } from "@/components/ui/heading";
-import {
-  ArrowLeftIcon,
-  EditIcon,
-  Icon,
-} from "@/components/ui/icon";
+import { ArrowLeftIcon, EditIcon, Icon } from "@/components/ui/icon";
 import { getReminder } from "@/lib/db-service";
 import { Reminder } from "@/lib/types";
 import {
@@ -15,10 +11,9 @@ import {
   useNavigation,
   useRouter,
 } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
-
 
 export default function ReminderDetailsPage() {
   const { id } = useLocalSearchParams();
@@ -26,7 +21,7 @@ export default function ReminderDetailsPage() {
   const router = useRouter();
 
   const [reminder, setReminder] = useState<Reminder | null>(null);
-  
+
   async function fetchData() {
     const data = await getReminder(parseInt(id as string));
     setReminder(data);
@@ -36,16 +31,16 @@ export default function ReminderDetailsPage() {
     navigation.setOptions({ headerShown: false });
   }, []);
 
-  useFocusEffect(() => {
-    fetchData();
-  });
-
-  
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
 
   return reminder ? (
     <ThemedContainer>
       <Box className="flex flex-row items-center -mt-2">
-        <TouchableOpacity className="p-3" onPress={() => router.replace('/')}>
+        <TouchableOpacity className="p-3" onPress={() => router.replace("/")}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
         <Heading
@@ -57,7 +52,10 @@ export default function ReminderDetailsPage() {
           {reminder.title}
         </Heading>
       </Box>
-      <ReminderDetails reminder={reminder} onNotificationResponse={() => fetchData()} />
+      <ReminderDetails
+        reminder={reminder}
+        onNotificationResponse={() => fetchData()}
+      />
       <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
         <FabIcon as={EditIcon} />
       </Fab>

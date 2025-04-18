@@ -50,6 +50,7 @@ type AddEditReminderProps = {
   data: Reminder;
   onSave: () => void;
   onCancel?: () => void;
+  setDeleteDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ZodSchema = z
@@ -93,6 +94,7 @@ export default function AddEditReminder({
   data,
   onSave,
   onCancel,
+  setDeleteDialogOpen,
 }: AddEditReminderProps) {
   const {
     control,
@@ -116,8 +118,8 @@ export default function AddEditReminder({
     let interval_num = model.interval_num;
 
     if (!model.recurring) {
-      interval_type = 'day'
-      interval_num = '1';
+      interval_type = "day";
+      interval_num = "1";
     }
 
     try {
@@ -211,33 +213,35 @@ export default function AddEditReminder({
               </FormControlError>
             </FormControl>
           </VStack>
-          {!data.id && <HStack className="rounded border border-background-900">
-            <Button
-              size="xl"
-              className="flex-1 rounded-none border-0"
-              variant={recurring ? "solid" : "outline"}
-              onPress={() => setValue("recurring", true)}
-            >
-              <ButtonIcon as={RepeatIcon} />
-              <ButtonText>Recurring</ButtonText>
-            </Button>
-            <Button
-              size="xl"
-              className="flex-1 rounded-none border-0"
-              variant={recurring ? "outline" : "solid"}
-              onPress={() => setValue("recurring", false)}
-            >
-              {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
-              <ButtonIcon
-                as={PushPinIcon}
-                size="2xl"
-                className={
-                  recurring ? "fill-typography-600" : "fill-typography-0"
-                }
-              />
-              <ButtonText>One-time</ButtonText>
-            </Button>
-          </HStack>}
+          {!data.id && (
+            <HStack className="rounded border border-background-900">
+              <Button
+                size="xl"
+                className="flex-1 rounded-none border-0"
+                variant={recurring ? "solid" : "outline"}
+                onPress={() => setValue("recurring", true)}
+              >
+                <ButtonIcon as={RepeatIcon} />
+                <ButtonText>Recurring</ButtonText>
+              </Button>
+              <Button
+                size="xl"
+                className="flex-1 rounded-none border-0"
+                variant={recurring ? "outline" : "solid"}
+                onPress={() => setValue("recurring", false)}
+              >
+                {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
+                <ButtonIcon
+                  as={PushPinIcon}
+                  size="2xl"
+                  className={
+                    recurring ? "fill-typography-600" : "fill-typography-0"
+                  }
+                />
+                <ButtonText>One-time</ButtonText>
+              </Button>
+            </HStack>
+          )}
           <Box>
             <Heading size="xl">Remind Me</Heading>
             <Box className="flex flex-row w-full gap-2 items-center">
@@ -422,6 +426,16 @@ export default function AddEditReminder({
                 ios_backgroundColor={colors.gray[300]}
               />
             </HStack>
+          )}
+          {setDeleteDialogOpen && (
+            <Button
+              size="xl"
+              variant="outline"
+              action="negative"
+              onPress={() => setDeleteDialogOpen(true)}
+            >
+              <ButtonText>Delete</ButtonText>
+            </Button>
           )}
         </VStack>
       </ScrollView>

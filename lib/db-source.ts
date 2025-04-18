@@ -239,6 +239,9 @@ export const updateReminderMuted = async (id: number, isMuted: boolean): Promise
 // Function to delete a reminder
 export const deleteReminder = async (id: number): Promise<void> => {
   const db = await openDB();
+  await db.runAsync(`DELETE FROM notes WHERE reminder_id = ?;`, [id]);
+  await db.runAsync(`DELETE FROM notifications WHERE reminder_id = ?;`, [id]);
+  await db.runAsync(`DELETE FROM reminder_schedule WHERE reminder_id = ?;`, [id]);
   await db.runAsync(`DELETE FROM reminders WHERE id = ?;`, [id]);
   console.log("✅ Reminder deleted successfully");
 };
@@ -607,7 +610,8 @@ export const getSoonestFutureNotificationsToSchedule = async (amount: number = 6
             r.description,
             r.interval_type,
             r.interval_num,
-            r.times
+            r.times,
+            r.is_recurring
      FROM notifications n
      JOIN reminders r ON r.id = n.reminder_id
      WHERE response_at IS NULL AND scheduled_at >= CURRENT_TIMESTAMP
@@ -615,7 +619,7 @@ export const getSoonestFutureNotificationsToSchedule = async (amount: number = 6
      LIMIT ?;`,
     [amount]
   );
-  return notifications;
+  return notifications.map(n => ({ ...n, is_recurring: n.is_recurring === 1 as unknown as boolean}));
 };
 
 export const getFutureNotifications = async (reminderId: number) => {

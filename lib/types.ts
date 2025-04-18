@@ -22,6 +22,7 @@ export type NotificationReminder = {
   interval_type: IntervalType;
   interval_num: number;
   times: number;
+  is_recurring: boolean;
 };
 
 export type Schedule = {

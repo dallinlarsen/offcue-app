@@ -77,6 +77,8 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
 //Delete
 export const deleteReminder = async (id: number) => {
     const result = await db_source.deleteReminder(id);
+
+    await scheduleAllUpcomingNotifications();
     return result;
 };
 

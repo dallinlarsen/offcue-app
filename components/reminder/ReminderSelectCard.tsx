@@ -110,7 +110,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
           </HStack>
           {!reminder.due_scheduled_at && (
             <>
-              <Text className={is_muted ? "text-typography-500" : ""}>
+              <Text numberOfLines={1} className={is_muted ? "text-typography-500" : ""}>
                 {formatFrequencyString(
                   reminder.times,
                   reminder.interval_num,
@@ -118,7 +118,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
                 )}
               </Text>
               <Text className={is_muted ? "text-typography-500" : ""}>
-                {formatScheduleString(reminder.schedules[0])}
+                when "{reminder.schedules[0].label}"
               </Text>
               {reminder.schedules.slice(1).length > 0 ? (
                 <Text size="sm" className="-mt-1">

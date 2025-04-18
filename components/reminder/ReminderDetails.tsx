@@ -149,7 +149,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           ) : null}
           <Box>
             <HStack className="justify-between items-start">
-              <VStack space="sm">
+              <VStack>
                 <Text size="xl">
                   {formatFrequencyString(
                     reminder.times,

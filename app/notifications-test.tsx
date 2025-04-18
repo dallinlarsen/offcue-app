@@ -58,7 +58,7 @@ export default function NotificationsTest() {
           .utc()
           .format("YYYY-MM-DD HH:mm:ss"),
         identifier: undefined,
-        categoryIdentifier: "reminder-actions",
+        categoryIdentifier: "reminder-actions-recurring",
         data: { someData: "Hello" },
       });
     } catch (e) {

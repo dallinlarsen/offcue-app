@@ -9,9 +9,11 @@ export type Reminder = {
   track_streak: boolean;
   track_notes: boolean;
   is_muted: boolean;
+  is_recurring: boolean;
+  is_completed: boolean;
   created_at: any;
-  due_scheduled_at: string | null
-  due_notification_id: number | null
+  due_scheduled_at: string | null;
+  due_notification_id: number | null;
 };
 
 export type NotificationReminder = {
@@ -20,6 +22,7 @@ export type NotificationReminder = {
   interval_type: IntervalType;
   interval_num: number;
   times: number;
+  is_recurring: boolean;
 };
 
 export type Schedule = {
@@ -49,4 +52,4 @@ export type ReminderNotification = {
 
 export type IntervalType = "minute" | "hour" | "day" | "week" | "month" | "year";
 
-export type NotificationResponseStatus = 'done' | 'skip' | 'missed';
+export type NotificationResponseStatus = 'done' | 'skip' | 'missed' | 'later';

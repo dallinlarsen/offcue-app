@@ -21,11 +21,19 @@ import { FREQUENCY_TYPES } from "@/constants/utils";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
 import { formatScheduleString } from "@/lib/utils";
-import { AddIcon, ChevronDownIcon, CloseIcon, Icon } from "../ui/icon";
+import {
+  AddIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  Icon,
+  PaperclipIcon,
+  PushPinIcon,
+  RepeatIcon,
+} from "../ui/icon";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
 import { ScheduleActionsheet } from "./ScheduleActionsheet";
-import { IntervalType, Reminder } from "@/lib/types";
+import { Reminder } from "@/lib/types";
 import { useState } from "react";
 import { createReminder, updateReminder } from "@/lib/db-service";
 import { z } from "zod";
@@ -36,38 +44,57 @@ import {
   FormControlError,
   FormControlErrorText,
 } from "../ui/form-control";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type AddEditReminderProps = {
   data: Reminder;
   onSave: () => void;
   onCancel?: () => void;
+  setDeleteDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const ZodSchema = z.object({
-  title: z.string().min(1, "Required"),
-  description: z.string().nullish(),
-  interval_type: z.string().min(1, "Required"),
-  interval_num: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => parseInt(num) < 60, "Must be less than 60")
-    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
-  times: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => parseInt(num) < 20, "Must be less than 20")
-    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
-  track_streak: z.boolean(),
-  schedules: z
-    .array(z.any())
-    .min(1, "At least one schedule is required")
-    .max(3, "A maximum of 3 schedules can be selected"),
-});
+const ZodSchema = z
+  .object({
+    title: z.string().min(1, "Required"),
+    description: z.string().nullish(),
+    interval_type: z.string().nullish(),
+    interval_num: z
+      .string()
+      .nullish()
+      .refine((num) => !num || parseInt(num) < 60, "Must be less than 60")
+      .refine((num) => !num || parseInt(num) > 0, "Must be greater than 0"),
+    times: z
+      .string()
+      .min(1, "Required")
+      .refine((num) => parseInt(num) < 20, "Must be less than 20")
+      .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
+    track_streak: z.boolean(),
+    schedules: z
+      .array(z.any())
+      .min(1, "At least one schedule is required")
+      .max(3, "A maximum of 3 schedules can be selected"),
+    recurring: z.boolean(),
+  })
+  .refine(
+    ({ recurring, interval_num }) => (recurring ? !!interval_num : true),
+    {
+      message: "Required",
+      path: ["interval_num"],
+    }
+  )
+  .refine(
+    ({ recurring, interval_type }) => (recurring ? !!interval_type : true),
+    {
+      message: "Required",
+      path: ["interval_type"],
+    }
+  );
 
 export default function AddEditReminder({
   data,
   onSave,
   onCancel,
+  setDeleteDialogOpen,
 }: AddEditReminderProps) {
   const {
     control,
@@ -82,18 +109,27 @@ export default function AddEditReminder({
       ...data,
       interval_num: data.interval_num.toString(),
       times: data.times.toString(),
+      recurring: data.is_recurring,
     },
   });
 
   const onSubmit = handleSubmit(async (model) => {
+    let interval_type = model.interval_type;
+    let interval_num = model.interval_num;
+
+    if (!model.recurring) {
+      interval_type = "day";
+      interval_num = "1";
+    }
+
     try {
       if (data.id) {
         await updateReminder(
           data.id,
           model.title,
           model.description || "",
-          model.interval_type,
-          parseInt(model.interval_num),
+          interval_type!,
+          parseInt(interval_num!),
           parseInt(model.times),
           model.schedules.map((s) => s.id),
           model.track_streak,
@@ -104,13 +140,14 @@ export default function AddEditReminder({
         await createReminder(
           model.title,
           model.description || "",
-          model.interval_type,
-          parseInt(model.interval_num),
+          interval_type!,
+          parseInt(interval_num!),
           parseInt(model.times),
           model.schedules.map((s) => s.id),
           model.track_streak,
           false,
-          false
+          false,
+          model.recurring
         );
       }
       onSave();
@@ -120,7 +157,11 @@ export default function AddEditReminder({
     }
   });
 
-  const [schedules, track_streak] = watch(["schedules", "track_streak"]);
+  const [schedules, track_streak, recurring] = watch([
+    "schedules",
+    "track_streak",
+    "recurring",
+  ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
 
   return (
@@ -172,83 +213,35 @@ export default function AddEditReminder({
               </FormControlError>
             </FormControl>
           </VStack>
-          <VStack>
-            <Heading size="xl">Every</Heading>
-            <Box className="flex flex-row gap-2">
-              <FormControl isInvalid={!!errors.interval_num} className="flex-1">
-                <Controller
-                  control={control}
-                  name="interval_num"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <Input size="xl">
-                      <InputField
-                        placeholder="Frequency"
-                        value={value}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        keyboardType="number-pad"
-                      />
-                    </Input>
-                  )}
-                />
-                <FormControlError>
-                  <FormControlErrorText>
-                    {errors?.interval_num?.message || ""}
-                  </FormControlErrorText>
-                </FormControlError>
-              </FormControl>
-              <FormControl
-                isInvalid={!!errors.interval_type}
-                className="flex-1"
+          {!data.id && (
+            <HStack className="rounded border border-background-900">
+              <Button
+                size="xl"
+                className="flex-1 rounded-none border-0"
+                variant={recurring ? "solid" : "outline"}
+                onPress={() => setValue("recurring", true)}
               >
-                <Controller
-                  control={control}
-                  name="interval_type"
-                  render={({ field: { onChange, onBlur, value } }) => (
-                    <Select
-                      selectedValue={value}
-                      onValueChange={onChange}
-                      initialLabel={
-                        FREQUENCY_TYPES.find((t) => t.value === value)?.label
-                      }
-                    >
-                      <SelectTrigger
-                        variant="outline"
-                        size="xl"
-                        className="flex justify-between"
-                      >
-                        <SelectInput
-                          placeholder="Select Option"
-                          onBlur={onBlur}
-                        />
-                        <SelectIcon className="mr-3" as={ChevronDownIcon} />
-                      </SelectTrigger>
-                      <SelectPortal>
-                        <SelectBackdrop />
-                        <SelectContent>
-                          <SelectDragIndicatorWrapper>
-                            <SelectDragIndicator />
-                          </SelectDragIndicatorWrapper>
-                          {FREQUENCY_TYPES.map((t) => (
-                            <SelectItem
-                              key={t.value}
-                              label={t.label}
-                              value={t.value}
-                            />
-                          ))}
-                        </SelectContent>
-                      </SelectPortal>
-                    </Select>
-                  )}
+                <ButtonIcon as={RepeatIcon} />
+                <ButtonText>Recurring</ButtonText>
+              </Button>
+              <Button
+                size="xl"
+                className="flex-1 rounded-none border-0"
+                variant={recurring ? "outline" : "solid"}
+                onPress={() => setValue("recurring", false)}
+              >
+                {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
+                <ButtonIcon
+                  as={PushPinIcon}
+                  size="2xl"
+                  className={
+                    recurring ? "fill-typography-600" : "fill-typography-0"
+                  }
                 />
-                <FormControlError>
-                  <FormControlErrorText>
-                    {errors?.interval_type?.message || ""}
-                  </FormControlErrorText>
-                </FormControlError>
-              </FormControl>
-            </Box>
-          </VStack>
+                <ButtonText>One-time</ButtonText>
+              </Button>
+            </HStack>
+          )}
           <Box>
             <Heading size="xl">Remind Me</Heading>
             <Box className="flex flex-row w-full gap-2 items-center">
@@ -275,12 +268,94 @@ export default function AddEditReminder({
                 </FormControlError>
               </FormControl>
               <Text size="xl" className="flex-1">
-                Time(s)
+                Time(s) {!recurring && "per day"}
               </Text>
             </Box>
           </Box>
+          {recurring && (
+            <VStack>
+              <Heading size="xl">Every</Heading>
+              <Box className="flex flex-row gap-2">
+                <FormControl
+                  isInvalid={!!errors.interval_num}
+                  className="flex-1"
+                >
+                  <Controller
+                    control={control}
+                    name="interval_num"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Input size="xl">
+                        <InputField
+                          placeholder="Frequency"
+                          value={value || ""}
+                          onBlur={onBlur}
+                          onChangeText={onChange}
+                          keyboardType="number-pad"
+                        />
+                      </Input>
+                    )}
+                  />
+                  <FormControlError>
+                    <FormControlErrorText>
+                      {errors?.interval_num?.message || ""}
+                    </FormControlErrorText>
+                  </FormControlError>
+                </FormControl>
+                <FormControl
+                  isInvalid={!!errors.interval_type}
+                  className="flex-1"
+                >
+                  <Controller
+                    control={control}
+                    name="interval_type"
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <Select
+                        selectedValue={value}
+                        onValueChange={onChange}
+                        initialLabel={
+                          FREQUENCY_TYPES.find((t) => t.value === value)?.label
+                        }
+                      >
+                        <SelectTrigger
+                          variant="outline"
+                          size="xl"
+                          className="flex justify-between"
+                        >
+                          <SelectInput
+                            placeholder="Select Option"
+                            onBlur={onBlur}
+                          />
+                          <SelectIcon className="mr-3" as={ChevronDownIcon} />
+                        </SelectTrigger>
+                        <SelectPortal>
+                          <SelectBackdrop />
+                          <SelectContent>
+                            <SelectDragIndicatorWrapper>
+                              <SelectDragIndicator />
+                            </SelectDragIndicatorWrapper>
+                            {FREQUENCY_TYPES.map((t) => (
+                              <SelectItem
+                                key={t.value}
+                                label={t.label}
+                                value={t.value}
+                              />
+                            ))}
+                          </SelectContent>
+                        </SelectPortal>
+                      </Select>
+                    )}
+                  />
+                  <FormControlError>
+                    <FormControlErrorText>
+                      {errors?.interval_type?.message || ""}
+                    </FormControlErrorText>
+                  </FormControlError>
+                </FormControl>
+              </Box>
+            </VStack>
+          )}
           <VStack>
-            <Heading size="xl">But Only On</Heading>
+            <Heading size="xl">When</Heading>
             {schedules.length > 0 ? (
               <>
                 <VStack space="sm">
@@ -325,7 +400,7 @@ export default function AddEditReminder({
               <Button
                 size="xl"
                 variant="outline"
-                action={errors.schedules ? 'negative' : undefined}
+                action={errors.schedules ? "negative" : undefined}
                 onPress={() => setSchedulesOpen(true)}
               >
                 <ButtonIcon as={AddIcon} />
@@ -333,21 +408,35 @@ export default function AddEditReminder({
               </Button>
             )}
             {errors.schedules && (
-              <Text className="text-red-700 dark:text-red-500">{errors.schedules?.message}</Text>
+              <Text className="text-red-700 dark:text-red-500">
+                {errors.schedules?.message}
+              </Text>
             )}
           </VStack>
-          <HStack space="xl" className="items-center">
-            <Text size="xl" className="font-quicksand-semibold">
-              Track Streak
-            </Text>
-            <Switch
-              value={track_streak}
-              onValueChange={(track) => setValue("track_streak", track)}
-              trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
-              thumbColor={colors.gray[50]}
-              ios_backgroundColor={colors.gray[300]}
-            />
-          </HStack>
+          {recurring && (
+            <HStack space="xl" className="items-center">
+              <Text size="xl" className="font-quicksand-semibold">
+                Track Streak
+              </Text>
+              <Switch
+                value={track_streak}
+                onValueChange={(track) => setValue("track_streak", track)}
+                trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
+                thumbColor={colors.gray[50]}
+                ios_backgroundColor={colors.gray[300]}
+              />
+            </HStack>
+          )}
+          {setDeleteDialogOpen && (
+            <Button
+              size="xl"
+              variant="outline"
+              action="negative"
+              onPress={() => setDeleteDialogOpen(true)}
+            >
+              <ButtonText>Delete</ButtonText>
+            </Button>
+          )}
         </VStack>
       </ScrollView>
       <HStack space="md">

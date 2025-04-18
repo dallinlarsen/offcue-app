@@ -78,6 +78,32 @@ export const initDatabase = async (): Promise<void> => {
     FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE
   );`);
   console.log("✅ Reminder schedule table created successfully");
+
+  // Add a few example schedules to the database
+  const exampleSchedules = [
+    { label: 'Work', isSunday: 0, isMonday: 1, isTuesday: 1, isWednesday: 1, isThursday: 1, isFriday: 1, isSaturday: 0, startTime: '08:00', endTime: '17:00' },
+    { label: 'Evening', isSunday: 0, isMonday: 1, isTuesday: 1, isWednesday: 1, isThursday: 1, isFriday: 1, isSaturday: 0, startTime: '18:00', endTime: '20:00' },
+    { label: 'Weekend', isSunday: 1, isMonday: 0, isTuesday: 0, isWednesday: 0, isThursday: 0, isFriday: 0, isSaturday: 1, startTime: '10:00', endTime: '18:00' },
+  ];
+  for (const schedule of exampleSchedules) {
+    await db.runAsync(
+      `INSERT INTO schedules (label, is_sunday, is_monday, is_tuesday, is_wednesday, is_thursday, is_friday, is_saturday, start_time, end_time)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [
+        schedule.label,
+        schedule.isSunday,
+        schedule.isMonday,
+        schedule.isTuesday,
+        schedule.isWednesday,
+        schedule.isThursday,
+        schedule.isFriday,
+        schedule.isSaturday,
+        schedule.startTime,
+        schedule.endTime
+      ]
+    );
+  }
+  console.log("✅ Example schedules added successfully");
 };
 
 /////////////////////////////////////////
@@ -162,12 +188,12 @@ export const getReminder = async (id: number) => {
 
   return reminder
     ? {
-        ...reminder,
-        track_streak: reminder.track_streak === (1 as unknown as boolean),
-        is_muted: reminder.is_muted === (1 as unknown as boolean),
-        schedules: JSON.parse(reminder.schedules as unknown as string),
-        created_at: reminder.created_at,
-      }
+      ...reminder,
+      track_streak: reminder.track_streak === (1 as unknown as boolean),
+      is_muted: reminder.is_muted === (1 as unknown as boolean),
+      schedules: JSON.parse(reminder.schedules as unknown as string),
+      created_at: reminder.created_at,
+    }
     : null;
 };
 

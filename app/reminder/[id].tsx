@@ -56,9 +56,11 @@ export default function ReminderDetailsPage() {
         reminder={reminder}
         onNotificationResponse={() => fetchData()}
       />
-      <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
-        <FabIcon as={EditIcon} />
-      </Fab>
+      {!reminder.is_completed && (
+        <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
+          <FabIcon as={EditIcon} />
+        </Fab>
+      )}
     </ThemedContainer>
   ) : (
     <ThemedContainer />

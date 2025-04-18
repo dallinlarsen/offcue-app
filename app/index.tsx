@@ -25,6 +25,7 @@ export default function HomeScreen() {
   const [dueReminders, setDueReminders] = useState<Reminder[]>([]);
   const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
   const [mutedReminders, setMutedReminders] = useState<Reminder[]>([]);
+  const [completedReminders, setCompletedReminders] = useState<Reminder[]>([]);
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["upcoming"]);
 
   const loadReminders = async () => {
@@ -48,9 +49,10 @@ export default function HomeScreen() {
   useEffect(() => {
     setDueReminders(reminders.filter((r) => r.due_scheduled_at));
     setUpcomingReminders(
-      reminders.filter((r) => !r.due_scheduled_at && !r.is_muted)
+      reminders.filter((r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed)
     );
     setMutedReminders(reminders.filter((r) => r.is_muted));
+    setCompletedReminders(reminders.filter(r => r.is_completed))
   }, [reminders]);
 
   function setOpenHandler(open: boolean, key: string) {
@@ -93,6 +95,16 @@ export default function HomeScreen() {
             setOpen={(open) => setOpenHandler(open, "upcoming")}
             emptyMessage="No Upcoming Reminders."
           />
+          {completedReminders.length > 0 && (
+            <ReminderGroupDropDown
+              title="Completed"
+              reminders={completedReminders}
+              onNotificationResponse={() => loadReminders()}
+              onMuted={() => loadReminders()}
+              open={accordiansOpen.includes("completed")}
+              setOpen={(open) => setOpenHandler(open, "completed")}
+            />
+          )}
           {mutedReminders.length > 0 && (
             <ReminderGroupDropDown
               title="Muted"

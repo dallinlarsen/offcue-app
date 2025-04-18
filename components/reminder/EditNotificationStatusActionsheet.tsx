@@ -1,4 +1,4 @@
-import { ReminderNotification } from "@/lib/types";
+import { NotificationResponseStatus, ReminderNotification } from "@/lib/types";
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -16,11 +16,18 @@ type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   notification: ReminderNotification | null;
+  recurring: boolean;
   onUpdate: () => void;
 };
 
-export default function ({ isOpen, setIsOpen, notification, onUpdate }: Props) {
-  async function updateNotificationHandler(status: 'done' | 'missed' | 'skip') {
+export default function ({
+  isOpen,
+  setIsOpen,
+  notification,
+  onUpdate,
+  recurring,
+}: Props) {
+  async function updateNotificationHandler(status: NotificationResponseStatus) {
     if (!notification) return;
     await updateNotificationResponse(notification.id, status);
     onUpdate();
@@ -43,9 +50,15 @@ export default function ({ isOpen, setIsOpen, notification, onUpdate }: Props) {
         <ActionsheetItem onPress={() => updateNotificationHandler("missed")}>
           <ActionsheetItemText size="xl">Missed</ActionsheetItemText>
         </ActionsheetItem>
-        <ActionsheetItem onPress={() => updateNotificationHandler("skip")}>
-          <ActionsheetItemText size="xl">Skip</ActionsheetItemText>
-        </ActionsheetItem>
+        {recurring ? (
+          <ActionsheetItem onPress={() => updateNotificationHandler("skip")}>
+            <ActionsheetItemText size="xl">Skip</ActionsheetItemText>
+          </ActionsheetItem>
+        ) : (
+          <ActionsheetItem onPress={() => updateNotificationHandler("later")}>
+            <ActionsheetItemText size="xl">Later</ActionsheetItemText>
+          </ActionsheetItem>
+        )}
       </ActionsheetContent>
     </Actionsheet>
   );

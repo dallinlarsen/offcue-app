@@ -1,13 +1,18 @@
 import dayjs from "dayjs";
 import * as Notifications from "expo-notifications";
 import utc from "dayjs/plugin/utc";
-import { getSoonestFutureNotificationsToSchedule, updateNotificationResponse } from "./db-service";
+import {
+  getSoonestFutureNotificationsToSchedule,
+  updateNotificationResponse,
+} from "./db-service";
 import { formatFrequencyString } from "./utils";
 import { router } from "expo-router";
 
 dayjs.extend(utc);
 
-type CategoryIdentifier = "reminder-actions";
+type CategoryIdentifier =
+  | "reminder-actions-recurring"
+  | "reminder-actions-one-time";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -28,46 +33,84 @@ export async function setupAndConfigureNotifications() {
 
   await Notifications.requestPermissionsAsync();
 
-  await Notifications.setNotificationCategoryAsync("reminder-actions", [
-    {
-      identifier: "SKIP",
-      buttonTitle: "Skip",
-      options: {
-        isDestructive: false,
-        opensAppToForeground: false,
+  await Notifications.setNotificationCategoryAsync(
+    "reminder-actions-recurring",
+    [
+      {
+        identifier: "SKIP",
+        buttonTitle: "Skip",
+        options: {
+          isDestructive: false,
+          opensAppToForeground: false,
+        },
       },
-    },
-    {
-      identifier: "DONE",
-      buttonTitle: "Done",
-      options: {
-        isDestructive: false,
-        opensAppToForeground: false,
+      {
+        identifier: "DONE",
+        buttonTitle: "Done",
+        options: {
+          isDestructive: false,
+          opensAppToForeground: false,
+        },
       },
-    },
-  ]);
+    ]
+  );
+
+  await Notifications.setNotificationCategoryAsync(
+    "reminder-actions-one-time",
+    [
+      {
+        identifier: "LATER",
+        buttonTitle: "Do It Later",
+        options: {
+          isDestructive: false,
+          opensAppToForeground: false,
+        },
+      },
+      {
+        identifier: "DONE",
+        buttonTitle: "Done",
+        options: {
+          isDestructive: false,
+          opensAppToForeground: false,
+        },
+      },
+    ]
+  );
 }
 
-export function markDoneSkipNotificationCategoryListener(callback?: (reminderId: number) => void) {
-  return Notifications.addNotificationResponseReceivedListener(async (response) => {
-    const actionId = response.actionIdentifier;
-    const data = response.notification.request.content.data;
-    const notificationId = parseInt(response.notification.request.identifier);
+export function markDoneSkipNotificationCategoryListener(
+  callback?: (reminderId: number) => void
+) {
+  return Notifications.addNotificationResponseReceivedListener(
+    async (response) => {
+      const actionId = response.actionIdentifier;
+      const data = response.notification.request.content.data;
+      const notificationId = parseInt(response.notification.request.identifier);
 
-    if (!notificationId) return;
+      if (!notificationId) return;
 
-    if (actionId === 'DONE') {
-      await updateNotificationResponse(notificationId, 'done');
+      if (actionId === "DONE") {
+        await updateNotificationResponse(notificationId, "done");
+      }
+
+      if (actionId === "SKIP") {
+        await updateNotificationResponse(notificationId, "skip");
+      }
+
+      if (actionId === "LATER") {
+        await updateNotificationResponse(notificationId, "later");
+      }
+
+      if (
+        actionId !== "LATER" &&
+        actionId !== "SKIP" &&
+        actionId !== "DONE" &&
+        data.reminderId
+      ) {
+        callback && callback(parseInt(data.reminderId));
+      }
     }
-
-    if (actionId === "SKIP") {
-      await updateNotificationResponse(notificationId, "skip");
-    }
-
-    if (actionId !== "SKIP" && actionId !== "DONE" && data.reminderId) {
-      callback && callback(parseInt(data.reminderId));
-    }
-  });
+  );
 }
 
 type CreateDeviceNotification = {
@@ -140,7 +183,9 @@ export async function scheduleAllUpcomingNotifications() {
           .utc()
           .format("YYYY-MM-DD HH:mm:ss"),
         identifier: notification.id.toString(),
-        categoryIdentifier: "reminder-actions",
+        categoryIdentifier: notification.is_recurring
+          ? "reminder-actions-recurring"
+          : "reminder-actions-one-time",
         data: {
           reminderId: notification.reminder_id,
           scheduledAt: notification.scheduled_at,

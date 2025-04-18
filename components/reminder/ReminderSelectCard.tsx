@@ -11,6 +11,7 @@ import { Switch } from "../ui/switch";
 import { useRouter } from "expo-router";
 import {
   updateNotificationResponse,
+  updateNotificationResponseOneTime,
   updateReminderMuted,
 } from "@/lib/db-service";
 import { NotificationResponseStatus, Reminder } from "@/lib/types";
@@ -20,6 +21,7 @@ import { useForm } from "react-hook-form";
 import useWatch from "@/hooks/useWatch";
 import { Button, ButtonText } from "../ui/button";
 import { useConfetti } from "@/hooks/useConfetti";
+import { Icon, PushPinIcon, RepeatIcon } from "../ui/icon";
 
 type Props = {
   reminder: Reminder;
@@ -53,17 +55,25 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
     setValue("is_muted", r.is_muted);
   });
 
+  function sendConfetti() {
+    confetti.current?.restart();
+    setTimeout(() => confetti.current?.reset(), 9000);
+  }
+
   async function handleNotificationAction(
     response: NotificationResponseStatus
   ) {
-    if (reminder.due_notification_id) {
-      if (response === 'done') {
-        confetti.current?.restart();
-        setTimeout(() => confetti.current?.reset(), 9000);
-      }
-      await updateNotificationResponse(reminder.due_notification_id, response);
-      onNotificationResponse();
+    if (reminder.is_recurring && !reminder.due_notification_id) return;
+    if (reminder.is_recurring) {
+      await updateNotificationResponse(reminder.due_notification_id!, response);
+    } else {
+      await updateNotificationResponseOneTime(reminder.id!, response);
     }
+
+    if (response === "done") {
+      sendConfetti();
+    }
+    onNotificationResponse();
   }
 
   return (
@@ -78,18 +88,29 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
         className="flex-1"
       >
         <VStack>
-          <Heading
-            numberOfLines={2}
-            className={`font-quicksand-bold ${
-              is_muted ? "text-typography-500" : ""
-            }`}
-            size="lg"
-          >
-            {reminder.title}
-          </Heading>
+          <HStack>
+            <Heading
+              numberOfLines={2}
+              className={`font-quicksand-bold flex-1 ${
+                is_muted ? "text-typography-500" : ""
+              }`}
+              size="lg"
+            >
+              {reminder.title}
+            </Heading>
+            {reminder.is_recurring ? (
+              <Icon size="sm" as={RepeatIcon} />
+            ) : (
+              <Icon
+                size="md"
+                as={PushPinIcon}
+                className="fill-typography-700"
+              />
+            )}
+          </HStack>
           {!reminder.due_scheduled_at && (
             <>
-              <Text className={is_muted ? "text-typography-500" : ""}>
+              <Text numberOfLines={1} className={is_muted ? "text-typography-500" : ""}>
                 {formatFrequencyString(
                   reminder.times,
                   reminder.interval_num,
@@ -97,7 +118,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
                 )}
               </Text>
               <Text className={is_muted ? "text-typography-500" : ""}>
-                {formatScheduleString(reminder.schedules[0])}
+                when "{reminder.schedules[0].label}"
               </Text>
               {reminder.schedules.slice(1).length > 0 ? (
                 <Text size="sm" className="-mt-1">
@@ -113,15 +134,19 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
           <Button
             size="xl"
             variant="outline"
-            onPress={() => handleNotificationAction("skip")}
+            onPress={() =>
+              handleNotificationAction(reminder.is_recurring ? "skip" : "later")
+            }
           >
-            <ButtonText>Skip</ButtonText>
+            <ButtonText>
+              {reminder.is_recurring ? "Skip" : "Do it Later"}
+            </ButtonText>
           </Button>
           <Button size="xl" onPress={() => handleNotificationAction("done")}>
             <ButtonText>Done</ButtonText>
           </Button>
         </VStack>
-      ) : (
+      ) : reminder.is_recurring ? (
         <Box className="flex flex-row">
           <Box className="flex-grow" />
           <HStack space="sm" className="items-center">
@@ -141,6 +166,14 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
             />
           </HStack>
         </Box>
+      ) : reminder.is_completed ? (
+        <Button size="xl" isDisabled variant="outline">
+          <ButtonText>Completed</ButtonText>
+        </Button>
+      ) : (
+        <Button size="xl" onPress={() => handleNotificationAction("done")}>
+          <ButtonText>Done</ButtonText>
+        </Button>
       )}
     </Card>
   );

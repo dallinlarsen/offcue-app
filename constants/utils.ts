@@ -21,4 +21,5 @@ export const STATUS_COLOR_MAP = {
   done: "success",
   missed: "warning",
   skip: "info",
+  later: 'info'
 } as const;

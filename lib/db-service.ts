@@ -28,8 +28,10 @@ export const createReminder = async (title: string,
     scheduleIds: number[],
     trackStreak: boolean,
     trackNotes: boolean,
-    muted: boolean) => {
-    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted);
+    muted: boolean,
+    recurring: boolean
+) => {
+    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted, recurring);
 
     // Create notifications for the reminder
     createInitialNotifications(result);
@@ -75,6 +77,8 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
 //Delete
 export const deleteReminder = async (id: number) => {
     const result = await db_source.deleteReminder(id);
+
+    await scheduleAllUpcomingNotifications();
     return result;
 };
 
@@ -170,6 +174,18 @@ export async function updateNotificationResponse(
   responseStatus: NotificationResponseStatus
 ) {
   await db_source.updateNotificationResponse(id, responseStatus);
+  await scheduleAllUpcomingNotifications();
+};
+
+export async function updateNotificationResponseOneTime(
+  reminderId: number,
+  responseStatus: NotificationResponseStatus
+) {
+  const notification = await db_source.getNextNotification(reminderId);
+  await db_source.updateNotificationResponse(notification.id, responseStatus);
+  if (responseStatus === 'done') {
+    await db_source.deleteFutureNotifications(reminderId);
+  }
   await scheduleAllUpcomingNotifications();
 };
 

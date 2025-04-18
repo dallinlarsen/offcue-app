@@ -11,14 +11,15 @@ export const initDatabase = async (): Promise<void> => {
   const db = await openDB();
   await db.execAsync(`CREATE TABLE IF NOT EXISTS reminders (
     id INTEGER PRIMARY KEY NOT NULL,
-    title TEXT NOT NULL,                  -- Required title of the reminder
-    description TEXT,                     -- Optional description of the reminder
-    interval_type TEXT NOT NULL,          -- The type of interval (e.g., "minute", "hour", "day", "week", "month", "year")
-    interval_num INTEGER NOT NULL,        -- The length of the interval (e.g., number of minutes, hours, days, etc.)
-    times INTEGER NOT NULL,               -- The number of times the reminder should occur in the defined interval
-    track_streak INTEGER NOT NULL,        -- Whether to track streaks (1 for true, 0 for false)
-    track_notes INTEGER NOT NULL,         -- Whether to track notes (1 for true, 0 for false)
-    is_muted INTEGER NOT NULL DEFAULT 0,  -- Whether the reminder is muted (1 for true, 0 for false)
+    title TEXT NOT NULL,                      -- Required title of the reminder
+    description TEXT,                         -- Optional description of the reminder
+    interval_type TEXT NOT NULL,              -- The type of interval (e.g., "minute", "hour", "day", "week", "month", "year")
+    interval_num INTEGER NOT NULL,            -- The length of the interval (e.g., number of minutes, hours, days, etc.)
+    times INTEGER NOT NULL,                   -- The number of times the reminder should occur in the defined interval
+    track_streak INTEGER NOT NULL,            -- Whether to track streaks (1 for true, 0 for false)
+    track_notes INTEGER NOT NULL,             -- Whether to track notes (1 for true, 0 for false)
+    is_muted INTEGER NOT NULL DEFAULT 0,      -- Whether the reminder is muted (1 for true, 0 for false)
+    is_recurring INTEGER NOT NULL DEFAULT 1,  -- Whether the reminder is recurring (1 for true, 0 for false)
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the reminder was created
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- The time the reminder was last updated
   );`);
@@ -134,13 +135,14 @@ export const createReminder = async (
   scheduleIds: number[],
   trackStreak: boolean,
   trackNotes: boolean,
-  muted: boolean
+  muted: boolean,
+  recurring: boolean
 ): Promise<number> => {
   const db = await openDB();
   const result = await db.runAsync(
-    `INSERT INTO reminders (title, description, interval_type, interval_num, times, track_streak, track_notes, is_muted)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-    [title, description, intervalType, intervalNum, times, trackStreak ? 1 : 0, trackNotes ? 1 : 0, muted ? 1 : 0]
+    `INSERT INTO reminders (title, description, interval_type, interval_num, times, track_streak, track_notes, is_muted, is_recurring)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+    [title, description, intervalType, intervalNum, times, trackStreak ? 1 : 0, trackNotes ? 1 : 0, muted ? 1 : 0, recurring ? 1 : 0]
   );
   console.log("✅ Reminder saved successfully", result);
 
@@ -186,10 +188,12 @@ export const getReminder = async (id: number) => {
               )
             ) AS schedules,
             ln.scheduled_at AS due_scheduled_at,
-            ln.id AS due_notification_id
+            ln.id AS due_notification_id,
+            n.id IS NOT NULL AS is_completed
     FROM reminders r
     JOIN reminder_schedule rs ON rs.reminder_id = r.id
     JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done'
     LEFT JOIN (
         SELECT * FROM latest_notifications
         WHERE rn = 1
@@ -202,12 +206,14 @@ export const getReminder = async (id: number) => {
 
   return reminder
     ? {
-      ...reminder,
-      track_streak: reminder.track_streak === (1 as unknown as boolean),
-      is_muted: reminder.is_muted === (1 as unknown as boolean),
-      schedules: JSON.parse(reminder.schedules as unknown as string),
-      created_at: reminder.created_at,
-    }
+        ...reminder,
+        track_streak: reminder.track_streak === (1 as unknown as boolean),
+        is_muted: reminder.is_muted === (1 as unknown as boolean),
+        is_recurring: reminder.is_recurring === (1 as unknown as boolean),
+        is_completed: reminder.is_completed === (1 as unknown as boolean),
+        schedules: JSON.parse(reminder.schedules as unknown as string),
+        created_at: reminder.created_at,
+      }
     : null;
 };
 
@@ -273,6 +279,9 @@ export const updateReminderMuted = async (id: number, isMuted: boolean): Promise
 // Function to delete a reminder
 export const deleteReminder = async (id: number): Promise<void> => {
   const db = await openDB();
+  await db.runAsync(`DELETE FROM notes WHERE reminder_id = ?;`, [id]);
+  await db.runAsync(`DELETE FROM notifications WHERE reminder_id = ?;`, [id]);
+  await db.runAsync(`DELETE FROM reminder_schedule WHERE reminder_id = ?;`, [id]);
   await db.runAsync(`DELETE FROM reminders WHERE id = ?;`, [id]);
   console.log("✅ Reminder deleted successfully");
 };
@@ -332,7 +341,7 @@ export const updateNotificationResponse = async (id: number, responseStatus: Not
   const db = await openDB();
   await db.runAsync(
     `UPDATE notifications
-    SET response_at = CURRENT_TIMESTAMP, response_status = ?, updated_at = CURRENT_TIMESTAMP
+    SET response_at = CURRENT_TIMESTAMP || '+00:00', response_status = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?;`,
     [responseStatus, id]
   );
@@ -341,7 +350,7 @@ export const updateNotificationResponse = async (id: number, responseStatus: Not
   // Set all the notifications that were missed to missed.
   await db.runAsync(
     ` UPDATE notifications
-      SET response_at = CURRENT_TIMESTAMP,
+      SET response_at = CURRENT_TIMESTAMP || '+00:00',
           response_status = 'missed',
           updated_at = CURRENT_TIMESTAMP
       WHERE scheduled_at < CURRENT_TIMESTAMP
@@ -490,7 +499,8 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 // Function to fetch all reminders
 export const getAllReminders = async (): Promise<any[]> => {
   const db = await openDB();
-  const reminders = await db.getAllAsync<Reminder>(`
+  const reminders = await db.getAllAsync<Reminder>(
+    `
     WITH latest_notifications AS (
         SELECT n.*,
               ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
@@ -515,21 +525,27 @@ export const getAllReminders = async (): Promise<any[]> => {
               )
             ) AS schedules,
             ln.scheduled_at AS due_scheduled_at,
-            ln.id AS due_notification_id
+            ln.id AS due_notification_id,
+            n.id IS NOT NULL AS is_completed
     FROM reminders r
     JOIN reminder_schedule rs ON rs.reminder_id = r.id
     JOIN schedules s ON s.id = rs.schedule_id
+    LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done'
     LEFT JOIN (
         SELECT * FROM latest_notifications
         WHERE rn = 1
     ) ln ON ln.reminder_id = r.id
     GROUP BY r.id;
-  `, []);
+  `,
+    []
+  );
 
   return reminders.map((r) => ({
     ...r,
     track_streak: r.track_streak === (1 as unknown as boolean),
     is_muted: r.is_muted === (1 as unknown as boolean),
+    is_recurring: r.is_recurring === (1 as unknown as boolean),
+    is_completed: r.is_completed === (1 as unknown as boolean),
     schedules: JSON.parse(r.schedules as unknown as string),
   }));
 };
@@ -634,7 +650,8 @@ export const getSoonestFutureNotificationsToSchedule = async (amount: number = 6
             r.description,
             r.interval_type,
             r.interval_num,
-            r.times
+            r.times,
+            r.is_recurring
      FROM notifications n
      JOIN reminders r ON r.id = n.reminder_id
      WHERE response_at IS NULL AND scheduled_at >= CURRENT_TIMESTAMP
@@ -642,7 +659,7 @@ export const getSoonestFutureNotificationsToSchedule = async (amount: number = 6
      LIMIT ?;`,
     [amount]
   );
-  return notifications;
+  return notifications.map(n => ({ ...n, is_recurring: n.is_recurring === 1 as unknown as boolean}));
 };
 
 export const getFutureNotifications = async (reminderId: number) => {

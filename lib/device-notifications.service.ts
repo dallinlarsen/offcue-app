@@ -157,32 +157,19 @@ export async function getAllScheduledNotifications() {
   }));
 }
 
-export async function cancelScheduledNotifications() {
-  return await Notifications.cancelAllScheduledNotificationsAsync();
-}
-
 export async function scheduleAllUpcomingNotifications() {
-  console.log("Scheduling notifications...");
+  console.log("Rescheduling all notifications from scratch...");
 
+  // 1. Cancel all existing notifications
+  await Notifications.cancelAllScheduledNotificationsAsync();
+
+  // 2. Fetch new ones from DB
   const notifications = await getSoonestFutureNotificationsToSchedule();
-  const scheduledNotifications = await getAllScheduledNotifications();
-  const scheduledNotificationsIds = scheduledNotifications.map(
-    (s) => s.identifier
-  );
+  console.log("Notifications to create:", notifications.length);
 
-  // Remove scheduled notifications not in the notification set
-  const notificationIds = notifications.map((n) => n.id.toString());
-  const notificationsToDelete = scheduledNotificationsIds.filter(
-    (s) => !notificationIds.includes(s)
-  );
-
-  for (const notificationId of notificationsToDelete) {
-    await Notifications.cancelScheduledNotificationAsync(notificationId);
-  }
-
-  // Add all not scheduled notifications
+  // 3. Recreate each one
   for (const notification of notifications) {
-    if (!scheduledNotificationsIds.includes(notification.id.toString())) {
+    try {
       await createDeviceNotification({
         title: notification.title,
         body:
@@ -204,6 +191,9 @@ export async function scheduleAllUpcomingNotifications() {
           scheduledAt: notification.scheduled_at,
         },
       });
+      console.log(`Scheduled notification ${notification.id}`);
+    } catch (err) {
+      console.error(`Failed to schedule notification ${notification.id}:`, err);
     }
   }
 }

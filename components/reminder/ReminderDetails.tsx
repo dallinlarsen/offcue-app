@@ -7,6 +7,7 @@ import {
   RepeatIcon,
 } from "@/components/ui/icon";
 import {
+  recalcFutureNotifications,
   updateNotificationResponse,
   updateNotificationResponseOneTime,
   updateReminderMuted,
@@ -140,6 +141,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     setNotificationStatusUpdateOpen(true);
   }
 
+  async function recalcFutureNotificationsHandler() {
+    await recalcFutureNotifications(reminder.id!);
+    fetchData();
+  }
+
   return (
     <>
       <ScrollView>
@@ -252,7 +258,12 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                         {hideNextNotification ? "Show" : "Hide"}
                       </ButtonText>
                     </Button>
-                    <Button size="lg" variant="outline" className="flex-1">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="flex-1"
+                      onPress={recalcFutureNotificationsHandler}
+                    >
                       <ButtonIcon as={RepeatIcon} />
                       <ButtonText>Reschedule</ButtonText>
                     </Button>

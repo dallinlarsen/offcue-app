@@ -518,7 +518,10 @@ export const getReminderNotifications = async (reminderId: number): Promise<any[
 export const getReminderPastNotifications = async (reminderId: number): Promise<any[]> => {
   const db = await openDB();
   const notifications = await db.getAllAsync<ReminderNotification>(
-    `SELECT * FROM notifications WHERE reminder_id = ? AND scheduled_at < CURRENT_TIMESTAMP ORDER BY scheduled_at DESC;`,
+    `SELECT * 
+     FROM notifications 
+     WHERE reminder_id = ? AND scheduled_at < CURRENT_TIMESTAMP AND response_status IS NOT NULL
+     ORDER BY scheduled_at DESC;`,
     [reminderId]
   );
   return notifications;

@@ -19,18 +19,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import useWatch from "@/hooks/useWatch";
 import { Button, ButtonText } from "../ui/button";
+import { useConfetti } from "@/hooks/useConfetti";
 
 type Props = {
   reminder: Reminder;
   onNotificationResponse: () => void;
+  onMuted: () => void;
 };
 
 const ZodSchema = z.object({
   is_muted: z.boolean(),
 });
 
-export default function ({ reminder, onNotificationResponse }: Props) {
+export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
   const router = useRouter();
+  const confetti = useConfetti();
 
   const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -43,6 +46,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   useWatch(is_muted, async (newVal) => {
     await updateReminderMuted(reminder.id!, newVal);
+    onMuted();
   });
 
   useWatch(reminder, (r) => {
@@ -53,6 +57,10 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     response: NotificationResponseStatus
   ) {
     if (reminder.due_notification_id) {
+      if (response === 'done') {
+        confetti.current?.restart();
+        setTimeout(() => confetti.current?.reset(), 9000);
+      }
       await updateNotificationResponse(reminder.due_notification_id, response);
       onNotificationResponse();
     }
@@ -60,27 +68,37 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   return (
     <Card
-      variant={reminder.due_scheduled_at ? 'outline' : 'filled'}
-      className={`${ reminder.due_scheduled_at ? 'bg-background-50' : 'bg-background-100' } p-3 flex-1 aspect-square justify-between`}
+      variant={reminder.due_scheduled_at ? "outline" : "filled"}
+      className={`${
+        reminder.due_scheduled_at ? "bg-background-50" : "bg-background-100"
+      } p-3 flex-1 aspect-square justify-between rounded-2xl border-background-500`}
     >
       <TouchableOpacity
         onPress={() => router.push(`/reminder/${reminder.id}`)}
         className="flex-1"
       >
         <VStack>
-          <Heading numberOfLines={2} className="font-quicksand-bold" size="lg">
+          <Heading
+            numberOfLines={2}
+            className={`font-quicksand-bold ${
+              is_muted ? "text-typography-500" : ""
+            }`}
+            size="lg"
+          >
             {reminder.title}
           </Heading>
           {!reminder.due_scheduled_at && (
             <>
-              <Text>
+              <Text className={is_muted ? "text-typography-500" : ""}>
                 {formatFrequencyString(
                   reminder.times,
                   reminder.interval_num,
                   reminder.interval_type
                 )}
               </Text>
-              <Text>{formatScheduleString(reminder.schedules[0])}</Text>
+              <Text className={is_muted ? "text-typography-500" : ""}>
+                {formatScheduleString(reminder.schedules[0])}
+              </Text>
               {reminder.schedules.slice(1).length > 0 ? (
                 <Text size="sm" className="-mt-1">
                   +{reminder.schedules.slice(1).length} More

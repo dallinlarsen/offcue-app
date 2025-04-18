@@ -79,6 +79,20 @@ export const initDatabase = async (): Promise<void> => {
   );`);
   console.log("✅ Reminder schedule table created successfully");
 
+  // Add a table for storing user settings/properties
+  await db.execAsync(`CREATE TABLE IF NOT EXISTS user_settings (
+    id INTEGER PRIMARY KEY NOT NULL,
+    has_completed_tutorial INTEGER NOT NULL DEFAULT 0,      -- Whether the user has completed the tutorial (1 for true, 0 for false)
+    notification_sound TEXT,                                -- The sound to play for notifications
+    notification_vibration INTEGER NOT NULL DEFAULT 1,      -- Whether to vibrate for notifications (1 for true, 0 for false)
+    theme TEXT NOT NULL DEFAULT 'light',                    -- The theme of the app (e.g., "light", "dark")
+    language TEXT NOT NULL DEFAULT 'en',                    -- The language of the app (e.g., "en", "es", "fr")
+    timezone TEXT NOT NULL DEFAULT 'UTC',                   -- The timezone of the user
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the user settings were created
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- The time the user settings were last updated
+  );`);
+  console.log("✅ User settings table created successfully");
+
   // Add a few example schedules to the database
   const exampleSchedules = [
     { label: 'Work', isSunday: 0, isMonday: 1, isTuesday: 1, isWednesday: 1, isThursday: 1, isFriday: 1, isSaturday: 0, startTime: '08:00', endTime: '17:00' },

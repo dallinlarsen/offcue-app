@@ -41,7 +41,13 @@
       ],
       "expo-font",
       "expo-sqlite",
-      "expo-dev-client"
+      "expo-dev-client",
+       [
+        "expo-asset",
+        {
+          "assets": ["./assets/images/splash-icon.png"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

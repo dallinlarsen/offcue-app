@@ -11,6 +11,7 @@ import * as SQLite from "expo-sqlite";
 import { createDatabase } from "@/lib/db-service";
 import { markDoneSkipNotificationCategoryListener, setupAndConfigureNotifications } from "@/lib/device-notifications.service";
 import { ConfettiProvider } from "@/hooks/useConfetti";
+import { DrawerProvider } from "@/hooks/useNavigationDrawer";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -53,19 +54,21 @@ export default function RootLayout() {
   return (
     <GluestackUIProvider mode="system">
       <ConfettiProvider>
-        <SafeAreaProvider>
-          <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
-            <Stack
-              screenOptions={{
-                animation: "none",
-              }}
-            >
-              <Stack.Screen name="new-reminder" />
-              <Stack.Screen name="index" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </SafeAreaView>
-        </SafeAreaProvider>
+        <DrawerProvider>
+          <SafeAreaProvider>
+            <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
+              <Stack
+                screenOptions={{
+                  animation: "none",
+                }}
+              >
+                <Stack.Screen name="new-reminder" />
+                <Stack.Screen name="index" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </SafeAreaView>
+          </SafeAreaProvider>
+        </DrawerProvider>
       </ConfettiProvider>
     </GluestackUIProvider>
   );

@@ -40,7 +40,13 @@
         }
       ],
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+       [
+        "expo-asset",
+        {
+          "assets": ["./assets/images/splash-icon.png"]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

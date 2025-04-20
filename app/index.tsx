@@ -7,6 +7,7 @@ import { Fab, FabIcon } from "@/components/ui/fab";
 import {
   AddIcon,
   Icon,
+  MenuIcon,
   SettingsIcon,
 } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
@@ -17,10 +18,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet } from "react-native";
 import { HStack } from "@/components/ui/hstack";
 import ReminderGroupDropDown from "@/components/reminder/ReminderGroupDropDown";
+import { useDrawer } from "@/hooks/useNavigationDrawer";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const router = useRouter();
+  const { setDrawerOpen } = useDrawer();
+
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [dueReminders, setDueReminders] = useState<Reminder[]>([]);
   const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
@@ -67,7 +71,12 @@ export default function HomeScreen() {
     <ThemedContainer>
       <Box className="mb-2">
         <HStack className="justify-between items-start">
-          <Heading size="3xl">Reminders</Heading>
+          <Box className="flex flex-row items-center -mt-2 mb-4">
+            <TouchableOpacity className="p-3" onPress={() => setDrawerOpen(true)}>
+              <Icon as={MenuIcon} size="xl" />
+            </TouchableOpacity>
+            <Heading size="3xl">Reminders</Heading>
+          </Box>
           <TouchableOpacity
             className="p-3"
             onPress={() => router.push("/notifications-test")}

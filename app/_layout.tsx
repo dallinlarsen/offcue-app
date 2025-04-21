@@ -9,9 +9,28 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import * as SQLite from "expo-sqlite";
 import { createDatabase } from "@/lib/db-service";
-import { markDoneSkipNotificationCategoryListener, setupAndConfigureNotifications } from "@/lib/device-notifications.service";
+import {
+  markDoneSkipNotificationCategoryListener,
+  setupAndConfigureNotifications,
+} from "@/lib/device-notifications.service";
 import { ConfettiProvider } from "@/hooks/useConfetti";
 import { DrawerProvider } from "@/hooks/useNavigationDrawer";
+import { HStack } from "@/components/ui/hstack";
+import { VStack } from "@/components/ui/vstack";
+import {
+  AddIcon,
+  ArchiveOutlineIcon,
+  BoxIcon,
+  CalendarDaysIcon,
+  Icon,
+  SettingsIcon,
+} from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
+import { Fab, FabIcon } from "@/components/ui/fab";
+import { Pressable } from "@/components/ui/pressable";
+import { Box } from "@/components/ui/box";
+import { TouchableOpacity } from "react-native";
+import Navigation from "@/components/navigation/Navigation";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -33,12 +52,14 @@ export default function RootLayout() {
 
   useEffect(() => {
     setupAndConfigureNotifications();
-    const subscription = markDoneSkipNotificationCategoryListener((reminderId: number) => {
-      router.replace(`/reminder/${reminderId}`);
-    });
+    const subscription = markDoneSkipNotificationCategoryListener(
+      (reminderId: number) => {
+        router.replace(`/reminder/${reminderId}`);
+      }
+    );
 
     return () => subscription.remove();
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (loaded) {
@@ -52,7 +73,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider mode="system">
+    <GluestackUIProvider mode="dark">
       <ConfettiProvider>
         <DrawerProvider>
           <SafeAreaProvider>
@@ -66,6 +87,7 @@ export default function RootLayout() {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="+not-found" />
               </Stack>
+              <Navigation />
             </SafeAreaView>
           </SafeAreaProvider>
         </DrawerProvider>

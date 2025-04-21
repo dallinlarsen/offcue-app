@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
+import Fade from "@/components/Fade";
 
 export default function ReminderDetailsPage() {
   const { id } = useLocalSearchParams();
@@ -58,9 +59,10 @@ export default function ReminderDetailsPage() {
       />
       {!reminder.is_completed && (
         <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
-          <FabIcon as={EditIcon} />
+          <FabIcon as={EditIcon} size="xl" />
         </Fab>
       )}
+      <Fade />
     </ThemedContainer>
   ) : (
     <ThemedContainer />

@@ -43,6 +43,7 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [assets, error] = useAssets([
     require("@/assets/images/splash-icon.png"),
+    require("@/assets/images/splash-icon-dark.png"),
   ]);
 
   return (
@@ -57,18 +58,30 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
           <VStack className="flex-1 justify-between">
             {/* Top Section */}
             <Box>
-              {assets?.[0] && (
-                <Image
-                  source={assets[0]}
-                  style={{
-                    width: "100%",
-                    height: 100,
-                    marginTop: 56,
-                    marginBottom: 16,
-                  }}
-                  contentFit="contain"
-                />
-              )}
+                {/* {assets?.[0] && (
+                  <Image
+                    source={assets[0]}
+                    style={{
+                      width: "100%",
+                      height: 100,
+                      marginTop: 56,
+                      marginBottom: 16,
+                    }}
+                    contentFit="contain"
+                  />
+                )} */}
+                {assets?.[1] && (
+                  <Image
+                    source={assets[1]}
+                    style={{
+                      width: "100%",
+                      height: 100,
+                      marginTop: 56,
+                      marginBottom: 16,
+                    }}
+                    contentFit="contain"
+                  />
+                )}
               <VStack>
                 <TouchableOpacity>
                   <HStack
@@ -126,7 +139,11 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
               </TouchableOpacity>
               <TouchableOpacity>
                 <HStack className="items-center p-4" space="lg">
-                  <Icon className='fill-background-950' as={LifebouyIcon} size="lg" />
+                  <Icon
+                    className="fill-background-950"
+                    as={LifebouyIcon}
+                    size="lg"
+                  />
                   <Text className="font-quicksand-semibold" size="xl">
                     Help
                   </Text>

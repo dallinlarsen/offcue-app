@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigation, useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -51,7 +51,6 @@ function FilterOption({ onPress, label, active }: FilterOptionProps) {
 }
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -85,11 +84,6 @@ export default function HomeScreen() {
     setReminders(data);
     console.log(data);
   };
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-    loadReminders();
-  }, [navigation]);
 
   // Refresh reminders whenever the screen comes into focus.
   useFocusEffect(
@@ -210,7 +204,9 @@ export default function HomeScreen() {
     }
   }
 
-  return isFilterNav === null ? <ThemedContainer /> : (
+  return isFilterNav === null ? (
+    <ThemedContainer />
+  ) : (
     <ThemedContainer>
       <Box className="mb-2">
         <HStack className="justify-between items-start">

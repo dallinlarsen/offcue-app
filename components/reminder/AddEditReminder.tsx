@@ -167,7 +167,7 @@ export default function AddEditReminder({
   return (
     <>
       <ScrollView>
-        <VStack space="xl">
+        <VStack space="xl" className="mb-4">
           <VStack space="sm">
             <FormControl isInvalid={!!errors.title}>
               <Controller
@@ -439,21 +439,21 @@ export default function AddEditReminder({
           )}
         </VStack>
       </ScrollView>
-          <HStack space="md">
-            {onCancel ? (
-              <Button
-                size="xl"
-                onPress={() => onCancel()}
-                className="flex-1"
-                variant="outline"
-              >
-                <ButtonText>Cancel</ButtonText>
-              </Button>
-            ) : null}
-            <Button size="xl" onPress={onSubmit} className="flex-1">
-              <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
-            </Button>
-          </HStack>
+      <HStack space="md">
+        {onCancel ? (
+          <Button
+            size="xl"
+            onPress={() => onCancel()}
+            className="flex-1"
+            variant="outline"
+          >
+            <ButtonText>Cancel</ButtonText>
+          </Button>
+        ) : null}
+        <Button size="xl" onPress={onSubmit} className="flex-1">
+          <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
+        </Button>
+      </HStack>
       <ScheduleActionsheet
         isOpen={schedulesOpen}
         setIsOpen={setSchedulesOpen}

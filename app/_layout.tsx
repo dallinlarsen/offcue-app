@@ -64,12 +64,9 @@ export default function RootLayout() {
             <Stack
               screenOptions={{
                 animation: "none",
+                headerShown: false,
               }}
-            >
-              <Stack.Screen name="new-reminder" />
-              <Stack.Screen name="index" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
+            />
             <Navigation />
           </SafeAreaView>
         </SafeAreaProvider>

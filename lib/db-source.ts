@@ -8,14 +8,10 @@ import {
   UserSettings,
 } from "./types";
 import { scheduleAllUpcomingNotifications } from "./device-notifications.service";
-
-export async function openDB() {
-  return await SQLite.openDatabaseAsync("reminders.db");
-}
+import db from "./db";
 
 // Function to initialize the database and create tables
 export const initDatabase = async (): Promise<void> => {
-  const db = await openDB();
   await db.execAsync(`CREATE TABLE IF NOT EXISTS reminders (
     id INTEGER PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,                      -- Required title of the reminder
@@ -103,17 +99,14 @@ export const initDatabase = async (): Promise<void> => {
 
   const userSettings = await getUserSettings();
 
-  console.log(userSettings);
-
   if (!userSettings.id) {
-    console.log('hello')
-    await db.runAsync(`INSERT INTO user_settings (filter_reminder_nav) VALUES (1);`);
+    await db.runAsync(
+      `INSERT INTO user_settings (filter_reminder_nav) VALUES (1);`
+    );
   }
   console.log("✅ User settings table created successfully");
 
   const schedules = await getAllSchedules();
-
-  console.log(schedules);
 
   if (schedules.length === 0) {
     // Add a few example schedules to the database
@@ -194,7 +187,6 @@ export const createReminder = async (
   muted: boolean,
   recurring: boolean
 ): Promise<number> => {
-  const db = await openDB();
   const result = await db.runAsync(
     `INSERT INTO reminders (title, description, interval_type, interval_num, times, track_streak, track_notes, is_muted, is_recurring)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
@@ -227,7 +219,6 @@ export const createReminder = async (
 
 // function to fetch a specific reminder by ID
 export const getReminder = async (id: number) => {
-  const db = await openDB();
   const reminder = await db.getFirstAsync<Reminder>(
     `
     WITH latest_notifications AS (
@@ -296,7 +287,6 @@ export const updateReminder = async (
   trackNotes: boolean,
   isMuted: boolean
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `UPDATE reminders 
      SET title = ?, description = ?, interval_type = ?, interval_num = ?, times = ?, track_streak = ?, track_notes = ?, is_muted = ?, updated_at = CURRENT_TIMESTAMP
@@ -349,7 +339,6 @@ export const updateReminderMuted = async (
   id: number,
   isMuted: boolean
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `UPDATE reminders
      SET is_muted = ?, updated_at = CURRENT_TIMESTAMP
@@ -361,7 +350,6 @@ export const updateReminderMuted = async (
 
 // Function to delete a reminder
 export const deleteReminder = async (id: number): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(`DELETE FROM notes WHERE reminder_id = ?;`, [id]);
   await db.runAsync(`DELETE FROM notifications WHERE reminder_id = ?;`, [id]);
   await db.runAsync(`DELETE FROM reminder_schedule WHERE reminder_id = ?;`, [
@@ -383,7 +371,6 @@ export const createNotification = async (
   intervalIndex: number,
   segmentIndex: number
 ): Promise<number> => {
-  const db = await openDB();
   const result = await db.runAsync(
     `INSERT INTO notifications (reminder_id, scheduled_at, is_scheduled, interval_index, segment_index)
      VALUES (?, ?, ?, ?, ?);`,
@@ -396,7 +383,6 @@ export const createNotification = async (
 
 // Function to fetch a specific notification by ID
 export const getNotification = async (id: number): Promise<any> => {
-  const db = await openDB();
   const notification = await db.getFirstAsync(
     `SELECT * FROM notifications WHERE id = ?;`,
     [id]
@@ -414,7 +400,6 @@ export const updateNotification = async (
   responseAt: string | null,
   responseStatus: string | null
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `UPDATE notifications
      SET scheduled_at = ?, is_scheduled = ?, interval_index = ?, segment_index = ?, response_at = ?, response_status = ?, updated_at = CURRENT_TIMESTAMP
@@ -437,7 +422,6 @@ export const updateNotificationResponse = async (
   id: number,
   responseStatus: NotificationResponseStatus
 ) => {
-  const db = await openDB();
   await db.runAsync(
     `UPDATE notifications
     SET response_at = CURRENT_TIMESTAMP || '+00:00', response_status = ?, updated_at = CURRENT_TIMESTAMP
@@ -465,7 +449,6 @@ export const updateNotificationResponse = async (
 
 // Function to delete a notification
 export const deleteNotification = async (id: number): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(`DELETE FROM notifications WHERE id = ?;`, [id]);
   console.log("✅ Notification deleted successfully");
 };
@@ -494,7 +477,6 @@ export const createSchedule = async (
   startTime: string,
   endTime: string
 ): Promise<number> => {
-  const db = await openDB();
   const result = await db.runAsync(
     `INSERT INTO schedules (label, is_sunday, is_monday, is_tuesday, is_wednesday, is_thursday, is_friday, is_saturday, start_time, end_time)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
@@ -517,7 +499,6 @@ export const createSchedule = async (
 
 // Function to fetch a schedule
 export const getSchedule = async (id: number): Promise<any> => {
-  const db = await openDB();
   const schedule = await db.getFirstAsync(
     `SELECT * FROM schedules WHERE id = ?;`,
     [id]
@@ -539,7 +520,6 @@ export const updateSchedule = async (
   startTime: string,
   endTime: string
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `UPDATE schedules
      SET label = ?, is_sunday = ?, is_monday = ?, is_tuesday = ?, is_wednesday = ?, is_thursday = ?, is_friday = ?, is_saturday = ?, start_time = ?, end_time = ?, updated_at = CURRENT_TIMESTAMP
@@ -563,7 +543,6 @@ export const updateSchedule = async (
 
 // Function to delete a schedule
 export const deleteSchedule = async (id: number): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(`DELETE FROM schedules WHERE id = ?;`, [id]);
   console.log("✅ Schedule deleted successfully");
 };
@@ -577,7 +556,6 @@ export const createReminderSchedule = async (
   reminderId: number,
   scheduleId: number
 ): Promise<number> => {
-  const db = await openDB();
   const result = await db.runAsync(
     `INSERT INTO reminder_schedule (reminder_id, schedule_id, created_at, updated_at)
      VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);`,
@@ -589,7 +567,6 @@ export const createReminderSchedule = async (
 
 // Function to delete a reminder schedule
 export const deleteReminderSchedule = async (id: number): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(`DELETE FROM reminder_schedule WHERE id = ?;`, [id]);
   console.log("✅ Reminder schedule deleted successfully");
 };
@@ -600,7 +577,6 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 
 // Function to fetch all reminders
 export const getAllReminders = async (): Promise<any[]> => {
-  const db = await openDB();
   const reminders = await db.getAllAsync<Reminder>(
     `
     WITH latest_notifications AS (
@@ -654,7 +630,6 @@ export const getAllReminders = async (): Promise<any[]> => {
 
 // Function to fetch all schedules
 export const getAllSchedules = async (): Promise<any[]> => {
-  const db = await openDB();
   const schedules = await db.getAllAsync(`SELECT * FROM schedules;`, []);
   return schedules;
 };
@@ -667,7 +642,6 @@ export const getAllSchedules = async (): Promise<any[]> => {
 export const getReminderNotifications = async (
   reminderId: number
 ): Promise<any[]> => {
-  const db = await openDB();
   const notifications = await db.getAllAsync(
     `SELECT * FROM notifications WHERE reminder_id = ?;`,
     [reminderId]
@@ -678,7 +652,6 @@ export const getReminderNotifications = async (
 export const getReminderPastNotifications = async (
   reminderId: number
 ): Promise<any[]> => {
-  const db = await openDB();
   const notifications = await db.getAllAsync<ReminderNotification>(
     `SELECT * 
      FROM notifications 
@@ -693,7 +666,6 @@ export const getReminderPastNotifications = async (
 export const getUnrespondedReminderNotifications = async (
   reminderId: number
 ) => {
-  const db = await openDB();
   const notifications = await db.getAllAsync<ReminderNotification>(
     `SELECT * FROM notifications WHERE reminder_id = ? AND response_status IS NULL;`,
     [reminderId]
@@ -703,7 +675,6 @@ export const getUnrespondedReminderNotifications = async (
 
 // Helper function to get schedules for a given reminder
 export const getReminderSchedules = async (reminderId: number) => {
-  const db = await openDB();
   // Join the reminder_schedule table with the schedule table to get the schedule details
   const schedules = await db.getAllAsync<Schedule>(
     `SELECT s.* FROM schedules s 
@@ -718,7 +689,6 @@ export const getReminderSchedules = async (reminderId: number) => {
 export const getNextNotification = async (
   reminderId: number
 ): Promise<any | null> => {
-  const db = await openDB();
   const notification = await db.getFirstAsync(
     `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
     [reminderId]
@@ -728,7 +698,6 @@ export const getNextNotification = async (
 };
 
 export const getNextUpcomingNotification = async (reminderId: number) => {
-  const db = await openDB();
   const notification = await db.getFirstAsync<ReminderNotification>(
     `SELECT * FROM notifications WHERE reminder_id = ? AND response_status IS NULL ORDER BY scheduled_at ASC;`,
     [reminderId]
@@ -741,7 +710,6 @@ export const getNotificationsByInterval = async (
   reminderId: number,
   intervalIndex: number
 ): Promise<any[]> => {
-  const db = await openDB();
   const notifications = await db.getAllAsync(
     `SELECT * FROM notifications WHERE reminder_id = ? AND interval_index = ?;`,
     [reminderId, intervalIndex]
@@ -754,7 +722,6 @@ export const getNotificationsByInterval = async (
 export const getSoonestFutureNotificationsToSchedule = async (
   amount: number = 64
 ) => {
-  const db = await openDB();
   const notifications = await db.getAllAsync<
     ReminderNotification & NotificationReminder
   >(
@@ -779,7 +746,6 @@ export const getSoonestFutureNotificationsToSchedule = async (
 };
 
 export const getFutureNotifications = async (reminderId: number) => {
-  const db = await openDB();
   const notifications = await db.getAllAsync<ReminderNotification>(
     `SELECT * FROM notifications 
      WHERE reminder_id = ? 
@@ -793,7 +759,6 @@ export const getFutureNotifications = async (reminderId: number) => {
 export const deleteFutureNotifications = async (
   reminderId: number
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `DELETE FROM notifications 
      WHERE reminder_id = ? 
@@ -813,7 +778,6 @@ export const deleteFutureNotifications = async (
 
 // Helper function to get reminders for a given schedule
 export const getScheduleReminders = async (scheduleId: number) => {
-  const db = await openDB();
   return await db.getAllAsync<Reminder>(
     `SELECT r.* FROM reminders r
      JOIN reminder_schedule rs ON rs.reminder_id = r.id 
@@ -828,7 +792,6 @@ export const getScheduleReminders = async (scheduleId: number) => {
 
 // Helper function to get reminders for a given schedule
 export const getUserSettings = async () => {
-  const db = await openDB();
   const result = await db.getFirstAsync<UserSettings>(
     `SELECT *
      FROM user_settings;`
@@ -853,8 +816,8 @@ export const getUserSettings = async () => {
 
 // Helper function to get reminders for a given schedule
 export const setNavFilter = async (value: boolean) => {
-  console.log('filter', value)
-  const db = await openDB();
+  console.log("filter", value);
+
   return await db.runAsync(
     `UPDATE user_settings
      SET filter_reminder_nav = ?;`,
@@ -869,7 +832,6 @@ export const setNavFilter = async (value: boolean) => {
 // Function to wipe the database and reinitialize it
 export const wipeDatabase = async (): Promise<void> => {
   try {
-    const db = await openDB();
     db.closeAsync();
     // Delete the database file
     await SQLite.deleteDatabaseAsync("reminders.db");
@@ -887,7 +849,6 @@ export const deleteNotificationsInInterval = async (
   reminderId: number,
   intervalIndex: number
 ): Promise<void> => {
-  const db = await openDB();
   await db.runAsync(
     `DELETE FROM notifications WHERE reminder_id = ? AND interval_index = ?;`,
     [reminderId, intervalIndex]

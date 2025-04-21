@@ -29,7 +29,6 @@ import { ScrollView, TouchableOpacity } from "react-native";
 dayjs.extend(utc);
 
 export default function NotificationsTest() {
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [allNotifications, setAllNotifications] = useState<
@@ -41,10 +40,6 @@ export default function NotificationsTest() {
       original: NotificationRequest;
     }[]
   >([]);
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   async function createNotificationForTest() {
     try {

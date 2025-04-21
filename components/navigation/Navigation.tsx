@@ -29,7 +29,7 @@ export default function () {
     <HStack className="w-full pt-6">
       <NavigationItem
         label="Reminders"
-        onPress={() => router.push("/")}
+        onPress={() => router.dismissTo("/")}
         active={activeItem === "reminders"}
         iconNode={
           <VStack>
@@ -79,13 +79,13 @@ export default function () {
       <NavigationItem
         label="Schedules"
         iconSvg={CalendarDaysIcon}
-        onPress={() => router.push("/schedules")}
+        onPress={() => router.dismissTo("/schedules")}
         active={activeItem === "schedules"}
       />
       <NavigationItem
         label="Settings"
         iconSvg={SettingsIcon}
-        onPress={() => router.push("/settings")}
+        onPress={() => router.dismissTo("/settings")}
         active={activeItem === "settings"}
       />
     </HStack>

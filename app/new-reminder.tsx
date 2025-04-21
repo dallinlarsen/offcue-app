@@ -9,12 +9,7 @@ import { IntervalType, Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
 
 export default function NewReminder() {
-  const navigation = useNavigation();
   const router = useRouter();
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   const blankReminder: Reminder = {
     title: "",

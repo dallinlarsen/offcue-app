@@ -437,23 +437,23 @@ export default function AddEditReminder({
               <ButtonText>Delete</ButtonText>
             </Button>
           )}
+          <HStack space="md">
+            {onCancel ? (
+              <Button
+                size="xl"
+                onPress={() => onCancel()}
+                className="flex-1"
+                variant="outline"
+              >
+                <ButtonText>Cancel</ButtonText>
+              </Button>
+            ) : null}
+            <Button size="xl" onPress={onSubmit} className="flex-1">
+              <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
+            </Button>
+          </HStack>
         </VStack>
       </ScrollView>
-      <HStack space="md">
-        {onCancel ? (
-          <Button
-            size="xl"
-            onPress={() => onCancel()}
-            className="flex-1"
-            variant="outline"
-          >
-            <ButtonText>Cancel</ButtonText>
-          </Button>
-        ) : null}
-        <Button size="xl" onPress={onSubmit} className="flex-1">
-          <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
-        </Button>
-      </HStack>
       <ScheduleActionsheet
         isOpen={schedulesOpen}
         setIsOpen={setSchedulesOpen}

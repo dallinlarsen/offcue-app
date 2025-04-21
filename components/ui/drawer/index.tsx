@@ -260,7 +260,7 @@ const DrawerContent = React.forwardRef<
       exit={exitObj}
       transition={{
         type: 'timing',
-        duration: 300,
+        duration: 150,
       }}
       {...props}
       className={drawerContentStyle({

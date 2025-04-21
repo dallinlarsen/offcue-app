@@ -16,7 +16,6 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { wipeDatabase } from "@/lib/db-service";
 import {
-  cancelScheduledNotifications,
   createDeviceNotification,
   getAllScheduledNotifications,
 } from "@/lib/device-notifications.service";
@@ -95,13 +94,6 @@ export default function NotificationsTest() {
           </Button>
         </HStack>
         <HStack space="md">
-          <Button
-            className="flex-1"
-            variant="outline"
-            onPress={cancelScheduledNotifications}
-          >
-            <ButtonText>Cancel All</ButtonText>
-          </Button>
           <Button
             onPress={wipeDatabase}
             variant="outline"

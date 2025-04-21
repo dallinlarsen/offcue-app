@@ -50,6 +50,17 @@ export type ReminderNotification = {
   response_status: NotificationResponseStatus;
 };
 
+export type UserSettings = {
+  id: number;
+  has_completed_tutorial: boolean;
+  filter_reminder_nav: boolean;
+  notification_sound: boolean;
+  notification_vibration: boolean;
+  theme: string;
+  language: string;
+  timezone: string;
+};
+
 export type IntervalType = "minute" | "hour" | "day" | "week" | "month" | "year";
 
 export type NotificationResponseStatus = 'done' | 'skip' | 'missed' | 'later';

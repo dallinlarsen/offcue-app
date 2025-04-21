@@ -14,22 +14,6 @@ import {
   setupAndConfigureNotifications,
 } from "@/lib/device-notifications.service";
 import { ConfettiProvider } from "@/hooks/useConfetti";
-import { DrawerProvider } from "@/hooks/useNavigationDrawer";
-import { HStack } from "@/components/ui/hstack";
-import { VStack } from "@/components/ui/vstack";
-import {
-  AddIcon,
-  ArchiveOutlineIcon,
-  BoxIcon,
-  CalendarDaysIcon,
-  Icon,
-  SettingsIcon,
-} from "@/components/ui/icon";
-import { Text } from "@/components/ui/text";
-import { Fab, FabIcon } from "@/components/ui/fab";
-import { Pressable } from "@/components/ui/pressable";
-import { Box } from "@/components/ui/box";
-import { TouchableOpacity } from "react-native";
 import Navigation from "@/components/navigation/Navigation";
 
 const db = SQLite.openDatabaseSync("reminders.db");
@@ -73,24 +57,22 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider mode="dark">
+    <GluestackUIProvider mode="system">
       <ConfettiProvider>
-        <DrawerProvider>
-          <SafeAreaProvider>
-            <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
-              <Stack
-                screenOptions={{
-                  animation: "none",
-                }}
-              >
-                <Stack.Screen name="new-reminder" />
-                <Stack.Screen name="index" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-              <Navigation />
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </DrawerProvider>
+        <SafeAreaProvider>
+          <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
+            <Stack
+              screenOptions={{
+                animation: "none",
+              }}
+            >
+              <Stack.Screen name="new-reminder" />
+              <Stack.Screen name="index" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <Navigation />
+          </SafeAreaView>
+        </SafeAreaProvider>
       </ConfettiProvider>
     </GluestackUIProvider>
   );

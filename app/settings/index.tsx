@@ -9,7 +9,6 @@ import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function SettingsScreen() {
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["filter"]);
@@ -30,10 +29,6 @@ export default function SettingsScreen() {
   useEffect(() => {
     loadSettings();
   }, []);
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   return userSettings ? (
     <ThemedContainer>

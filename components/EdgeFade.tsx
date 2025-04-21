@@ -7,13 +7,13 @@ type Props = {
 };
 
 export default function EdgeFadeOverlay({ left }: Props) {
-const LIGHT_COLORS = [
-  "rgba(251, 251, 251, 0)",
-  "rgba(251, 251, 251, .5)",
-  "rgba(251, 251, 251, .7)",
-  "rgba(251, 251, 251, .9)",
-  "rgba(251, 251, 251, 1)",
-];
+  const LIGHT_COLORS = [
+    "rgba(251, 251, 251, 0)",
+    "rgba(251, 251, 251, .5)",
+    "rgba(251, 251, 251, .7)",
+    "rgba(251, 251, 251, .9)",
+    "rgba(251, 251, 251, 1)",
+  ];
 
   const DARK_COLORS = [
     "rgba(24, 23, 25, 0)",

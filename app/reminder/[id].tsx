@@ -18,7 +18,6 @@ import Fade from "@/components/Fade";
 
 export default function ReminderDetailsPage() {
   const { id } = useLocalSearchParams();
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [reminder, setReminder] = useState<Reminder | null>(null);
@@ -27,10 +26,6 @@ export default function ReminderDetailsPage() {
     const data = await getReminder(parseInt(id as string));
     setReminder(data);
   }
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, []);
 
   useFocusEffect(
     useCallback(() => {

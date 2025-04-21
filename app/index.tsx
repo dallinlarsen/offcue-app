@@ -18,6 +18,8 @@ import { HStack } from "@/components/ui/hstack";
 import ReminderGroupDropDown from "@/components/reminder/ReminderGroupDropDown";
 import Fade from "@/components/Fade";
 import EdgeFade from "@/components/EdgeFade";
+import ReminderGroup from "@/components/reminder/ReminderGroup";
+import { getUserSettings } from "@/lib/db-source";
 
 type CurrentFilterOptions =
   | "all"
@@ -58,6 +60,7 @@ export default function HomeScreen() {
   const [mutedReminders, setMutedReminders] = useState<Reminder[]>([]);
   const [completedReminders, setCompletedReminders] = useState<Reminder[]>([]);
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["upcoming"]);
+  const [isFilterNav, setIsFilterNav] = useState<boolean | null>(null);
 
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(true);
@@ -77,6 +80,8 @@ export default function HomeScreen() {
 
   const loadReminders = async () => {
     const data = await getAllReminders();
+    const userSettings = await getUserSettings();
+    setIsFilterNav(userSettings.filter_reminder_nav);
     setReminders(data);
     console.log(data);
   };
@@ -112,103 +117,196 @@ export default function HomeScreen() {
     }
   }
 
-  return (
+  function FilterOptionReminders({
+    filterKey,
+  }: {
+    filterKey: CurrentFilterOptions;
+  }) {
+    switch (filterKey) {
+      case "all": {
+        return (
+          <VStack space="xl">
+            <ReminderGroup
+              title="Due"
+              reminders={reminders.filter((r) => r.due_scheduled_at)}
+              onNotificationResponse={() => loadReminders()}
+              onMuted={() => loadReminders()}
+              emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+            />
+            <ReminderGroup
+              title="Upcoming"
+              reminders={reminders.filter(
+                (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed
+              )}
+              onNotificationResponse={() => loadReminders()}
+              onMuted={() => loadReminders()}
+              emptyMessage="No Upcoming Reminders."
+            />
+          </VStack>
+        );
+      }
+      case "due": {
+        return (
+          <ReminderGroup
+            reminders={reminders.filter((r) => r.due_scheduled_at)}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+          />
+        );
+      }
+      case "upcoming": {
+        return (
+          <ReminderGroup
+            reminders={reminders.filter(
+              (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed
+            )}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="No Upcoming Reminders."
+          />
+        );
+      }
+      case "muted": {
+        return (
+          <ReminderGroup
+            reminders={reminders.filter((r) => r.is_muted)}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="No Muted Reminders."
+          />
+        );
+      }
+      case "completed": {
+        return (
+          <ReminderGroup
+            reminders={reminders.filter((r) => r.is_completed)}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="No Completed Reminders."
+          />
+        );
+      }
+      case "archived": {
+        return (
+          <ReminderGroup
+            reminders={[]}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="No Archived Reminders."
+          />
+        );
+      }
+      default: {
+        return (
+          <ReminderGroup
+            reminders={reminders}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+          />
+        );
+      }
+    }
+  }
+
+  return isFilterNav === null ? <ThemedContainer /> : (
     <ThemedContainer>
       <Box className="mb-2">
         <HStack className="justify-between items-start">
           <Heading size="3xl">Reminders</Heading>
-          {/* <TouchableOpacity
-            className="p-3"
-            onPress={() => router.push("/notifications-test")}
-          >
-            <Icon as={SettingsIcon} size="xl" />
-          </TouchableOpacity> */}
         </HStack>
       </Box>
-      <Box className="relative">
-        <ScrollView
-          horizontal
-          className="flex-grow-0"
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
-          <HStack>
-            <FilterOption
-              label="All Current"
-              onPress={() => setCurrentFilter("all")}
-              active={currentFilter === "all"}
-            />
-            <FilterOption
-              label="Due"
-              onPress={() => setCurrentFilter("due")}
-              active={currentFilter === "due"}
-            />
-            <FilterOption
-              label="Upcoming"
-              onPress={() => setCurrentFilter("upcoming")}
-              active={currentFilter === "upcoming"}
-            />
-            <FilterOption
-              label="Muted"
-              onPress={() => setCurrentFilter("muted")}
-              active={currentFilter === "muted"}
-            />
-            <FilterOption
-              label="Completed"
-              onPress={() => setCurrentFilter("completed")}
-              active={currentFilter === "completed"}
-            />
-            <FilterOption
-              label="Archived"
-              onPress={() => setCurrentFilter("archived")}
-              active={currentFilter === "archived"}
-            />
-          </HStack>
-        </ScrollView>
-        {showLeftFade && <EdgeFade left />}
-        {showRightFade && <EdgeFade />}
-      </Box>
+      {isFilterNav && (
+        <Box className="relative mb-4">
+          <ScrollView
+            horizontal
+            className="flex-grow-0"
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            <HStack>
+              <FilterOption
+                label="All Current"
+                onPress={() => setCurrentFilter("all")}
+                active={currentFilter === "all"}
+              />
+              <FilterOption
+                label="Due"
+                onPress={() => setCurrentFilter("due")}
+                active={currentFilter === "due"}
+              />
+              <FilterOption
+                label="Upcoming"
+                onPress={() => setCurrentFilter("upcoming")}
+                active={currentFilter === "upcoming"}
+              />
+              <FilterOption
+                label="Muted"
+                onPress={() => setCurrentFilter("muted")}
+                active={currentFilter === "muted"}
+              />
+              <FilterOption
+                label="Completed"
+                onPress={() => setCurrentFilter("completed")}
+                active={currentFilter === "completed"}
+              />
+              <FilterOption
+                label="Archived"
+                onPress={() => setCurrentFilter("archived")}
+                active={currentFilter === "archived"}
+              />
+            </HStack>
+          </ScrollView>
+          {showLeftFade && <EdgeFade left />}
+          {showRightFade && <EdgeFade />}
+        </Box>
+      )}
       <ScrollView>
-        <VStack space="sm">
-          <ReminderGroupDropDown
-            title="Due"
-            reminders={dueReminders}
-            onNotificationResponse={() => loadReminders()}
-            onMuted={() => loadReminders()}
-            persist
-            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
-          />
-          <ReminderGroupDropDown
-            title="Upcoming"
-            reminders={upcomingReminders}
-            onNotificationResponse={() => loadReminders()}
-            onMuted={() => loadReminders()}
-            open={accordiansOpen.includes("upcoming")}
-            setOpen={(open) => setOpenHandler(open, "upcoming")}
-            emptyMessage="No Upcoming Reminders."
-          />
-          {completedReminders.length > 0 && (
+        {isFilterNav ? (
+          <FilterOptionReminders filterKey={currentFilter} />
+        ) : (
+          <VStack space="sm">
             <ReminderGroupDropDown
-              title="Completed"
-              reminders={completedReminders}
+              title="Due"
+              reminders={dueReminders}
               onNotificationResponse={() => loadReminders()}
               onMuted={() => loadReminders()}
-              open={accordiansOpen.includes("completed")}
-              setOpen={(open) => setOpenHandler(open, "completed")}
+              persist
+              emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
             />
-          )}
-          {mutedReminders.length > 0 && (
             <ReminderGroupDropDown
-              title="Muted"
-              reminders={mutedReminders}
+              title="Upcoming"
+              reminders={upcomingReminders}
               onNotificationResponse={() => loadReminders()}
               onMuted={() => loadReminders()}
-              open={accordiansOpen.includes("muted")}
-              setOpen={(open) => setOpenHandler(open, "muted")}
+              open={accordiansOpen.includes("upcoming")}
+              setOpen={(open) => setOpenHandler(open, "upcoming")}
+              emptyMessage="No Upcoming Reminders."
             />
-          )}
-        </VStack>
+            {completedReminders.length > 0 && (
+              <ReminderGroupDropDown
+                title="Completed"
+                reminders={completedReminders}
+                onNotificationResponse={() => loadReminders()}
+                onMuted={() => loadReminders()}
+                open={accordiansOpen.includes("completed")}
+                setOpen={(open) => setOpenHandler(open, "completed")}
+              />
+            )}
+            {mutedReminders.length > 0 && (
+              <ReminderGroupDropDown
+                title="Muted"
+                reminders={mutedReminders}
+                onNotificationResponse={() => loadReminders()}
+                onMuted={() => loadReminders()}
+                open={accordiansOpen.includes("muted")}
+                setOpen={(open) => setOpenHandler(open, "muted")}
+              />
+            )}
+          </VStack>
+        )}
         <Box className="h-36"></Box>
       </ScrollView>
       <Fab

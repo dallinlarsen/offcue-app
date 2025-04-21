@@ -437,6 +437,8 @@ export default function AddEditReminder({
               <ButtonText>Delete</ButtonText>
             </Button>
           )}
+        </VStack>
+      </ScrollView>
           <HStack space="md">
             {onCancel ? (
               <Button
@@ -452,8 +454,6 @@ export default function AddEditReminder({
               <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
             </Button>
           </HStack>
-        </VStack>
-      </ScrollView>
       <ScheduleActionsheet
         isOpen={schedulesOpen}
         setIsOpen={setSchedulesOpen}

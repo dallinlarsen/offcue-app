@@ -16,6 +16,7 @@ export type Reminder = {
   end_date: string | null;
   due_scheduled_at: string | null;
   due_notification_id: number | null;
+  current_streak?: number;
 };
 
 export type NotificationReminder = {
@@ -58,7 +59,7 @@ export type UserSettings = {
   filter_reminder_nav: boolean;
   notification_sound: boolean;
   notification_vibration: boolean;
-  theme: string;
+  theme: ThemeOption;
   language: string;
   timezone: string;
 };
@@ -76,3 +77,5 @@ export type NotificationResponseStatus =
   | "skip"
   | "no_response"
   | "later";
+
+export type ThemeOption = 'light' | 'dark' | 'system';

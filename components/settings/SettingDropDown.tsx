@@ -23,7 +23,7 @@ export default function SettingDropDown({
   return (
     <VStack space="xs">
       {persist ? (
-        <Heading size="xl" className="pb-4">
+        <Heading size="xl">
           {title}
         </Heading>
       ) : (

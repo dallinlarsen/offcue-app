@@ -2,11 +2,18 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Box } from "./ui/box";
 import { StyleSheet } from "react-native";
 
-export default function () {
+type Props = {
+    heightClassLight?: string
+    heightClassDark?: string
+}
+
+export default function ({ heightClassLight, heightClassDark }: Props) {
   return (
     <>
       <Box
-        className="absolute bottom-0 right-0 left-0 h-28 dark:h-0"
+        className={`absolute bottom-0 right-0 left-0 ${
+          heightClassLight ? heightClassLight : "h-28"
+        } dark:h-0`}
         pointerEvents="none"
       >
         <LinearGradient
@@ -22,7 +29,9 @@ export default function () {
         />
       </Box>
       <Box
-        className="absolute bottom-0 right-0 left-0 h-0 dark:h-28"
+        className={`absolute bottom-0 right-0 left-0 h-0 ${
+          heightClassDark ? heightClassDark : "dark:h-28"
+        }`}
         pointerEvents="none"
       >
         <LinearGradient

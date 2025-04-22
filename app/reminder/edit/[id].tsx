@@ -9,6 +9,7 @@ import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
 import DeleteReminderDialog from "@/components/reminder/DeleteReminderDialog";
+import Fade from "@/components/Fade";
 
 export default function EditReminder() {
   const { id } = useLocalSearchParams();
@@ -28,12 +29,13 @@ export default function EditReminder() {
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 mb-4">
+      <Box className="flex flex-row items-center -mt-2 mb-2">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
         <Heading size="3xl">Edit Reminder</Heading>
       </Box>
+      <Fade />
       {reminder ? (
         <>
           <DeleteReminderDialog

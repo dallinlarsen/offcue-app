@@ -8,6 +8,7 @@ export {
   getReminderPastNotifications,
   getFutureNotifications,
   getSoonestFutureNotificationsToSchedule,
+  updateReminder,
 } from "./db-source";
 export { processReminderNotifications, recalcFutureNotifications } from "./db-service-notifications";
 
@@ -29,9 +30,11 @@ export const createReminder = async (title: string,
     trackStreak: boolean,
     trackNotes: boolean,
     muted: boolean,
-    recurring: boolean
+    recurring: boolean,
+    start_date?: string,
+    end_date?: string
 ) => {
-    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted, recurring);
+    const result = await db_source.createReminder(title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, muted, recurring, start_date, end_date);
 
     // Create notifications for the reminder
     createInitialNotifications(result);
@@ -43,21 +46,6 @@ export const createReminder = async (title: string,
 export const getReminder = async (id: number) => {
     const reminder = await db_source.getReminder(id);
     return reminder;
-};
-
-//Update
-export const updateReminder = async (id: number,
-    title: string,
-    description: string,
-    intervalType: string,
-    intervalNum: number,
-    times: number,
-    scheduleIds: number[],
-    trackStreak: boolean,
-    trackNotes: boolean,
-    isMuted: boolean) => {
-    const result = await db_source.updateReminder(id, title, description, intervalType, intervalNum, times, scheduleIds, trackStreak, trackNotes, isMuted);
-    return result;
 };
 
 //Update Muted

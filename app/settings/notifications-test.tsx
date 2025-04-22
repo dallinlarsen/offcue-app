@@ -16,7 +16,6 @@ import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { wipeDatabase } from "@/lib/db-service";
 import {
-  cancelScheduledNotifications,
   createDeviceNotification,
   getAllScheduledNotifications,
 } from "@/lib/device-notifications.service";
@@ -30,7 +29,6 @@ import { ScrollView, TouchableOpacity } from "react-native";
 dayjs.extend(utc);
 
 export default function NotificationsTest() {
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [allNotifications, setAllNotifications] = useState<
@@ -42,10 +40,6 @@ export default function NotificationsTest() {
       original: NotificationRequest;
     }[]
   >([]);
-
-  useEffect(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
 
   async function createNotificationForTest() {
     try {
@@ -95,13 +89,6 @@ export default function NotificationsTest() {
           </Button>
         </HStack>
         <HStack space="md">
-          <Button
-            className="flex-1"
-            variant="outline"
-            onPress={cancelScheduledNotifications}
-          >
-            <ButtonText>Cancel All</ButtonText>
-          </Button>
           <Button
             onPress={wipeDatabase}
             variant="outline"

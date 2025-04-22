@@ -8,12 +8,10 @@ import { getReminder } from "@/lib/db-service";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
-import { HStack } from "@/components/ui/hstack";
 import DeleteReminderDialog from "@/components/reminder/DeleteReminderDialog";
 
 export default function EditReminder() {
   const { id } = useLocalSearchParams();
-  const navigation = useNavigation();
   const router = useRouter();
 
   const [reminder, setReminder] = useState<Reminder | null>(null);
@@ -25,9 +23,8 @@ export default function EditReminder() {
   }
 
   useEffect(() => {
-    navigation.setOptions({ headerShown: false });
     fetchReminder();
-  }, [navigation]);
+  }, []);
 
   return (
     <ThemedContainer>

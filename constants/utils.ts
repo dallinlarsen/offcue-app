@@ -19,7 +19,7 @@ export const DAYS = [
 
 export const STATUS_COLOR_MAP = {
   done: "success",
-  missed: "warning",
+  no_response: undefined,
   skip: "info",
-  later: 'info'
+  later: "info",
 } as const;

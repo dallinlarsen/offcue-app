@@ -113,6 +113,12 @@ export function markDoneSkipNotificationCategoryListener(
   );
 }
 
+export function notificationReceivedListener(callback: () => void) {
+  return Notifications.addNotificationReceivedListener(() => {
+    callback();
+  });
+}
+
 type CreateDeviceNotification = {
   title: string;
   body: string;

@@ -148,192 +148,202 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   return (
     <>
-      <ScrollView>
-        <VStack space="md">
-          {reminder.description ? (
-            <Heading size="lg">{reminder.description}</Heading>
-          ) : null}
-          <Box>
-            <HStack className="justify-between items-start">
-              <VStack>
-                <Text size="xl">
-                  {formatFrequencyString(
-                    reminder.times,
-                    reminder.interval_num,
-                    reminder.interval_type
-                  )}
-                </Text>
-                <Box>
-                  {reminder.schedules.map((s) => (
-                    <Text size="xl" key={s.id}>
-                      {formatScheduleString(s)}
-                    </Text>
-                  ))}
-                </Box>
-              </VStack>
-              {reminder.is_recurring && (
-                <HStack space="xl" className="items-center ">
-                  <Text size="xl" className="font-quicksand-semibold">
-                    Mute
+      <VStack space="md" className="flex-1">
+        {reminder.description ? (
+          <Heading size="lg">{reminder.description}</Heading>
+        ) : null}
+        <Box>
+          <HStack className="justify-between items-start">
+            <VStack>
+              <Text size="xl">
+                {formatFrequencyString(
+                  reminder.times,
+                  reminder.interval_num,
+                  reminder.interval_type
+                )}
+              </Text>
+              <Box>
+                {reminder.schedules.map((s) => (
+                  <Text size="xl" key={s.id}>
+                    {formatScheduleString(s)}
                   </Text>
-                  <Switch
-                    isDisabled={!!reminder.due_scheduled_at}
-                    value={is_muted}
-                    onValueChange={(value) => setValue("is_muted", value)}
-                    trackColor={{
-                      false: colors.gray[300],
-                      true: colors.gray[500],
-                    }}
-                    thumbColor={colors.gray[50]}
-                    ios_backgroundColor={colors.gray[300]}
-                  />
-                </HStack>
-              )}
-            </HStack>
-          </Box>
-          {reminder.due_scheduled_at ? (
-            <HStack space="md">
-              <Button
-                size="xl"
-                variant="outline"
-                className="flex-1"
-                onPress={() =>
-                  handleNotificationAction(
-                    reminder.is_recurring ? "skip" : "later"
-                  )
-                }
-              >
-                <ButtonText>
-                  {reminder.is_recurring ? "Skip" : "Do It Later"}
-                </ButtonText>
-              </Button>
-              <Button
-                size="xl"
-                className="flex-1"
-                onPress={() => handleNotificationAction("done")}
-              >
-                <ButtonText>Done</ButtonText>
-              </Button>
-            </HStack>
-          ) : (
-            <>
-              {nextNotification ? (
-                <VStack space="sm">
-                  <Alert>
-                    <AlertIcon as={CheckCircleIcon} />
-                    <AlertText size="lg">Next Reminder on</AlertText>
-                    {hideNextNotification ? (
-                      <Box className="relative w-[180px] h-10 -ml-1 -my-2">
-                        <Box className="absolute inset-0 flex items-center justify-center">
-                          <AlertText size="lg">
-                            {nextNotification.date} at
-                            {nextNotification.time}
-                          </AlertText>
-                        </Box>
-
-                        <BlurView
-                          intensity={20}
-                          className="absolute top-0 bottom-0 right-0 left-0"
-                        />
+                ))}
+              </Box>
+            </VStack>
+            {reminder.is_recurring && (
+              <HStack space="xl" className="items-center ">
+                <Text size="xl" className="font-quicksand-semibold">
+                  Mute
+                </Text>
+                <Switch
+                  isDisabled={!!reminder.due_scheduled_at}
+                  value={is_muted}
+                  onValueChange={(value) => setValue("is_muted", value)}
+                  trackColor={{
+                    false: colors.gray[300],
+                    true: colors.gray[500],
+                  }}
+                  thumbColor={colors.gray[50]}
+                  ios_backgroundColor={colors.gray[300]}
+                />
+              </HStack>
+            )}
+          </HStack>
+        </Box>
+        {reminder.due_scheduled_at ? (
+          <HStack space="md">
+            <Button
+              size="xl"
+              variant="outline"
+              className="flex-1"
+              onPress={() =>
+                handleNotificationAction(
+                  reminder.is_recurring ? "skip" : "later"
+                )
+              }
+            >
+              <ButtonText>
+                {reminder.is_recurring ? "Skip" : "Do It Later"}
+              </ButtonText>
+            </Button>
+            <Button
+              size="xl"
+              className="flex-1"
+              onPress={() => handleNotificationAction("done")}
+            >
+              <ButtonText>Done</ButtonText>
+            </Button>
+          </HStack>
+        ) : (
+          <>
+            {nextNotification ? (
+              <VStack space="sm">
+                <Alert>
+                  <AlertIcon as={CheckCircleIcon} />
+                  <AlertText size="lg">Next Reminder on</AlertText>
+                  {hideNextNotification ? (
+                    <Box className="relative w-[180px] h-10 -ml-1 -my-2">
+                      <Box className="absolute inset-0 flex items-center justify-center">
+                        <AlertText size="lg">
+                          {nextNotification.date} at
+                          {nextNotification.time}
+                        </AlertText>
                       </Box>
-                    ) : (
-                      <AlertText size="lg">
-                        {nextNotification.date} at {nextNotification.time}
-                      </AlertText>
-                    )}
-                  </Alert>
-                  <HStack space="md">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="flex-1"
-                      onPress={() =>
-                        setHideNextNotification(!hideNextNotification)
-                      }
-                    >
-                      <ButtonIcon
-                        as={hideNextNotification ? EyeIcon : EyeOffIcon}
+
+                      <BlurView
+                        intensity={20}
+                        className="absolute top-0 bottom-0 right-0 left-0"
                       />
-                      <ButtonText>
-                        {hideNextNotification ? "Show" : "Hide"}
-                      </ButtonText>
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="flex-1"
-                      onPress={recalcFutureNotificationsHandler}
-                    >
-                      <ButtonIcon as={RepeatIcon} />
-                      <ButtonText>Reschedule</ButtonText>
-                    </Button>
-                  </HStack>
-                </VStack>
-              ) : null}
-            </>
-          )}
-          {reminder.is_completed && (
-            <Alert>
-              <AlertIcon as={CheckCircleIcon} />
-              <AlertText size="lg">
-                Completed on{" "}
-                {dayjs(pastNotifications[0]?.response_at).format("YYYY-MM-DD")}{" "}
-                at {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
-              </AlertText>
-            </Alert>
-          )}
-          <Heading size="xl" className="mt-4">
+                    </Box>
+                  ) : (
+                    <AlertText size="lg">
+                      {nextNotification.date} at {nextNotification.time}
+                    </AlertText>
+                  )}
+                </Alert>
+                <HStack space="md">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onPress={() =>
+                      setHideNextNotification(!hideNextNotification)
+                    }
+                  >
+                    <ButtonIcon
+                      as={hideNextNotification ? EyeIcon : EyeOffIcon}
+                    />
+                    <ButtonText>
+                      {hideNextNotification ? "Show" : "Hide"}
+                    </ButtonText>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="flex-1"
+                    onPress={recalcFutureNotificationsHandler}
+                  >
+                    <ButtonIcon as={RepeatIcon} />
+                    <ButtonText>Reschedule</ButtonText>
+                  </Button>
+                </HStack>
+              </VStack>
+            ) : null}
+          </>
+        )}
+        {reminder.is_completed && (
+          <Alert>
+            <AlertIcon as={CheckCircleIcon} />
+            <AlertText size="lg">
+              Completed on{" "}
+              {dayjs(pastNotifications[0]?.response_at).format("YYYY-MM-DD")} at{" "}
+              {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
+            </AlertText>
+          </Alert>
+        )}
+        <HStack className="items-end" space="lg">
+          <Heading size="xl" className="mt-3">
             Notifications
           </Heading>
-          {pastNotifications.length > 0 ? (
-            <>
-              <Text className="-mt-3">Tap to edit status</Text>
-              <Box className="rounded overflow-hidden w-full border border-background-300">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Time</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+          <Text className="-mt-3 text-typography-600">Tap to edit status</Text>
+        </HStack>
+        {pastNotifications.length > 0 ? (
+          <>
+            <Box className="rounded overflow-hidden w-full flex-1">
+              <Table className="w-full flex-1">
+                <TableHeader className="border-t border-x border-background-300">
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="flex-1">
+                  <ScrollView showsVerticalScrollIndicator={false}>
                     {pastNotifications.map((n, idx) => (
-                      <TouchableOpacity
+                      <TableRow
                         key={n.id}
-                        onPress={() => handleNotificationEditOpen(n)}
+                        className={`${
+                          pastNotifications.length - 1 === idx
+                            ? "-mb-1"
+                            : "border-b"
+                        } ${
+                          idx === 0 ? "border-t" : ""
+                        } border-x border-background-300
+                          `}
                       >
-                        <TableRow
-                          className={
-                            pastNotifications.length - 1 === idx ? "-mb-1" : ""
-                          }
+                        <TouchableOpacity
+                          onPress={() => handleNotificationEditOpen(n)}
+                          className="flex flex-row flex-1"
                         >
-                          <TableData>
+                          <TableData className="flex-1">
                             {dayjs(n.scheduled_at).format(
                               "MMM D, YYYY\nh:mm a"
                             )}
                           </TableData>
-                          <TableData className="flex items-center w-full">
+                          <TableData className="flex items-center w-full flex-1">
                             <Badge
                               size="xl"
                               action={STATUS_COLOR_MAP[n.response_status]}
                             >
                               <BadgeText>
-                                {n.response_status || "Pending"}
+                                {n.response_status.split("_").join(" ") ||
+                                  "Pending"}
                               </BadgeText>
                             </Badge>
                           </TableData>
-                        </TableRow>
-                      </TouchableOpacity>
+                        </TouchableOpacity>
+                      </TableRow>
                     ))}
-                  </TableBody>
-                </Table>
-              </Box>
-            </>
-          ) : (
-            <Text>No Notificaitons Found</Text>
-          )}
-        </VStack>
-      </ScrollView>
+                    <Box className="h-28" />
+                  </ScrollView>
+                </TableBody>
+              </Table>
+            </Box>
+          </>
+        ) : (
+          <Text>No Notificaitons Found</Text>
+        )}
+      </VStack>
       <EditNotificationStatusActionsheet
         isOpen={notificationStatusUpdateOpen}
         setIsOpen={setNotificationStatusUpdateOpen}

@@ -187,6 +187,24 @@ const ArrowUpIcon = createIcon({
   ),
 });
 
+const ArchiveOutlineIcon = createIcon({
+  Root: Svg,
+
+  viewBox: "0 0 24 24",
+  path: (
+    <>
+      <Path
+        d="M20 21H4V10H6V19H18V10H20V21M3 3H21V9H3V3M9.5 11H14.5C14.78 11 15 11.22 15 11.5V13H9V11.5C9 11.22 9.22 11 9.5 11M5 5V7H19V5H5Z"
+        strokeWidth="0"
+      />
+    </>
+  ),
+});
+
+ArchiveOutlineIcon.displayName = "ArchiveOutlineIcon";
+
+export { ArchiveOutlineIcon };
+
 const ArrowDownIcon = createIcon({
   Root: Svg,
 
@@ -310,6 +328,25 @@ const BellIcon = createIcon({
 BellIcon.displayName = 'BellIcon';
 
 export { BellIcon };
+
+const BoxIcon = createIcon({
+  Root: Svg,
+  viewBox: "0 0 24 24",
+  path: (
+    <>
+      <Path
+        d="M8 3H16C18.76 3 21 5.24 21 8V16C21 18.76 18.76 21 16 21H8C5.24 21 3 18.76 3 16V8C3 5.24 5.24 3 8 3M8 5C6.34 5 5 6.34 5 8V16C5 17.66 6.34 19 8 19H16C17.66 19 19 17.66 19 16V8C19 6.34 17.66 5 16 5H8Z"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+});
+
+BoxIcon.displayName = "BoxIcon";
+
+export { BoxIcon };
 
 const CalendarDaysIcon = createIcon({
   Root: Svg,
@@ -962,6 +999,22 @@ const InfoIcon = createIcon({
 InfoIcon.displayName = 'InfoIcon';
 export { InfoIcon };
 
+const LifebouyIcon = createIcon({
+  Root: Svg,
+  viewBox: "0 0 24 24",
+  path: (
+    <>
+      <Path
+        d="M19.79,15.41C20.74,13.24 20.74,10.75 19.79,8.59L17.05,9.83C17.65,11.21 17.65,12.78 17.06,14.17L19.79,15.41M15.42,4.21C13.25,3.26 10.76,3.26 8.59,4.21L9.83,6.94C11.22,6.35 12.79,6.35 14.18,6.95L15.42,4.21M4.21,8.58C3.26,10.76 3.26,13.24 4.21,15.42L6.95,14.17C6.35,12.79 6.35,11.21 6.95,9.82L4.21,8.58M8.59,19.79C10.76,20.74 13.25,20.74 15.42,19.78L14.18,17.05C12.8,17.65 11.22,17.65 9.84,17.06L8.59,19.79M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"
+        strokeWidth='0'
+      />
+    </>
+  ),
+});
+
+LifebouyIcon.displayName = "LifebouyIcon";
+export { LifebouyIcon };
+
 const LinkIcon = createIcon({
   Root: Svg,
   viewBox: '0 0 24 24',
@@ -1165,6 +1218,22 @@ const PaperclipIcon = createIcon({
 
 PaperclipIcon.displayName = 'PaperclipIcon';
 export { PaperclipIcon };
+
+const PencilIcon = createIcon({
+  Root: Svg,
+  viewBox: "0 0 24 24",
+  path: (
+    <>
+      <Path
+        d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
+        strokeWidth="0"
+      />
+    </>
+  ),
+});
+
+PencilIcon.displayName = "PencilIcon";
+export { PencilIcon };
 
 const PhoneIcon = createIcon({
   Root: Svg,

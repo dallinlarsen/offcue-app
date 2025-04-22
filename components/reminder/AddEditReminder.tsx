@@ -24,6 +24,7 @@ import { formatScheduleString } from "@/lib/utils";
 import {
   AddIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   CloseIcon,
   Icon,
   PaperclipIcon,
@@ -45,6 +46,13 @@ import {
   FormControlErrorText,
 } from "../ui/form-control";
 import { MaterialIcons } from "@expo/vector-icons";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import DatePicker from "react-native-date-picker";
+import useWatch from "@/hooks/useWatch";
+import Fade from "../Fade";
+
+dayjs.extend(isSameOrBefore);
 
 type AddEditReminderProps = {
   data: Reminder;
@@ -73,6 +81,8 @@ const ZodSchema = z
       .array(z.any())
       .min(1, "At least one schedule is required")
       .max(3, "A maximum of 3 schedules can be selected"),
+    start_date: z.date().nullish(),
+    end_date: z.date().nullish(),
     recurring: z.boolean(),
   })
   .refine(
@@ -87,6 +97,18 @@ const ZodSchema = z
     {
       message: "Required",
       path: ["interval_type"],
+    }
+  )
+  .refine(
+    ({ start_date, end_date }) => {
+      if (start_date && end_date) {
+        return dayjs(start_date).isSameOrBefore(dayjs(end_date));
+      }
+      return true;
+    },
+    {
+      message: "End date must be the same or after start date",
+      path: ["start_date"],
     }
   );
 
@@ -110,6 +132,8 @@ export default function AddEditReminder({
       interval_num: data.interval_num.toString(),
       times: data.times.toString(),
       recurring: data.is_recurring,
+      start_date: data.start_date ? dayjs(data.start_date).toDate() : undefined,
+      end_date: data.end_date ? dayjs(data.end_date).toDate() : undefined,
     },
   });
 
@@ -134,7 +158,13 @@ export default function AddEditReminder({
           model.schedules.map((s) => s.id),
           model.track_streak,
           data.track_notes,
-          data.is_muted
+          data.is_muted,
+          model.start_date
+            ? dayjs(model.start_date).format("YYYY-MM-DD")
+            : undefined,
+          showEndDateOption
+            ? dayjs(model.end_date).format("YYYY-MM-DD")
+            : undefined
         );
       } else {
         await createReminder(
@@ -147,7 +177,13 @@ export default function AddEditReminder({
           model.track_streak,
           false,
           false,
-          model.recurring
+          model.recurring,
+          model.start_date
+            ? dayjs(model.start_date).format("YYYY-MM-DD")
+            : undefined,
+          showEndDateOption && recurring
+            ? dayjs(model.end_date).format("YYYY-MM-DD")
+            : undefined
         );
       }
       onSave();
@@ -157,17 +193,31 @@ export default function AddEditReminder({
     }
   });
 
-  const [schedules, track_streak, recurring] = watch([
+  const [schedules, track_streak, recurring, start_date, end_date] = watch([
     "schedules",
     "track_streak",
     "recurring",
+    "start_date",
+    "end_date",
   ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
+  const [additionalOptionsOpen, setAdditionalOptionsOpen] = useState(!!start_date);
+  const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
+    null
+  );
+
+  const [showEndDateOption, setShowEndDateOption] = useState(!!end_date);
+
+  useWatch(showEndDateOption, (value) => {
+    if (!value) {
+      setValue("end_date", undefined);
+    }
+  });
 
   return (
     <>
       <ScrollView>
-        <VStack space="xl" className="mb-4">
+        <VStack space="xl" className="mb-16">
           <VStack space="sm">
             <FormControl isInvalid={!!errors.title}>
               <Controller
@@ -413,20 +463,142 @@ export default function AddEditReminder({
               </Text>
             )}
           </VStack>
-          {recurring && (
-            <HStack space="xl" className="items-center">
-              <Text size="xl" className="font-quicksand-semibold">
-                Track Streak
-              </Text>
-              <Switch
-                value={track_streak}
-                onValueChange={(track) => setValue("track_streak", track)}
-                trackColor={{ false: colors.gray[300], true: colors.gray[500] }}
-                thumbColor={colors.gray[50]}
-                ios_backgroundColor={colors.gray[300]}
-              />
+          <TouchableOpacity
+            onPress={() => setAdditionalOptionsOpen(!additionalOptionsOpen)}
+          >
+            <HStack space="sm" className="pt-4 px-1 items-center">
+              <Heading size="xl">Additional Options</Heading>
+              {
+                <Icon
+                  size="lg"
+                  as={
+                    additionalOptionsOpen ? ChevronDownIcon : ChevronRightIcon
+                  }
+                />
+              }
             </HStack>
+          </TouchableOpacity>
+          {additionalOptionsOpen && (
+            <>
+              {recurring && (
+                <>
+                  <HStack space="xl" className="items-center">
+                    <Text size="xl" className="font-quicksand-semibold">
+                      Track Streak
+                    </Text>
+                    <Switch
+                      value={track_streak}
+                      onValueChange={(track) => setValue("track_streak", track)}
+                      trackColor={{
+                        false: colors.gray[300],
+                        true: colors.gray[500],
+                      }}
+                      thumbColor={colors.gray[50]}
+                      ios_backgroundColor={colors.gray[300]}
+                    />
+                  </HStack>
+                  {/* <HStack space="xl" className="items-center">
+                    <Text size="xl" className="font-quicksand-semibold">
+                      Track Notes
+                    </Text>
+                    <Switch
+                      value={track_streak}
+                      onValueChange={(track) => setValue("track_notes", track)}
+                      trackColor={{
+                        false: colors.gray[300],
+                        true: colors.gray[500],
+                      }}
+                      thumbColor={colors.gray[50]}
+                      ios_backgroundColor={colors.gray[300]}
+                    />
+                  </HStack> */}
+                </>
+              )}
+              <Heading size="lg" className="-mb-4">
+                Start Date
+              </Heading>
+              <Input
+                size="xl"
+                isReadOnly
+                onTouchEnd={() =>
+                  setShowDatePicker(showDatePicker === "start" ? null : "start")
+                }
+              >
+                <InputField
+                  placeholder="Start Date"
+                  value={dayjs(start_date).format("MMMM D, YYYY")}
+                />
+              </Input>
+
+              <DatePicker
+                modal
+                open={showDatePicker === "start"}
+                mode="date"
+                title="Start Date"
+                minimumDate={dayjs().utc().toDate()}
+                date={start_date || dayjs().utc().toDate()}
+                onConfirm={(value) => setValue("start_date", value)}
+                onCancel={() => setShowDatePicker(null)}
+              />
+              {recurring && (
+                <TouchableOpacity
+                  onPress={() => setShowEndDateOption(!showEndDateOption)}
+                >
+                  <HStack space="sm" className="items-center">
+                    <Heading size="lg">Set End Date</Heading>
+                    {
+                      <Icon
+                        size="lg"
+                        as={
+                          showEndDateOption ? ChevronDownIcon : ChevronRightIcon
+                        }
+                      />
+                    }
+                  </HStack>
+                </TouchableOpacity>
+              )}
+              {recurring && showEndDateOption && (
+                <>
+                  <FormControl isInvalid={!!errors.start_date}>
+                    <Input
+                      size="xl"
+                      isReadOnly
+                      className="-mt-4"
+                      onTouchEnd={() =>
+                        setShowDatePicker(
+                          showDatePicker === "end" ? null : "end"
+                        )
+                      }
+                    >
+                      <InputField
+                        value={
+                          end_date
+                            ? dayjs(end_date).format("MMMM D, YYYY")
+                            : dayjs(start_date).format("MMMM D, YYYY")
+                        }
+                      />
+                    </Input>
+                    <FormControlError>
+                      <FormControlErrorText>
+                        {errors?.start_date?.message || ""}
+                      </FormControlErrorText>
+                    </FormControlError>
+                  </FormControl>
+                  <DatePicker
+                    modal
+                    open={showDatePicker === "end"}
+                    mode="date"
+                    minimumDate={start_date || dayjs().utc().toDate()}
+                    title="End Date"
+                    date={dayjs().utc().toDate()}
+                    onConfirm={(value) => setValue("end_date", value)}
+                    onCancel={() => setShowDatePicker(null)}
+                  />
+                </>
+              )}
+            </>
           )}
+
           {setDeleteDialogOpen && (
             <Button
               size="xl"
@@ -439,6 +611,7 @@ export default function AddEditReminder({
           )}
         </VStack>
       </ScrollView>
+      <Fade />
       <HStack space="md">
         {onCancel ? (
           <Button

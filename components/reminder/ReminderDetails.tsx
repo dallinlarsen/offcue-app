@@ -18,7 +18,7 @@ import {
   ReminderNotification,
 } from "@/lib/types";
 import { formatFrequencyString, formatScheduleString } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text } from "@/components/ui/text";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
@@ -95,6 +95,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   useEffect(() => {
     fetchData();
+    showStartDate.current =
+      dayjs(reminder.start_date).format("YYYY-MM-DD") !==
+      dayjs(reminder.created_at).format("YYYY-MM-DD");
+
+    showEndDate.current = !!reminder.end_date;
   }, [reminder]);
 
   const { watch, setValue } = useForm({
@@ -146,6 +151,13 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     fetchData();
   }
 
+  const showStartDate = useRef(
+    dayjs(reminder.start_date).format("YYYY-MM-DD") !==
+      dayjs(reminder.created_at).format("YYYY-MM-DD")
+  );
+
+  const showEndDate = useRef(!!reminder.end_date);
+
   return (
     <>
       <VStack space="md" className="flex-1">
@@ -189,6 +201,24 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               </HStack>
             )}
           </HStack>
+          <Box>
+            {showStartDate.current && !showEndDate.current ? (
+              <Text size="xl">
+                Starts on {dayjs(reminder.start_date).format("MMM D, YYYY")}
+              </Text>
+            ) : null}
+            {showStartDate.current && showEndDate.current ? (
+              <Text size="xl">
+                Between {dayjs(reminder.start_date).format("MMM D, YYYY")} and{" "}
+                {dayjs(reminder.end_date).format("MMM D, YYYY")}
+              </Text>
+            ) : null}
+            {showEndDate.current && !showStartDate.current ? (
+              <Text size="xl">
+                Ends on {dayjs(reminder.end_date).format("MMM D, YYYY")}
+              </Text>
+            ) : null}
+          </Box>
         </Box>
         {reminder.due_scheduled_at ? (
           <HStack space="md">

@@ -12,6 +12,8 @@ export type Reminder = {
   is_recurring: boolean;
   is_completed: boolean;
   created_at: any;
+  start_date: string;
+  end_date: string | null;
   due_scheduled_at: string | null;
   due_notification_id: number | null;
 };

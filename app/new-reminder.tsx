@@ -26,11 +26,13 @@ export default function NewReminder() {
     created_at: "",
     is_recurring: true,
     is_completed: false,
+    start_date: '',
+    end_date: '',
   };
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 mb-4">
+      <Box className="flex flex-row items-center -mt-2 mb-2">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>

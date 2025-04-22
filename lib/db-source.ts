@@ -9,22 +9,25 @@ import {
 } from "./types";
 import { scheduleAllUpcomingNotifications } from "./device-notifications.service";
 import db from "./db";
+import dayjs from "dayjs";
 
 // Function to initialize the database and create tables
 export const initDatabase = async (): Promise<void> => {
   await db.execAsync(`CREATE TABLE IF NOT EXISTS reminders (
     id INTEGER PRIMARY KEY NOT NULL,
-    title TEXT NOT NULL,                      -- Required title of the reminder
-    description TEXT,                         -- Optional description of the reminder
-    interval_type TEXT NOT NULL,              -- The type of interval (e.g., "minute", "hour", "day", "week", "month", "year")
-    interval_num INTEGER NOT NULL,            -- The length of the interval (e.g., number of minutes, hours, days, etc.)
-    times INTEGER NOT NULL,                   -- The number of times the reminder should occur in the defined interval
-    track_streak INTEGER NOT NULL,            -- Whether to track streaks (1 for true, 0 for false)
-    track_notes INTEGER NOT NULL,             -- Whether to track notes (1 for true, 0 for false)
-    is_muted INTEGER NOT NULL DEFAULT 0,      -- Whether the reminder is muted (1 for true, 0 for false)
-    is_recurring INTEGER NOT NULL DEFAULT 1,  -- Whether the reminder is recurring (1 for true, 0 for false)
+    title TEXT NOT NULL,                            -- Required title of the reminder
+    description TEXT,                               -- Optional description of the reminder
+    interval_type TEXT NOT NULL,                    -- The type of interval (e.g., "minute", "hour", "day", "week", "month", "year")
+    interval_num INTEGER NOT NULL,                  -- The length of the interval (e.g., number of minutes, hours, days, etc.)
+    times INTEGER NOT NULL,                         -- The number of times the reminder should occur in the defined interval
+    track_streak INTEGER NOT NULL,                  -- Whether to track streaks (1 for true, 0 for false)
+    track_notes INTEGER NOT NULL,                   -- Whether to track notes (1 for true, 0 for false)
+    is_muted INTEGER NOT NULL DEFAULT 0,            -- Whether the reminder is muted (1 for true, 0 for false)
+    is_recurring INTEGER NOT NULL DEFAULT 1,        -- Whether the reminder is recurring (1 for true, 0 for false)
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,  -- When the reminder begins reminding 
+    end_date DATE,                                  -- When the reminder is auto archived
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the reminder was created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- The time the reminder was last updated
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- The time the reminder was last updated
   );`);
   console.log("✅ Reminders table created successfully");
 
@@ -185,11 +188,13 @@ export const createReminder = async (
   trackStreak: boolean,
   trackNotes: boolean,
   muted: boolean,
-  recurring: boolean
-): Promise<number> => {
+  recurring: boolean,
+  start_date?: string,
+  end_date?: string,
+) => {
   const result = await db.runAsync(
-    `INSERT INTO reminders (title, description, interval_type, interval_num, times, track_streak, track_notes, is_muted, is_recurring)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+    `INSERT INTO reminders (title, description, interval_type, interval_num, times, track_streak, track_notes, is_muted, is_recurring, start_date, end_date)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
     [
       title,
       description,
@@ -200,6 +205,8 @@ export const createReminder = async (
       trackNotes ? 1 : 0,
       muted ? 1 : 0,
       recurring ? 1 : 0,
+      start_date || dayjs().utc().format("YYYY-MM-DD"),
+      end_date || null,
     ]
   );
   console.log("✅ Reminder saved successfully", result);
@@ -285,11 +292,13 @@ export const updateReminder = async (
   scheduleIds: number[],
   trackStreak: boolean,
   trackNotes: boolean,
-  isMuted: boolean
+  isMuted: boolean,
+  start_date?: string,
+  end_date?: string
 ): Promise<void> => {
   await db.runAsync(
     `UPDATE reminders 
-     SET title = ?, description = ?, interval_type = ?, interval_num = ?, times = ?, track_streak = ?, track_notes = ?, is_muted = ?, updated_at = CURRENT_TIMESTAMP
+     SET title = ?, description = ?, interval_type = ?, interval_num = ?, times = ?, track_streak = ?, track_notes = ?, is_muted = ?, start_date = ?, end_date = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?;`,
     [
       title,
@@ -300,6 +309,8 @@ export const updateReminder = async (
       trackStreak ? 1 : 0,
       trackNotes ? 1 : 0,
       isMuted ? 1 : 0,
+      start_date || dayjs().utc().format('YYYY-MM-DD'),
+      end_date || null,
       id,
     ]
   );

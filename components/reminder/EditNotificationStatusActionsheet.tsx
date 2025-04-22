@@ -42,13 +42,10 @@ export default function ({
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
         <Heading size="xl" className="mb-2">
-          Update {dayjs(notification?.scheduled_at).format("YYYY-MM-DD h:mm a")}
+          Update {dayjs(notification?.scheduled_at).format("MMM D, YYYY h:mm a")}
         </Heading>
         <ActionsheetItem onPress={() => updateNotificationHandler("done")}>
           <ActionsheetItemText size="xl">Done</ActionsheetItemText>
-        </ActionsheetItem>
-        <ActionsheetItem onPress={() => updateNotificationHandler("missed")}>
-          <ActionsheetItemText size="xl">Missed</ActionsheetItemText>
         </ActionsheetItem>
         {recurring ? (
           <ActionsheetItem onPress={() => updateNotificationHandler("skip")}>

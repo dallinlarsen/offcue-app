@@ -61,6 +61,16 @@ export type UserSettings = {
   timezone: string;
 };
 
-export type IntervalType = "minute" | "hour" | "day" | "week" | "month" | "year";
+export type IntervalType =
+  | "minute"
+  | "hour"
+  | "day"
+  | "week"
+  | "month"
+  | "year";
 
-export type NotificationResponseStatus = 'done' | 'skip' | 'missed' | 'later';
+export type NotificationResponseStatus =
+  | "done"
+  | "skip"
+  | "no_response"
+  | "later";

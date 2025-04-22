@@ -6,6 +6,7 @@ dayjs.extend(utc);
 dayjs.extend(weekOfYear);
 
 import * as db_source from './db-source';
+import * as db_service from "./db-service";
 import { scheduleAllUpcomingNotifications } from './device-notifications.service';
 
 /////////////////////////////////////////////
@@ -22,7 +23,7 @@ export { createNotification, getNotification, updateNotification, deleteNotifica
 export const processReminderNotifications = async (reminderId: number, bias: number = 0.5): Promise<void> => {
   try {
     // 1. Fetch the reminder record.
-    const reminder = await db_source.getReminder(reminderId);
+    const reminder = await db_service.getReminder(reminderId);
     if (!reminder) {
       console.error(`Reminder with id ${reminderId} not found.`);
       return;
@@ -96,7 +97,7 @@ export const createInitialNotifications = async (
   desiredCount: number = 10,
   bias: number = 0.5
 ): Promise<void> => {
-  const reminder = await db_source.getReminder(reminderId);
+  const reminder = await db_service.getReminder(reminderId);
   if (!reminder) {
     console.error(`Reminder with id ${reminderId} not found.`);
     return;

@@ -128,6 +128,9 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
                   +{reminder.schedules.slice(1).length} More
                 </Text>
               ) : null}
+              {reminder.track_streak && (reminder.current_streak || 0) >= 2 && (
+                <Text>🔥 {reminder.current_streak} in a row</Text>
+              )}
             </>
           )}
         </VStack>

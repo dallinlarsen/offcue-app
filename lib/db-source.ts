@@ -5,9 +5,9 @@ import {
   Reminder,
   ReminderNotification,
   Schedule,
+  ThemeOption,
   UserSettings,
 } from "./types";
-import { scheduleAllUpcomingNotifications } from "./device-notifications.service";
 import db from "./db";
 import dayjs from "dayjs";
 
@@ -93,7 +93,7 @@ export const initDatabase = async (): Promise<void> => {
     filter_reminder_nav INTEGER NOT NULL DEFAULT 0,         -- Whether the user wants to see filter navigation or not (1 for true, 0 for false)
     notification_sound TEXT,                                -- The sound to play for notifications
     notification_vibration INTEGER NOT NULL DEFAULT 1,      -- Whether to vibrate for notifications (1 for true, 0 for false)
-    theme TEXT NOT NULL DEFAULT 'light',                    -- The theme of the app (e.g., "light", "dark")
+    theme TEXT NOT NULL DEFAULT 'system',                    -- The theme of the app (e.g., "light", "dark", "system")
     language TEXT NOT NULL DEFAULT 'en',                    -- The language of the app (e.g., "en", "es", "fr")
     timezone TEXT NOT NULL DEFAULT 'UTC',                   -- The timezone of the user
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the user settings were created
@@ -222,63 +222,6 @@ export const createReminder = async (
   }
 
   return result.lastInsertRowId;
-};
-
-// function to fetch a specific reminder by ID
-export const getReminder = async (id: number) => {
-  const reminder = await db.getFirstAsync<Reminder>(
-    `
-    WITH latest_notifications AS (
-        SELECT n.*,
-              ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
-        FROM notifications n
-        WHERE scheduled_at <= CURRENT_TIMESTAMP
-          AND response_at IS NULL
-    )
-    SELECT  r.*,
-            json_group_array(
-              json_object(
-                'id', s.id, 
-                'label', s.label,
-                'is_sunday', s.is_sunday,
-                'is_monday', s.is_monday,
-                'is_tuesday', s.is_tuesday,
-                'is_wednesday', s.is_wednesday,
-                'is_thursday', s.is_thursday,
-                'is_friday', s.is_friday,
-                'is_saturday', s.is_saturday,
-                'start_time', s.start_time,
-                'end_time', s.end_time
-              )
-            ) AS schedules,
-            ln.scheduled_at AS due_scheduled_at,
-            ln.id AS due_notification_id,
-            n.id IS NOT NULL AS is_completed
-    FROM reminders r
-    JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    JOIN schedules s ON s.id = rs.schedule_id
-    LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done'
-    LEFT JOIN (
-        SELECT * FROM latest_notifications
-        WHERE rn = 1
-    ) ln ON ln.reminder_id = r.id
-    WHERE r.id = ?
-    GROUP BY r.id;
-    `,
-    [id]
-  );
-
-  return reminder
-    ? {
-        ...reminder,
-        track_streak: reminder.track_streak === (1 as unknown as boolean),
-        is_muted: reminder.is_muted === (1 as unknown as boolean),
-        is_recurring: reminder.is_recurring === (1 as unknown as boolean),
-        is_completed: reminder.is_completed === (1 as unknown as boolean),
-        schedules: JSON.parse(reminder.schedules as unknown as string),
-        created_at: reminder.created_at,
-      }
-    : null;
 };
 
 // Function to update a reminder
@@ -587,55 +530,109 @@ export const deleteReminderSchedule = async (id: number): Promise<void> => {
 /////////////////////////////////////
 
 // Function to fetch all reminders
-export const getAllReminders = async (): Promise<any[]> => {
+export const getAllOrOneReminders = async (id?: number) => {
   const reminders = await db.getAllAsync<Reminder>(
     `
-    WITH latest_notifications AS (
-        SELECT n.*,
-              ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
-        FROM notifications n
-        WHERE scheduled_at <= CURRENT_TIMESTAMP
-          AND response_at IS NULL
+  WITH RECURSIVE done_streaks AS (
+  -- Base case: latest 'done' notification with no later non-'done' responses
+  SELECT
+    n.reminder_id,
+    n.id,
+    n.scheduled_at,
+    n.response_status,
+    1 AS streak
+  FROM notifications n
+  WHERE n.response_status = 'done'
+    AND n.scheduled_at <= CURRENT_TIMESTAMP
+    AND NOT EXISTS (
+      SELECT 1
+      FROM notifications nx
+      WHERE nx.reminder_id = n.reminder_id
+        AND nx.scheduled_at > n.scheduled_at
+        AND nx.response_status IS NOT NULL
+        AND nx.response_status IS NOT 'done'
     )
-    SELECT  r.*,
-            json_group_array(
-              json_object(
-                'id', s.id, 
-                'label', s.label,
-                'is_sunday', s.is_sunday,
-                'is_monday', s.is_monday,
-                'is_tuesday', s.is_tuesday,
-                'is_wednesday', s.is_wednesday,
-                'is_thursday', s.is_thursday,
-                'is_friday', s.is_friday,
-                'is_saturday', s.is_saturday,
-                'start_time', s.start_time,
-                'end_time', s.end_time
-              )
-            ) AS schedules,
-            ln.scheduled_at AS due_scheduled_at,
-            ln.id AS due_notification_id,
-            n.id IS NOT NULL AS is_completed
-    FROM reminders r
-    JOIN reminder_schedule rs ON rs.reminder_id = r.id
-    JOIN schedules s ON s.id = rs.schedule_id
-    LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done'
-    LEFT JOIN (
-        SELECT * FROM latest_notifications
-        WHERE rn = 1
-    ) ln ON ln.reminder_id = r.id
-    GROUP BY r.id;
+
+  UNION ALL
+
+  -- Recursive step: go backwards as long as they're 'done' and not broken by non-'done'
+  SELECT
+    n.reminder_id,
+    n.id,
+    n.scheduled_at,
+    n.response_status,
+    ds.streak + 1
+  FROM notifications n
+  JOIN done_streaks ds ON n.reminder_id = ds.reminder_id
+  WHERE n.response_status = 'done'
+    AND n.scheduled_at <= CURRENT_TIMESTAMP
+    AND n.scheduled_at < ds.scheduled_at
+    AND NOT EXISTS (
+      SELECT 1
+      FROM notifications nx
+      WHERE nx.reminder_id = n.reminder_id
+        AND nx.scheduled_at > n.scheduled_at
+        AND nx.scheduled_at < ds.scheduled_at
+        AND nx.response_status IS NOT NULL
+        AND nx.response_status IS NOT 'done'
+    )
+  ),
+  max_streaks AS (
+    SELECT reminder_id, MAX(streak) AS current_streak
+    FROM done_streaks
+    GROUP BY reminder_id
+  ),
+  latest_notifications AS (
+    SELECT n.*,
+          ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
+    FROM notifications n
+    WHERE scheduled_at <= CURRENT_TIMESTAMP
+      AND response_at IS NULL
+  )
+  SELECT  
+    r.*,
+    COALESCE(ms.current_streak, 0) AS current_streak,
+    json_group_array(
+      json_object(
+        'id', s.id, 
+        'label', s.label,
+        'is_sunday', s.is_sunday,
+        'is_monday', s.is_monday,
+        'is_tuesday', s.is_tuesday,
+        'is_wednesday', s.is_wednesday,
+        'is_thursday', s.is_thursday,
+        'is_friday', s.is_friday,
+        'is_saturday', s.is_saturday,
+        'start_time', s.start_time,
+        'end_time', s.end_time
+      )
+    ) AS schedules,
+    ln.scheduled_at AS due_scheduled_at,
+    ln.id AS due_notification_id,
+    n.id IS NOT NULL AS is_completed
+  FROM reminders r
+  JOIN reminder_schedule rs ON rs.reminder_id = r.id
+  JOIN schedules s ON s.id = rs.schedule_id
+  LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done'
+  LEFT JOIN max_streaks ms ON ms.reminder_id = r.id
+  LEFT JOIN (
+    SELECT * FROM latest_notifications
+    WHERE rn = 1
+  ) ln ON ln.reminder_id = r.id
+  ${id ? "WHERE r.id = ?" : ""}
+  GROUP BY r.id
   `,
-    []
+    [id || null]
   );
 
   return reminders.map((r) => ({
     ...r,
-    track_streak: r.track_streak === (1 as unknown as boolean),
-    is_muted: r.is_muted === (1 as unknown as boolean),
-    is_recurring: r.is_recurring === (1 as unknown as boolean),
-    is_completed: r.is_completed === (1 as unknown as boolean),
+    track_streak: r.track_streak === 1 as unknown as boolean,
+    is_muted: r.is_muted === 1 as unknown as boolean,
+    is_recurring: r.is_recurring === 1 as unknown as boolean,
+    is_completed: r.is_completed === 1 as unknown as boolean,
     schedules: JSON.parse(r.schedules as unknown as string),
+    current_streak: r.current_streak ?? 0,
   }));
 };
 
@@ -822,17 +819,23 @@ export const getUserSettings = async () => {
 };
 
 ////////////////////////////////////////////////////
-////////// Set Navigation Filter Option ///////
+////////// Set Single Settings  ///////////////////
 //////////////////////////////////////////////////
 
 // Helper function to get reminders for a given schedule
 export const setNavFilter = async (value: boolean) => {
-  console.log("filter", value);
-
   return await db.runAsync(
     `UPDATE user_settings
      SET filter_reminder_nav = ?;`,
     [value ? 1 : 0]
+  );
+};
+
+export const setTheme = async (value: ThemeOption) => {
+  return await db.runAsync(
+    `UPDATE user_settings
+     SET theme = ?;`,
+    [value]
   );
 };
 

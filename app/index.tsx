@@ -9,7 +9,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon, Icon, MenuIcon, SettingsIcon } from "@/components/ui/icon";
+import { AddIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { getAllReminders } from "@/lib/db-service";
 import { VStack } from "@/components/ui/vstack";
@@ -20,6 +20,7 @@ import Fade from "@/components/Fade";
 import EdgeFade from "@/components/EdgeFade";
 import ReminderGroup from "@/components/reminder/ReminderGroup";
 import { getUserSettings } from "@/lib/db-source";
+import { useNotifications } from "@/hooks/useNotifications";
 
 type CurrentFilterOptions =
   | "all"
@@ -52,6 +53,7 @@ function FilterOption({ onPress, label, active }: FilterOptionProps) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { lastNotification } = useNotifications();
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [dueReminders, setDueReminders] = useState<Reminder[]>([]);
@@ -91,6 +93,12 @@ export default function HomeScreen() {
       loadReminders();
     }, [])
   );
+
+  useEffect(() => {
+    if (lastNotification) {
+      setTimeout(() => loadReminders(), 1000);
+    }
+  }, [lastNotification]);
 
   useEffect(() => {
     setDueReminders(reminders.filter((r) => r.due_scheduled_at));
@@ -224,7 +232,7 @@ export default function HomeScreen() {
           >
             <HStack>
               <FilterOption
-                label="All Current"
+                label="Current"
                 onPress={() => setCurrentFilter("all")}
                 active={currentFilter === "all"}
               />
@@ -239,14 +247,14 @@ export default function HomeScreen() {
                 active={currentFilter === "upcoming"}
               />
               <FilterOption
-                label="Muted"
-                onPress={() => setCurrentFilter("muted")}
-                active={currentFilter === "muted"}
-              />
-              <FilterOption
                 label="Completed"
                 onPress={() => setCurrentFilter("completed")}
                 active={currentFilter === "completed"}
+              />
+              <FilterOption
+                label="Muted"
+                onPress={() => setCurrentFilter("muted")}
+                active={currentFilter === "muted"}
               />
               <FilterOption
                 label="Archived"

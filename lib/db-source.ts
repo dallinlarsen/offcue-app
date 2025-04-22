@@ -225,7 +225,7 @@ export const getReminder = async (id: number) => {
         SELECT n.*,
               ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
         FROM notifications n
-        WHERE scheduled_at < CURRENT_TIMESTAMP
+        WHERE scheduled_at <= CURRENT_TIMESTAMP
           AND response_at IS NULL
     )
     SELECT  r.*,
@@ -430,13 +430,13 @@ export const updateNotificationResponse = async (
   );
   console.log(id, responseStatus);
 
-  // Set all the notifications that were missed to missed.
+  // Set all the notifications that were no_response to no_response.
   await db.runAsync(
     ` UPDATE notifications
       SET response_at = CURRENT_TIMESTAMP || '+00:00',
-          response_status = 'missed',
+          response_status = 'no_response',
           updated_at = CURRENT_TIMESTAMP
-      WHERE scheduled_at < CURRENT_TIMESTAMP
+      WHERE scheduled_at <= CURRENT_TIMESTAMP
         AND response_status IS NULL
         AND reminder_id = (
           SELECT reminder_id
@@ -583,7 +583,7 @@ export const getAllReminders = async (): Promise<any[]> => {
         SELECT n.*,
               ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at DESC) AS rn
         FROM notifications n
-        WHERE scheduled_at < CURRENT_TIMESTAMP
+        WHERE scheduled_at <= CURRENT_TIMESTAMP
           AND response_at IS NULL
     )
     SELECT  r.*,

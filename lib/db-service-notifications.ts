@@ -262,9 +262,14 @@ export const getScheduleWindowsWithinInterval = (
   intervalEnd: Date
 ): { start: Date; end: Date }[] => {
   const windows: { start: Date; end: Date }[] = [];
-  // Work day-by-day from intervalStart until the end.
-  const current = new Date(intervalStart);
-  while (current <= intervalEnd) {
+
+  // Work calendar-day by calendar-day based on the date part (ignore time-of-day)
+  const startDate = new Date(intervalStart);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(intervalEnd);
+  endDate.setHours(0, 0, 0, 0);
+
+  for (let current = new Date(startDate); current <= endDate; current.setDate(current.getDate() + 1)) {
     const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ... 6 = Saturday
     let applies = false;
     switch (dayOfWeek) {
@@ -308,8 +313,6 @@ export const getScheduleWindowsWithinInterval = (
         }
       }
     }
-    // Move to the next day.
-    current.setDate(current.getDate() + 1);
   }
   return windows;
 };
@@ -382,35 +385,6 @@ export interface NotificationTime {
   segment_index: number;
 }
 
-// For a given segment and set of merged schedule windows, returns the overlapping
-// interval (if any) in which a notification can be scheduled.
-const getSegmentOverlap = (
-  segment: Segment,
-  mergedWindows: { start: Date; end: Date }[]
-): { start: Date; end: Date } | null => {
-  const overlaps: { start: Date; end: Date }[] = [];
-  mergedWindows.forEach((window) => {
-    // Compute the intersection between the segment and the window.
-    const overlapStart = new Date(Math.max(segment.start.getTime(), window.start.getTime()));
-    const overlapEnd = new Date(Math.min(segment.end.getTime(), window.end.getTime()));
-    if (overlapStart < overlapEnd) {
-      overlaps.push({ start: overlapStart, end: overlapEnd });
-    }
-  });
-  if (overlaps.length === 0) return null;
-  // For simplicity, choose the overlap interval with the longest duration.
-  let longest = overlaps[0];
-  let longestDuration = overlaps[0].end.getTime() - overlaps[0].start.getTime();
-  overlaps.forEach((o) => {
-    const dur = o.end.getTime() - o.start.getTime();
-    if (dur > longestDuration) {
-      longest = o;
-      longestDuration = dur;
-    }
-  });
-  return longest;
-};
-
 // Generates notification times for the reminder for a specific interval (in UTC).
 // This function performs all logic in local time and converts final times back to UTC.
 // It uses the minute-based approach that accounts for overlapping and disjoint schedule windows.
@@ -422,8 +396,8 @@ export const generateNotificationTimes = (
 ): NotificationTime[] => {
   // Calculate the current interval boundaries in local time.
   const { start: localIntervalStart, end: localIntervalEnd } = calculateCurrentInterval(reminder, intervalIndex);
-  console.log("Start:", localIntervalStart.toLocaleString());
-  console.log("End:", localIntervalEnd.toLocaleString());
+  // console.log("Start:", localIntervalStart.toLocaleString());
+  // console.log("End:", localIntervalEnd.toLocaleString());
 
   // Get allowed schedule windows for the entire interval from all schedules.
   let allowedWindows: { start: Date; end: Date }[] = [];
@@ -444,7 +418,7 @@ export const generateNotificationTimes = (
   });
 
   if (totalAllowedMinutes === 0) {
-    console.log('No allowed minutes available in merged windows.');
+    // console.log('No allowed minutes available in merged windows.');
     return [];
   }
 

@@ -151,6 +151,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     fetchData();
   }
 
+  async function notificationEditUpdateHandler() {
+    fetchData();
+    onNotificationResponse();
+  }
+
   const showStartDate = useRef(
     dayjs(reminder.start_date).format("YYYY-MM-DD") !==
       dayjs(reminder.created_at).format("YYYY-MM-DD")
@@ -218,6 +223,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 Ends on {dayjs(reminder.end_date).format("MMM D, YYYY")}
               </Text>
             ) : null}
+            {reminder.track_streak && (reminder.current_streak || 0) >= 2 && (
+              <Text size="xl">🔥 {reminder.current_streak} in a row</Text>
+            )}
           </Box>
         </Box>
         {reminder.due_scheduled_at ? (
@@ -378,7 +386,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         isOpen={notificationStatusUpdateOpen}
         setIsOpen={setNotificationStatusUpdateOpen}
         notification={notificationToUpdate!}
-        onUpdate={() => fetchData()}
+        onUpdate={notificationEditUpdateHandler}
         recurring={reminder.is_recurring}
       />
     </>

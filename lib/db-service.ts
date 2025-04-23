@@ -9,6 +9,7 @@ export {
   getFutureNotifications,
   getSoonestFutureNotificationsToSchedule,
   updateReminder,
+  setTheme,
 } from "./db-source";
 export { processReminderNotifications, recalcFutureNotifications } from "./db-service-notifications";
 
@@ -44,8 +45,8 @@ export const createReminder = async (title: string,
 
 //Read
 export const getReminder = async (id: number) => {
-    const reminder = await db_source.getReminder(id);
-    return reminder;
+    const reminder = await db_source.getAllOrOneReminders(id);
+    return reminder[0];
 };
 
 //Update Muted
@@ -130,7 +131,7 @@ export const deleteSchedule = async (id: number) => {
 
 // Get All Reminders
 export const getAllReminders = async () => {
-    const notifications = await db_source.getAllReminders();
+    const notifications = await db_source.getAllOrOneReminders();
     return notifications;
 };
 

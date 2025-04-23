@@ -8,15 +8,15 @@ import { getReminder } from "@/lib/db-service";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
-import DeleteReminderDialog from "@/components/reminder/DeleteReminderDialog";
 import Fade from "@/components/Fade";
+import ArchiveReminderDialog from "@/components/reminder/ArchiveReminderDialog";
 
 export default function EditReminder() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
   const [reminder, setReminder] = useState<Reminder | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   async function fetchReminder() {
     const data = await getReminder(parseInt(id as string));
@@ -38,16 +38,17 @@ export default function EditReminder() {
       <Fade />
       {reminder ? (
         <>
-          <DeleteReminderDialog
+          <ArchiveReminderDialog
             reminder={reminder}
-            isOpen={deleteDialogOpen}
-            onClose={() => setDeleteDialogOpen(false)}
+            isOpen={archiveDialogOpen}
+            onClose={() => setArchiveDialogOpen(false)}
+            onArchiveSuccess={() => router.dismissTo(`/reminder/${reminder.id!}`)}
           />
           <AddEditReminder
             data={reminder}
             onSave={() => router.back()}
             onCancel={() => router.back()}
-            setDeleteDialogOpen={setDeleteDialogOpen}
+            setArchiveDialogOpen={setArchiveDialogOpen}
           />
         </>
       ) : null}

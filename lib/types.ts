@@ -11,7 +11,9 @@ export type Reminder = {
   is_muted: boolean;
   is_recurring: boolean;
   is_completed: boolean;
-  created_at: any;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
   start_date: string;
   end_date: string | null;
   due_scheduled_at: string | null;

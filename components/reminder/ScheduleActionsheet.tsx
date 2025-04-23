@@ -142,7 +142,7 @@ export function ScheduleActionsheet({
                         className="p-5 -m-5 pr-6"
                         onPress={() => handleScheduleTrashIconPressed(schedule)}
                       >
-                        <Icon as={TrashIcon}></Icon>
+                        <Icon size="lg" as={TrashIcon} className="fill-typography-950"></Icon>
                       </TouchableOpacity>
                     </HStack>
                   </Card>

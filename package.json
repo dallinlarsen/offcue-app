@@ -11,9 +11,6 @@
     "test": "jest --watchAll",
     "lint": "expo lint"
   },
-  "jest": {
-    "preset": "jest-expo"
-  },
   "dependencies": {
     "@expo/html-elements": "^0.4.2",
     "@expo/vector-icons": "^14.0.2",
@@ -46,7 +43,8 @@
     "expo-asset": "~11.0.5",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.8",
-    "expo-dev-client": "~5.0.19",
+    "expo-dev-client": "~5.0.20",
+    "expo-dev-launcher": "^5.0.35",
     "expo-drizzle-studio-plugin": "^0.1.2",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
@@ -89,6 +87,7 @@
     "jest-expo": "~52.0.6",
     "jscodeshift": "^0.15.2",
     "react-test-renderer": "18.3.1",
+    "ts-jest": "^29.3.2",
     "typescript": "^5.3.3"
   },
   "private": true

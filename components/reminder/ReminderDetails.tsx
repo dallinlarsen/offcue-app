@@ -4,14 +4,16 @@ import {
   ArchiveArrowUp,
   ArchiveOutlineIcon,
   CheckCircleIcon,
+  CopyIcon,
   EyeIcon,
   EyeOffIcon,
   RepeatIcon,
   TrashIcon,
+  UndoIcon,
 } from "@/components/ui/icon";
 import {
-  copyOneTimeReminder,
   recalcFutureNotifications,
+  undoOneTimeComplete,
   updateNotificationResponse,
   updateNotificationResponseOneTime,
   updateReminderArchived,
@@ -45,7 +47,6 @@ import {
   Table,
   TableBody,
   TableData,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -183,9 +184,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     reloadAllData();
   }
 
-  async function recreateClickedHandler() {
-    const newId = await copyOneTimeReminder(reminder.id!);
-    router.replace(`/reminder/${newId}`);
+  async function undoClickedHandler() {
+    await undoOneTimeComplete(reminder.id!);
+    reloadAllData();
   }
 
   async function reloadAllData() {
@@ -294,7 +295,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             {nextNotification ? (
               <VStack space="sm">
                 <Alert>
-                  <AlertIcon as={CheckCircleIcon} />
                   <AlertText size="lg">Next Reminder on</AlertText>
                   {hideNextNotification ? (
                     <Box className="relative w-[180px] h-10 -ml-1 -my-2">
@@ -355,11 +355,13 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             ) : null}
           </>
         )}
-        {!reminder.is_recurring && !reminder.is_completed && (
-          <Button size="xl" onPress={() => handleNotificationAction("done")}>
-            <ButtonText>Done</ButtonText>
-          </Button>
-        )}
+        {!reminder.is_recurring &&
+          !reminder.is_completed &&
+          !reminder.due_scheduled_at && (
+            <Button size="xl" onPress={() => handleNotificationAction("done")}>
+              <ButtonText>Done</ButtonText>
+            </Button>
+          )}
         {reminder.is_archived && (
           <>
             <Alert className="bg-orange-100 dark:bg-orange-950">
@@ -421,10 +423,14 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 size="lg"
                 variant="outline"
                 className="flex-1"
-                onPress={recreateClickedHandler}
+                onPress={undoClickedHandler}
               >
-                <ButtonIcon size="xl" as={RepeatIcon} />
-                <ButtonText>Recreate</ButtonText>
+                <ButtonIcon
+                  size="xl"
+                  as={UndoIcon}
+                  className="fill-typography-950"
+                />
+                <ButtonText>Undo Complete</ButtonText>
               </Button>
               <Button
                 size="lg"
@@ -440,6 +446,14 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 <ButtonText>Delete</ButtonText>
               </Button>
             </HStack>
+            <Button
+              size="xl"
+              variant="outline"
+              onPress={() => router.push(`/new-reminder?copy=${reminder.id}`)}
+            >
+              <ButtonIcon as={CopyIcon} />
+              <ButtonText>Copy</ButtonText>
+            </Button>
           </>
         )}
         {is_muted && !reminder.is_archived && (
@@ -465,67 +479,73 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             </Button>
           </>
         )}
-        <HStack className="items-end" space="lg">
-          <Heading size="xl" className="mt-3">
-            Notifications
-          </Heading>
-          <Text className="-mt-3 text-typography-600">Tap to edit status</Text>
-        </HStack>
-        {pastNotifications.length > 0 ? (
+        {reminder.is_recurring && (
           <>
-            <Box className="rounded overflow-hidden w-full flex-1">
-              <Table className="w-full flex-1">
-                <TableHeader className="border-t border-x border-background-300">
-                  <TableRow>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="flex-1">
-                  <ScrollView showsVerticalScrollIndicator={false}>
-                    {pastNotifications.map((n, idx) => (
-                      <TableRow
-                        key={n.id}
-                        className={`${
-                          pastNotifications.length - 1 === idx
-                            ? "-mb-1"
-                            : "border-b"
-                        } ${
-                          idx === 0 ? "border-t" : ""
-                        } border-x border-background-300
-                          `}
-                      >
-                        <TouchableOpacity
-                          onPress={() => handleNotificationEditOpen(n)}
-                          className="flex flex-row flex-1"
-                        >
-                          <TableData className="flex-1">
-                            {dayjs(n.scheduled_at).format(
-                              "MMM D, YYYY\nh:mm a"
-                            )}
-                          </TableData>
-                          <TableData className="flex items-center w-full flex-1">
-                            <Badge
-                              size="xl"
-                              action={STATUS_COLOR_MAP[n.response_status]}
-                            >
-                              <BadgeText>
-                                {n.response_status.split("_").join(" ") ||
-                                  "Pending"}
-                              </BadgeText>
-                            </Badge>
-                          </TableData>
-                        </TouchableOpacity>
+            <HStack className="items-end" space="lg">
+              <Heading size="xl" className="mt-3">
+                Notifications
+              </Heading>
+              <Text className="-mt-3 text-typography-600">
+                Tap to edit status
+              </Text>
+            </HStack>
+            {pastNotifications.length > 0 ? (
+              <>
+                <Box className="rounded overflow-hidden w-full flex-1">
+                  <Table className="w-full flex-1">
+                    <TableHeader className="border-t border-x border-background-300">
+                      <TableRow>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                    <Box className="h-28" />
-                  </ScrollView>
-                </TableBody>
-              </Table>
-            </Box>
+                    </TableHeader>
+                    <TableBody className="flex-1">
+                      <ScrollView showsVerticalScrollIndicator={false}>
+                        {pastNotifications.map((n, idx) => (
+                          <TableRow
+                            key={n.id}
+                            className={`${
+                              pastNotifications.length - 1 === idx
+                                ? "-mb-1"
+                                : "border-b"
+                            } ${
+                              idx === 0 ? "border-t" : ""
+                            } border-x border-background-300
+                          `}
+                          >
+                            <TouchableOpacity
+                              onPress={() => handleNotificationEditOpen(n)}
+                              className="flex flex-row flex-1"
+                            >
+                              <TableData className="flex-1">
+                                {dayjs(n.scheduled_at).format(
+                                  "MMM D, YYYY\nh:mm a"
+                                )}
+                              </TableData>
+                              <TableData className="flex items-center w-full flex-1">
+                                <Badge
+                                  size="xl"
+                                  action={STATUS_COLOR_MAP[n.response_status]}
+                                >
+                                  <BadgeText>
+                                    {n.response_status.split("_").join(" ") ||
+                                      "Pending"}
+                                  </BadgeText>
+                                </Badge>
+                              </TableData>
+                            </TouchableOpacity>
+                          </TableRow>
+                        ))}
+                        <Box className="h-28" />
+                      </ScrollView>
+                    </TableBody>
+                  </Table>
+                </Box>
+              </>
+            ) : (
+              <Text>No Notificaitons Found</Text>
+            )}
           </>
-        ) : (
-          <Text>No Notificaitons Found</Text>
         )}
       </VStack>
       <EditNotificationStatusActionsheet

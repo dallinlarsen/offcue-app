@@ -42,11 +42,13 @@ export default function EditReminder() {
             reminder={reminder}
             isOpen={archiveDialogOpen}
             onClose={() => setArchiveDialogOpen(false)}
-            onArchiveSuccess={() => router.dismissTo(`/reminder/${reminder.id!}`)}
+            onArchiveSuccess={() =>
+              router.dismissTo(`/reminder/${reminder.id!}`)
+            }
           />
           <AddEditReminder
             data={reminder}
-            onSave={() => router.back()}
+            onSave={() => router.dismissTo(`/reminder/${reminder.id!}`)}
             onCancel={() => router.back()}
             setArchiveDialogOpen={setArchiveDialogOpen}
           />

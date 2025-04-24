@@ -109,11 +109,7 @@ export const createInitialNotifications = async (
     return;
   }
   
-  // Calculate the number of intervals required.
-  // Each interval yields reminder.times notifications.
-  const notificationsPerInterval = reminder.times;
-  const requiredIntervals = Math.ceil(desiredCount / notificationsPerInterval);
-  console.log(`Creating initial notifications: ${requiredIntervals} intervals to yield at least ${desiredCount} notifications.`);
+  console.log(`Creating initial notifications: $${desiredCount} notifications.`);
   
   let startingIntervalIndex = 0;
   // If there is an existing next notification, use its interval_index as a starting point.
@@ -123,18 +119,21 @@ export const createInitialNotifications = async (
   }
   
   let allNotifications: NotificationTime[] = [];
-  // Loop through the required number of intervals.
-  for (let i = 0; i < requiredIntervals; i++) {
-    const intervalIndex = startingIntervalIndex + i;
+  let intervalIndex = startingIntervalIndex;
+
+  // Loop until the desired number of notifications are reached.
+  while (allNotifications.length < desiredCount) {
     // Generate notifications for this interval.
     let notifications = generateNotificationTimes(reminder, schedules, intervalIndex, bias);
     // Filter for future notifications (scheduled after the current time).
-    const futureNotifications = notifications.filter((notif) => Date.parse(notif.scheduled_at) > Date.now());
+    const futureNotifications = notifications.filter((notif) => dayjs(notif.scheduled_at).isAfter(dayjs()));
     if (futureNotifications.length > 0) {
       allNotifications.push(...futureNotifications);
     } else {
       console.log(`No future notifications found for interval ${intervalIndex}.`);
     }
+
+    intervalIndex++;
   }
 
   if (allNotifications.length > 0) {

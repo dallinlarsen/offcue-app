@@ -90,7 +90,6 @@ export const initDatabase = async (): Promise<void> => {
   await db.execAsync(`CREATE TABLE IF NOT EXISTS user_settings (
     id INTEGER PRIMARY KEY NOT NULL,
     has_completed_tutorial INTEGER NOT NULL DEFAULT 0,      -- Whether the user has completed the tutorial (1 for true, 0 for false)
-    filter_reminder_nav INTEGER NOT NULL DEFAULT 0,         -- Whether the user wants to see filter navigation or not (1 for true, 0 for false)
     notification_sound TEXT,                                -- The sound to play for notifications
     notification_vibration INTEGER NOT NULL DEFAULT 1,      -- Whether to vibrate for notifications (1 for true, 0 for false)
     theme TEXT NOT NULL DEFAULT 'system',                    -- The theme of the app (e.g., "light", "dark", "system")
@@ -104,7 +103,7 @@ export const initDatabase = async (): Promise<void> => {
 
   if (!userSettings.id) {
     await db.runAsync(
-      `INSERT INTO user_settings (filter_reminder_nav) VALUES (1);`
+      `INSERT INTO user_settings (has_completed_tutorial) VALUES (0);`
     );
   }
   console.log("✅ User settings table created successfully");
@@ -288,31 +287,6 @@ export const updateReminder = async (
   console.log("✅ Reminder updated successfully");
 };
 
-  // Function to copy a one time reminder
-export const copyOneTimeReminder = async (
-  idToCopy: number,
-) => {
-  const result = await db.runAsync(
-    `INSERT INTO reminders(title, description, interval_type, interval_num, times, is_recurring)
-     SELECT title, description, interval_type, interval_num, times, 0
-     FROM reminders
-     WHERE id = ?;`,
-    [
-      idToCopy
-    ]
-  );
-
-  await db.runAsync(
-    `INSERT INTO reminder_schedule (reminder_id, schedule_id)
-     SELECT ?, schedule_id
-     FROM reminder_schedule
-     WHERE reminder_id = ?`,
-    [result.lastInsertRowId, idToCopy]
-  );
-
-  return result.lastInsertRowId;
-}
-
 // Function to update the muted status of a reminder
 export const updateReminderMuted = async (
   id: number,
@@ -371,6 +345,19 @@ export const createNotification = async (
   console.log("✅ Notification saved successfully", result);
 
   return result.lastInsertRowId;
+};
+
+// Function to fetch last done notification by reminder id
+export const getLastDoneNotification = async (reminderId: number) => {
+  const notification = await db.getFirstAsync<ReminderNotification>(
+    ` SELECT * 
+      FROM notifications 
+      WHERE reminder_id = ? AND response_status = 'done'
+      ORDER BY scheduled_at DESC
+      LIMIT 1;`,
+    [reminderId]
+  );
+  return notification;
 };
 
 // Function to fetch a specific notification by ID
@@ -863,8 +850,6 @@ export const getUserSettings = async () => {
     ...result,
     has_completed_tutorial:
       result?.has_completed_tutorial === (1 as unknown as boolean),
-    filter_reminder_nav:
-      result?.filter_reminder_nav === (1 as unknown as boolean),
     notification_sound:
       result?.notification_sound === (1 as unknown as boolean),
     notification_vibration:

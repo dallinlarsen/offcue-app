@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { useNavigation, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Icon, ArrowLeftIcon } from "@/components/ui/icon";
@@ -7,11 +7,14 @@ import { Box } from "@/components/ui/box";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { IntervalType, Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
+import { getReminder } from "@/lib/db-service";
 
 export default function NewReminder() {
   const router = useRouter();
+  const { copy } = useLocalSearchParams<{ copy?: string }>();
+  const [showForm, setShowForm] = useState(false);
 
-  const blankReminder: Reminder = {
+  const reminder = useRef<Reminder>({
     title: "",
     description: "",
     interval_num: "" as any,
@@ -27,10 +30,33 @@ export default function NewReminder() {
     is_recurring: true,
     is_completed: false,
     is_archived: false,
-    start_date: '',
-    end_date: '',
-    updated_at: '',
-  };
+    start_date: "",
+    end_date: "",
+    updated_at: "",
+  });
+
+  useEffect(() => {
+    async function getCopyReminder() {
+      if (copy) {
+        const copyReminder = await getReminder(parseInt(copy));
+        reminder.current = {
+          ...copyReminder,
+          is_muted: false,
+          due_scheduled_at: null,
+          due_notification_id: null,
+          created_at: "",
+          is_completed: false,
+          is_archived: false,
+          start_date: "",
+          end_date: "",
+          updated_at: "",
+          id: undefined,
+        };
+      }
+      setShowForm(true);
+    }
+    getCopyReminder();
+  }, []);
 
   return (
     <ThemedContainer>
@@ -40,7 +66,14 @@ export default function NewReminder() {
         </TouchableOpacity>
         <Heading size="3xl">New Reminder</Heading>
       </Box>
-      <AddEditReminder data={blankReminder} onSave={() => router.back()} />
+      {showForm && (
+        <AddEditReminder
+          data={reminder.current}
+          onSave={(reminderId: number) =>
+            router.dismissTo(`/reminder/${reminderId}`)
+          }
+        />
+      )}
     </ThemedContainer>
   );
 }

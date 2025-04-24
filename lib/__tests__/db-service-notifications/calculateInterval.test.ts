@@ -7,6 +7,7 @@ describe('calculateCurrentInterval (local→startOf→UTC)', () => {
   it('calculates a 1-day interval at index 0 correctly', () => {
     const reminder = {
       created_at: new Date(Date.UTC(2025, 0, 15, 10, 23, 45)), // 2025-01-15 10:23:45 UTC
+      start_date: new Date(Date.UTC(2025, 0, 15, 10, 23, 45)), // 2025-01-15 10:23:45 UTC
       interval_type: 'day',
       interval_num: 1,
     };
@@ -14,7 +15,7 @@ describe('calculateCurrentInterval (local→startOf→UTC)', () => {
     const { start, end } = calculateCurrentInterval(reminder, 0);
 
     // 1) Convert to local time
-    const local = convertToLocal(reminder.created_at);
+    const local = convertToLocal(reminder.start_date);
     // 2) Floor to local midnight
     const localStartOfDay = dayjs(local).startOf('day').toDate();
     // 3) Convert that back to UTC
@@ -30,13 +31,14 @@ describe('calculateCurrentInterval (local→startOf→UTC)', () => {
   it('calculates a 3-week interval at index 0 correctly', () => {
     const reminder = {
       created_at: new Date(Date.UTC(2025, 0, 8, 0, 0, 0)), // Jan 8, 2025 UTC
+      start_date: new Date(Date.UTC(2025, 0, 8, 0, 0, 0)), // Jan 8, 2025 UTC
       interval_type: 'week',
       interval_num: 3,
     };
 
     const { start, end } = calculateCurrentInterval(reminder, 0);
 
-    const local = convertToLocal(reminder.created_at);
+    const local = convertToLocal(reminder.start_date);
     const localStartOfWeek = dayjs(local).startOf('week').toDate();
     const expectedStart = convertToUTC(localStartOfWeek).getTime();
     expect(start.getTime()).toBe(expectedStart);
@@ -52,13 +54,14 @@ describe('calculateCurrentInterval (local→startOf→UTC)', () => {
   it('calculates a 1-month interval at index 1 correctly', () => {
     const reminder = {
       created_at: new Date(Date.UTC(2025, 0, 15, 0, 0, 0)), // Jan 15, 2025
+      start_date: new Date(Date.UTC(2025, 0, 15, 0, 0, 0)), // Jan 15, 2025
       interval_type: 'month',
       interval_num: 1,
     };
 
     const { start, end } = calculateCurrentInterval(reminder, 1);
 
-    const local = convertToLocal(reminder.created_at);
+    const local = convertToLocal(reminder.start_date);
     const localStartOfNextMonth = dayjs(local)
       .startOf('month')
       .add(reminder.interval_num * 1, 'month')
@@ -77,13 +80,14 @@ describe('calculateCurrentInterval (local→startOf→UTC)', () => {
   it('calculates a 2-year interval at index 0 correctly', () => {
     const reminder = {
       created_at: new Date(Date.UTC(2023, 5, 10, 0, 0, 0)), // Jun 10, 2023
+      start_date: new Date(Date.UTC(2023, 5, 10, 0, 0, 0)), // Jun 10, 2023
       interval_type: 'year',
       interval_num: 2,
     };
 
     const { start, end } = calculateCurrentInterval(reminder, 0);
 
-    const local = convertToLocal(reminder.created_at);
+    const local = convertToLocal(reminder.start_date);
     const localStartOfYear = dayjs(local).startOf('year').toDate();
     const expectedStart = convertToUTC(localStartOfYear).getTime();
     expect(start.getTime()).toBe(expectedStart);

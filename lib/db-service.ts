@@ -56,7 +56,7 @@ export const createReminder = async (
   );
 
   // Create notifications for the reminder
-  createInitialNotifications(result);
+  await createInitialNotifications(result);
 
   return result;
 };

@@ -46,7 +46,6 @@ export type ReminderNotification = {
   id: number;
   reminder_id: number;
   scheduled_at: string;
-  is_scheduled: number;
   interval_index: number;
   segment_index: number;
   response_at: string;

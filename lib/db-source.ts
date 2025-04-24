@@ -35,7 +35,6 @@ export const initDatabase = async (): Promise<void> => {
     id INTEGER PRIMARY KEY NOT NULL,
     reminder_id INTEGER NOT NULL,             -- Foreign key to reminders table
     scheduled_at DATETIME NOT NULL,           -- The time the notification is scheduled for
-    is_scheduled INTEGER NOT NULL DEFAULT 0,  -- Whether the notification is scheduled (1 for true, 0 for false)
     interval_index INTEGER NOT NULL,          -- The index of the interval for the notification
     segment_index INTEGER NOT NULL,           -- The index of the segment for the notification
     response_at DATETIME,                     -- The time the user responded to the notification
@@ -321,14 +320,13 @@ export const deleteReminder = async (id: number): Promise<void> => {
 export const createNotification = async (
   reminderId: number,
   scheduledAt: string,
-  isScheduled: boolean,
   intervalIndex: number,
   segmentIndex: number
 ): Promise<number> => {
   const result = await db.runAsync(
-    `INSERT INTO notifications (reminder_id, scheduled_at, is_scheduled, interval_index, segment_index)
-     VALUES (?, ?, ?, ?, ?);`,
-    [reminderId, scheduledAt, isScheduled ? 1 : 0, intervalIndex, segmentIndex]
+    `INSERT INTO notifications (reminder_id, scheduled_at, interval_index, segment_index)
+     VALUES (?, ?, ?, ?);`,
+    [reminderId, scheduledAt, intervalIndex, segmentIndex]
   );
   console.log("✅ Notification saved successfully", result);
 
@@ -348,7 +346,6 @@ export const getNotification = async (id: number): Promise<any> => {
 export const updateNotification = async (
   id: number,
   scheduledAt: string,
-  isScheduled: boolean,
   intervalIndex: number,
   segmentIndex: number,
   responseAt: string | null,
@@ -356,11 +353,10 @@ export const updateNotification = async (
 ): Promise<void> => {
   await db.runAsync(
     `UPDATE notifications
-     SET scheduled_at = ?, is_scheduled = ?, interval_index = ?, segment_index = ?, response_at = ?, response_status = ?, updated_at = CURRENT_TIMESTAMP
+     SET scheduled_at = ?, interval_index = ?, segment_index = ?, response_at = ?, response_status = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?;`,
     [
       scheduledAt,
-      isScheduled ? 1 : 0,
       intervalIndex,
       segmentIndex,
       responseAt,
@@ -698,7 +694,7 @@ export const getNextNotification = async (
   reminderId: number
 ): Promise<any | null> => {
   const notification = await db.getFirstAsync(
-    `SELECT * FROM notifications WHERE reminder_id = ? AND is_scheduled = 0 ORDER BY interval_index ASC, segment_index ASC;`,
+    `SELECT * FROM notifications WHERE reminder_id = ? ORDER BY interval_index ASC, segment_index ASC;`,
     [reminderId]
   );
   console.log("Next unscheduled notification:", notification);

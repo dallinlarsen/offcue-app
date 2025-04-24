@@ -61,13 +61,6 @@ export const createReminder = async (
   return result;
 };
 
-export const copyOneTimeReminder = async (idToCopy: number) => {
-  const result = await db_source.copyOneTimeReminder(idToCopy);
-  await createInitialNotifications(result);
-
-  return result;
-};
-
 //Read
 export const getReminder = async (id: number) => {
   const reminder = await db_source.getAllOrOneReminders(id);
@@ -248,6 +241,13 @@ export async function updateNotificationResponse(
     }
   }
   await scheduleAllUpcomingNotifications();
+}
+
+export async function undoOneTimeComplete(reminderId: number) {
+  const lastDoneNotification = await db_source.getLastDoneNotification(reminderId);
+  if (lastDoneNotification) {
+    return await updateNotificationResponse(lastDoneNotification.id, 'later', false);
+  }
 }
 
 export async function updateNotificationResponseOneTime(

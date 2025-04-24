@@ -1,12 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Box } from "./ui/box";
 import { StyleSheet } from "react-native";
+import { ReactNode } from "react";
 
 type Props = {
   left?: boolean;
+  children?: ReactNode;
 };
 
-export default function EdgeFadeOverlay({ left }: Props) {
+export default function EdgeFadeOverlay({ left, children }: Props) {
   const LIGHT_COLORS = [
     "rgba(251, 251, 251, 0)",
     "rgba(251, 251, 251, .5)",
@@ -37,7 +39,9 @@ export default function EdgeFadeOverlay({ left }: Props) {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.sideFade}
-        />
+        >
+          {children}
+        </LinearGradient>
       </Box>
       <Box
         className={`absolute top-0 bottom-0 ${
@@ -51,7 +55,9 @@ export default function EdgeFadeOverlay({ left }: Props) {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.sideFade}
-        />
+        >
+          {children}
+        </LinearGradient>
       </Box>
     </>
   );

@@ -57,7 +57,6 @@ export type ReminderNotification = {
 export type UserSettings = {
   id: number;
   has_completed_tutorial: boolean;
-  filter_reminder_nav: boolean;
   notification_sound: boolean;
   notification_vibration: boolean;
   theme: ThemeOption;

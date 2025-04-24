@@ -56,7 +56,7 @@ dayjs.extend(isSameOrBefore);
 
 type AddEditReminderProps = {
   data: Reminder;
-  onSave: () => void;
+  onSave: (reminderId: number) => void;
   onCancel?: () => void;
   setArchiveDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -147,6 +147,7 @@ export default function AddEditReminder({
     }
 
     try {
+      let reminderId = data.id;
       if (data.id) {
         await updateReminder(
           data.id,
@@ -167,7 +168,7 @@ export default function AddEditReminder({
             : undefined
         );
       } else {
-        await createReminder(
+        reminderId = await createReminder(
           model.title,
           model.description || "",
           interval_type!,
@@ -186,7 +187,7 @@ export default function AddEditReminder({
             : undefined
         );
       }
-      onSave();
+      onSave(reminderId!);
     } catch (error) {
       console.error("Error saving reminder:", error);
       alert("Error saving reminder. Please try again.");

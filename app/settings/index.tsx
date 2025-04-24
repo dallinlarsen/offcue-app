@@ -1,5 +1,4 @@
 import DarkMode from "@/components/settings/DarkMode";
-import NavFilterOption from "@/components/settings/NavFilterOption";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
@@ -14,10 +13,7 @@ import { useEffect, useState } from "react";
 export default function SettingsScreen() {
   const router = useRouter();
 
-  const [accordiansOpen, setAccordiansOpen] = useState<string[]>([
-    "filter",
-    "dark-mode",
-  ]);
+  const [accordiansOpen, setAccordiansOpen] = useState<string[]>([]);
   const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
 
   function setOpenHandler(open: boolean, key: string) {
@@ -46,11 +42,6 @@ export default function SettingsScreen() {
           theme={userSettings.theme}
           open={accordiansOpen.includes("dark-mode")}
           setOpen={(open) => setOpenHandler(open, "dark-mode")}
-        />
-        <NavFilterOption
-          navState={userSettings.filter_reminder_nav}
-          open={accordiansOpen.includes("filter")}
-          setOpen={(open) => setOpenHandler(open, "filter")}
         />
         <Button
           size="xl"

@@ -42,7 +42,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider mode="system">
+    <GluestackUIProvider>
       <ConfettiProvider>
         <NotificationProvider>
           <SafeAreaProvider>

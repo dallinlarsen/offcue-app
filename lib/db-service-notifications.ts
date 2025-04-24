@@ -136,7 +136,7 @@ export const createInitialNotifications = async (
       console.log(`No future notifications found for interval ${intervalIndex}.`);
     }
   }
-  
+
   if (allNotifications.length > 0) {
     await createNotifications(reminder, allNotifications);
     console.log(`✅ Created ${allNotifications.length} initial notifications for reminder ${reminderId}.`);
@@ -483,7 +483,6 @@ export const createNotifications = async (reminder: any, notifications: Notifica
     await db_source.createNotification(
       reminder.id,
       dayjs(notif.scheduled_at).utc().format('YYYY-MM-DD HH:mm:ssZ'),
-      false, // By default the notification isn't set
       notif.interval_index,
       notif.segment_index
     );

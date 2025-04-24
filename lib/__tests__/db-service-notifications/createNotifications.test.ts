@@ -32,14 +32,12 @@ describe('createNotifications', () => {
     expect(spy).toHaveBeenNthCalledWith(1,
       123,
       dayjs(notifications[0].scheduled_at).utc().format('YYYY-MM-DD HH:mm:ssZ'),
-      false,
       notifications[0].interval_index,
       notifications[0].segment_index
     );
     expect(spy).toHaveBeenNthCalledWith(2,
       123,
       dayjs(notifications[1].scheduled_at).utc().format('YYYY-MM-DD HH:mm:ssZ'),
-      false,
       notifications[1].interval_index,
       notifications[1].segment_index
     );

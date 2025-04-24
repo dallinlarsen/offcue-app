@@ -203,12 +203,12 @@ export const calculateCurrentInterval = (
   reminder: any,
   intervalIndex: number
 ): { start: Date; end: Date } => {
-  // Convert reminder.created_at from UTC to local.
-  const localCreatedAt = convertToLocal(reminder.created_at);
+  // Convert reminder.start_date from UTC to local.
+  const localStartDate = convertToLocal(reminder.start_date);
 
   // Calculate the interval start: take the start-of the interval type on the
-  // local created_at, then add (interval_num * intervalIndex).
-  const localIntervalStart = dayjs(localCreatedAt)
+  // local start_date, then add (interval_num * intervalIndex).
+  const localIntervalStart = dayjs(localStartDate)
     .startOf(reminder.interval_type as dayjs.OpUnitType)
     .add(reminder.interval_num * intervalIndex, reminder.interval_type as dayjs.ManipulateType)
     .toDate();

@@ -7,6 +7,7 @@ describe('generateNotificationTimes', () => {
 
   const reminder = {
     created_at: new Date(Date.UTC(2027, 0, 1, 0, 30, 0)),
+    start_date: new Date(Date.UTC(2027, 0, 1, 0, 30, 0)),
     interval_type: 'hour',
     interval_num: 1,
     times: 2,
@@ -23,7 +24,7 @@ describe('generateNotificationTimes', () => {
     is_saturday:  0,
     start_time: '08:00',
     end_time:   '18:00',
-  }
+  };
 
   beforeEach(() => {
     // Stub calculateCurrentInterval to return our fixed window

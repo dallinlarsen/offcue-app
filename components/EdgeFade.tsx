@@ -32,6 +32,7 @@ export default function EdgeFadeOverlay({ left }: Props) {
         pointerEvents="none"
       >
         <LinearGradient
+          /* @ts-ignore */
           colors={left ? DARK_COLORS.reverse() : DARK_COLORS}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -45,6 +46,7 @@ export default function EdgeFadeOverlay({ left }: Props) {
         pointerEvents="none"
       >
         <LinearGradient
+          /* @ts-ignore */
           colors={left ? LIGHT_COLORS.reverse() : LIGHT_COLORS}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

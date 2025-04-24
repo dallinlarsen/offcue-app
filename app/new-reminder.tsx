@@ -26,8 +26,10 @@ export default function NewReminder() {
     created_at: "",
     is_recurring: true,
     is_completed: false,
+    is_archived: false,
     start_date: '',
     end_date: '',
+    updated_at: '',
   };
 
   return (

@@ -2,14 +2,16 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { Heading } from "@/components/ui/heading";
-import { ArrowLeftIcon, EditIcon, Icon, PencilIcon } from "@/components/ui/icon";
+import {
+  ArrowLeftIcon,
+  EditIcon,
+  Icon,
+  PencilIcon,
+  TrashIcon,
+} from "@/components/ui/icon";
 import { getReminder } from "@/lib/db-service";
 import { Reminder } from "@/lib/types";
-import {
-  useFocusEffect,
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
@@ -43,7 +45,7 @@ export default function ReminderDetailsPage() {
   function goBackHandler() {
     if (router.canGoBack()) {
       router.back();
-    } else router.replace('/');
+    } else router.replace("/");
   }
 
   return reminder ? (
@@ -65,9 +67,9 @@ export default function ReminderDetailsPage() {
         reminder={reminder}
         onNotificationResponse={() => fetchData()}
       />
-      {!reminder.is_completed && (
+      {!reminder.is_completed && !reminder.is_archived && (
         <Fab size="lg" onPress={() => router.push(`/reminder/edit/${id}`)}>
-          <FabIcon as={PencilIcon} size="xl" className='fill-typography-50' />
+          <FabIcon as={PencilIcon} size="xl" className="fill-typography-50" />
         </Fab>
       )}
       <Fade />

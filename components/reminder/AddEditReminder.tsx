@@ -58,7 +58,7 @@ type AddEditReminderProps = {
   data: Reminder;
   onSave: () => void;
   onCancel?: () => void;
-  setDeleteDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  setArchiveDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ZodSchema = z
@@ -116,7 +116,7 @@ export default function AddEditReminder({
   data,
   onSave,
   onCancel,
-  setDeleteDialogOpen,
+  setArchiveDialogOpen,
 }: AddEditReminderProps) {
   const {
     control,
@@ -201,7 +201,9 @@ export default function AddEditReminder({
     "end_date",
   ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
-  const [additionalOptionsOpen, setAdditionalOptionsOpen] = useState(!!start_date);
+  const [additionalOptionsOpen, setAdditionalOptionsOpen] = useState(
+    !!start_date
+  );
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null
   );
@@ -598,15 +600,16 @@ export default function AddEditReminder({
               )}
             </>
           )}
-
-          {setDeleteDialogOpen && (
+          {setArchiveDialogOpen && recurring && (
             <Button
               size="xl"
               variant="outline"
-              action="negative"
-              onPress={() => setDeleteDialogOpen(true)}
+              className="border-orange-700 dark:border-orange-400"
+              onPress={() => setArchiveDialogOpen(true)}
             >
-              <ButtonText>Delete</ButtonText>
+              <ButtonText className="text-orange-700 dark:text-orange-400">
+                Archive
+              </ButtonText>
             </Button>
           )}
         </VStack>

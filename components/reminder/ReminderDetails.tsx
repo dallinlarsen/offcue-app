@@ -1,15 +1,20 @@
 import { Box } from "@/components/ui/box";
 import { Heading } from "@/components/ui/heading";
 import {
+  ArchiveArrowUp,
+  ArchiveOutlineIcon,
   CheckCircleIcon,
   EyeIcon,
   EyeOffIcon,
   RepeatIcon,
+  TrashIcon,
 } from "@/components/ui/icon";
 import {
+  copyOneTimeReminder,
   recalcFutureNotifications,
   updateNotificationResponse,
   updateNotificationResponseOneTime,
+  updateReminderArchived,
   updateReminderMuted,
 } from "@/lib/db-service";
 import {
@@ -51,6 +56,9 @@ import { ScrollView, TouchableOpacity } from "react-native";
 import { STATUS_COLOR_MAP } from "@/constants/utils";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
 import { useConfetti } from "@/hooks/useConfetti";
+import DeleteReminderDialog from "./DeleteReminderDialog";
+import ArchiveReminderDialog from "./ArchiveReminderDialog";
+import { useRouter } from "expo-router";
 
 type Props = {
   reminder: Reminder;
@@ -63,6 +71,7 @@ const ZodSchema = z.object({
 
 export default function ({ reminder, onNotificationResponse }: Props) {
   const confetti = useConfetti();
+  const router = useRouter();
 
   const [pastNotifications, setPastNotificatons] = useState<
     ReminderNotification[]
@@ -76,6 +85,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     useState(false);
   const [notificationToUpdate, setNotificationToUpdate] =
     useState<ReminderNotification | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   async function fetchData() {
     const notifications = await getReminderPastNotifications(reminder.id!);
@@ -112,8 +123,14 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   const is_muted = watch("is_muted");
 
   useWatch(is_muted, async (newVal, oldVal) => {
-    if (reminder && newVal !== oldVal)
+    if (reminder && newVal !== oldVal) {
       await updateReminderMuted(reminder.id!, newVal);
+      reloadAllData();
+    }
+  });
+
+  useWatch(reminder, async (newVal) => {
+    setValue("is_muted", newVal.is_muted);
   });
 
   function sendConfetti() {
@@ -156,6 +173,26 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     onNotificationResponse();
   }
 
+  async function restoreClickedHandler() {
+    await updateReminderArchived(reminder.id!, false);
+    reloadAllData();
+  }
+
+  async function archiveClickedHandler() {
+    setArchiveDialogOpen(false);
+    reloadAllData();
+  }
+
+  async function recreateClickedHandler() {
+    const newId = await copyOneTimeReminder(reminder.id!);
+    router.replace(`/reminder/${newId}`);
+  }
+
+  async function reloadAllData() {
+    fetchData();
+    onNotificationResponse();
+  }
+
   const showStartDate = useRef(
     dayjs(reminder.start_date).format("YYYY-MM-DD") !==
       dayjs(reminder.created_at).format("YYYY-MM-DD")
@@ -187,7 +224,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 ))}
               </Box>
             </VStack>
-            {reminder.is_recurring && (
+            {reminder.is_recurring && !reminder.is_archived && (
               <HStack space="xl" className="items-center ">
                 <Text size="xl" className="font-quicksand-semibold">
                   Mute
@@ -306,18 +343,127 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                   </Button>
                 </HStack>
               </VStack>
+            ) : !reminder.is_completed && !reminder.is_archived && !is_muted ? (
+              <Button
+                size="xl"
+                variant="outline"
+                onPress={recalcFutureNotificationsHandler}
+              >
+                <ButtonIcon as={RepeatIcon} />
+                <ButtonText>Reschedule</ButtonText>
+              </Button>
             ) : null}
           </>
         )}
+        {!reminder.is_recurring && !reminder.is_completed && (
+          <Button size="xl" onPress={() => handleNotificationAction("done")}>
+            <ButtonText>Done</ButtonText>
+          </Button>
+        )}
+        {reminder.is_archived && (
+          <>
+            <Alert className="bg-orange-100 dark:bg-orange-950">
+              <AlertIcon
+                as={ArchiveOutlineIcon}
+                className="fill-orange-800 dark:fill-orange-100"
+              />
+              <AlertText
+                size="lg"
+                className="text-orange-800 dark:text-orange-100"
+              >
+                Archived on{" "}
+                {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
+                {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              </AlertText>
+            </Alert>
+            <HStack space="md">
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1"
+                onPress={restoreClickedHandler}
+              >
+                <ButtonIcon
+                  size="xl"
+                  as={ArchiveArrowUp}
+                  className="fill-typography-950"
+                />
+                <ButtonText>Restore</ButtonText>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1"
+                onPress={() => setDeleteDialogOpen(true)}
+              >
+                <ButtonIcon
+                  size="xl"
+                  as={TrashIcon}
+                  className="fill-typography-950"
+                />
+                <ButtonText>Delete</ButtonText>
+              </Button>
+            </HStack>
+          </>
+        )}
         {reminder.is_completed && (
-          <Alert>
-            <AlertIcon as={CheckCircleIcon} />
-            <AlertText size="lg">
-              Completed on{" "}
-              {dayjs(pastNotifications[0]?.response_at).format("YYYY-MM-DD")} at{" "}
-              {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
-            </AlertText>
-          </Alert>
+          <>
+            <Alert action="success">
+              <AlertIcon as={CheckCircleIcon} />
+              <AlertText size="lg">
+                Completed on{" "}
+                {dayjs(pastNotifications[0]?.response_at).format("MMM D, YYYY")}{" "}
+                at {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
+              </AlertText>
+            </Alert>
+            <HStack space="md">
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1"
+                onPress={recreateClickedHandler}
+              >
+                <ButtonIcon size="xl" as={RepeatIcon} />
+                <ButtonText>Recreate</ButtonText>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1"
+                onPress={() => setDeleteDialogOpen(true)}
+              >
+                <ButtonIcon
+                  size="xl"
+                  as={TrashIcon}
+                  className="fill-typography-950"
+                />
+                <ButtonText>Delete</ButtonText>
+              </Button>
+            </HStack>
+          </>
+        )}
+        {is_muted && !reminder.is_archived && (
+          <>
+            <Alert>
+              <AlertText size="lg">
+                Muted on{" "}
+                {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
+                {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              </AlertText>
+            </Alert>
+            <Button
+              size="lg"
+              variant="outline"
+              onPress={() => setArchiveDialogOpen(true)}
+            >
+              <ButtonIcon
+                size="xl"
+                as={ArchiveOutlineIcon}
+                className="fill-typography-950"
+              />
+              <ButtonText>Archive</ButtonText>
+            </Button>
+          </>
         )}
         <HStack className="items-end" space="lg">
           <Heading size="xl" className="mt-3">
@@ -388,6 +534,17 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         notification={notificationToUpdate!}
         onUpdate={notificationEditUpdateHandler}
         recurring={reminder.is_recurring}
+      />
+      <ArchiveReminderDialog
+        reminder={reminder}
+        isOpen={archiveDialogOpen}
+        onClose={() => setArchiveDialogOpen(false)}
+        onArchiveSuccess={archiveClickedHandler}
+      />
+      <DeleteReminderDialog
+        reminder={reminder}
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
       />
     </>
   );

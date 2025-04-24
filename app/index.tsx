@@ -60,6 +60,7 @@ export default function HomeScreen() {
   const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
   const [mutedReminders, setMutedReminders] = useState<Reminder[]>([]);
   const [completedReminders, setCompletedReminders] = useState<Reminder[]>([]);
+  const [archivedReminders, setArchivedReminders] = useState<Reminder[]>([]);
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["upcoming"]);
   const [isFilterNav, setIsFilterNav] = useState<boolean | null>(null);
 
@@ -104,10 +105,11 @@ export default function HomeScreen() {
     setDueReminders(reminders.filter((r) => r.due_scheduled_at));
     setUpcomingReminders(
       reminders.filter(
-        (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed
+        (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed && !r.is_archived
       )
     );
     setMutedReminders(reminders.filter((r) => r.is_muted));
+    setArchivedReminders(reminders.filter((r) => r.is_archived));
     setCompletedReminders(reminders.filter((r) => r.is_completed));
   }, [reminders]);
 
@@ -138,7 +140,7 @@ export default function HomeScreen() {
             <ReminderGroup
               title="Upcoming"
               reminders={reminders.filter(
-                (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed
+                (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed && !r.is_archived
               )}
               onNotificationResponse={() => loadReminders()}
               onMuted={() => loadReminders()}
@@ -161,7 +163,7 @@ export default function HomeScreen() {
         return (
           <ReminderGroup
             reminders={reminders.filter(
-              (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed
+              (r) => !r.due_scheduled_at && !r.is_muted && !r.is_completed && !r.is_archived
             )}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
@@ -192,7 +194,7 @@ export default function HomeScreen() {
       case "archived": {
         return (
           <ReminderGroup
-            reminders={[]}
+            reminders={reminders.filter((r) => r.is_archived)}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
             emptyMessage="No Archived Reminders."
@@ -307,6 +309,16 @@ export default function HomeScreen() {
                 onMuted={() => loadReminders()}
                 open={accordiansOpen.includes("muted")}
                 setOpen={(open) => setOpenHandler(open, "muted")}
+              />
+            )}
+            {archivedReminders.length > 0 && (
+              <ReminderGroupDropDown
+                title="Archived"
+                reminders={archivedReminders}
+                onNotificationResponse={() => loadReminders()}
+                onMuted={() => loadReminders()}
+                open={accordiansOpen.includes("archived")}
+                setOpen={(open) => setOpenHandler(open, "archived")}
               />
             )}
           </VStack>

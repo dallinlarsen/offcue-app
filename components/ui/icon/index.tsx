@@ -205,6 +205,22 @@ ArchiveOutlineIcon.displayName = "ArchiveOutlineIcon";
 
 export { ArchiveOutlineIcon };
 
+const ArchiveArrowUp = createIcon({
+  Root: Svg,
+  viewBox: "0 0 24 24",
+  path: (
+    <>
+      <Path
+        d="M4 21H20V8H4M14 15V18H10V15H7L12 10L17 15M3 3H21V7H3"
+        strokeWidth="0"
+      />
+    </>
+  ),
+});
+
+ArchiveArrowUp.displayName = "ArchiveArrowUp";
+export { ArchiveArrowUp };
+
 const ArrowDownIcon = createIcon({
   Root: Svg,
 
@@ -1620,26 +1636,12 @@ export { ThreeDotsIcon };
 
 const TrashIcon = createIcon({
   Root: Svg,
-  viewBox: '0 0 24 24',
+  viewBox: "0 0 24 24",
   path: (
     <>
       <Path
-        d="M3 6H21"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+        strokeWidth="0"
       />
     </>
   ),

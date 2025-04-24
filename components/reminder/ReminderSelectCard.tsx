@@ -92,7 +92,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
             <Heading
               numberOfLines={2}
               className={`font-quicksand-bold flex-1 ${
-                is_muted ? "text-typography-500" : ""
+                is_muted && !reminder.is_archived ? "text-typography-500" : ""
               }`}
               size="lg"
             >
@@ -112,7 +112,9 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
             <>
               <Text
                 numberOfLines={1}
-                className={is_muted ? "text-typography-500" : ""}
+                className={
+                  is_muted && !reminder.is_archived ? "text-typography-500" : ""
+                }
               >
                 {formatFrequencyString(
                   reminder.times,
@@ -120,7 +122,11 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
                   reminder.interval_type
                 )}
               </Text>
-              <Text className={is_muted ? "text-typography-500" : ""}>
+              <Text
+                className={
+                  is_muted && !reminder.is_archived ? "text-typography-500" : ""
+                }
+              >
                 when "{reminder.schedules[0].label}"
               </Text>
               {reminder.schedules.slice(1).length > 0 ? (
@@ -152,7 +158,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
             <ButtonText>Done</ButtonText>
           </Button>
         </VStack>
-      ) : reminder.is_recurring ? (
+      ) : reminder.is_recurring && !reminder.is_archived ? (
         <Box className="flex flex-row">
           <Box className="flex-grow" />
           <HStack space="sm" className="items-center">
@@ -177,9 +183,11 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
           <ButtonText>Completed</ButtonText>
         </Button>
       ) : (
-        <Button size="xl" onPress={() => handleNotificationAction("done")}>
-          <ButtonText>Done</ButtonText>
-        </Button>
+        !reminder.is_archived && (
+          <Button size="xl" onPress={() => handleNotificationAction("done")}>
+            <ButtonText>Done</ButtonText>
+          </Button>
+        )
       )}
     </Card>
   );

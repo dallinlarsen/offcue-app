@@ -1,5 +1,4 @@
-import { generateNotificationTimes } from '@/lib/db-service-notifications';
-import * as svc from '@/lib/db-service-notifications';
+import * as notificationsService from '@/lib/notifications/notifications.service';
 
 describe('generateNotificationTimes', () => {
   const segmentStart = new Date(Date.UTC(2027, 0, 1, 0, 0, 0));
@@ -28,13 +27,16 @@ describe('generateNotificationTimes', () => {
 
   beforeEach(() => {
     // Stub calculateCurrentInterval to return our fixed window
-    jest.spyOn(svc, 'calculateCurrentInterval')
+    jest
+      .spyOn(notificationsService, "calculateCurrentInterval")
       .mockReturnValue({ start: segmentStart, end: segmentEnd });
     // Stub getScheduleWindowsWithinInterval to return exactly our window
-    jest.spyOn(svc, 'getScheduleWindowsWithinInterval')
+    jest
+      .spyOn(notificationsService, "getScheduleWindowsWithinInterval")
       .mockReturnValue([{ start: segmentStart, end: segmentEnd }]);
     // Stub mergeTimeWindows to be identity
-    jest.spyOn(svc, 'mergeTimeWindows')
+    jest
+      .spyOn(notificationsService, "mergeTimeWindows")
       .mockImplementation((windows) => windows);
   });
 
@@ -46,7 +48,7 @@ describe('generateNotificationTimes', () => {
     // Force Math.random to always produce 0.5
     jest.spyOn(Math, 'random').mockReturnValue(0.5);
 
-    const notifications = generateNotificationTimes(reminder, [schedule], 0, 0.5);
+    const notifications = notificationsService.generateNotificationTimes(reminder, [schedule], 0, 0.5);
 
     expect(notifications).toHaveLength(2);
     expect(notifications).toEqual([
@@ -64,8 +66,10 @@ describe('generateNotificationTimes', () => {
   });
 
   it('returns empty array when no allowed windows', () => {
-    jest.spyOn(svc, 'getScheduleWindowsWithinInterval').mockReturnValue([]);
-    const notifications = generateNotificationTimes(reminder, [{} as any], 0, 0.5);
+    jest
+      .spyOn(notificationsService, "getScheduleWindowsWithinInterval")
+      .mockReturnValue([]);
+    const notifications = notificationsService.generateNotificationTimes(reminder, [{} as any], 0, 0.5);
     expect(notifications).toEqual([]);
   });
 });

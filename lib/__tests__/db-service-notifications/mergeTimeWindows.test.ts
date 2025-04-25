@@ -1,4 +1,4 @@
-import { mergeTimeWindows } from '@/lib/db-service-notifications';
+import { mergeTimeWindows } from "@/lib/notifications/notifications.service";
 
 describe('mergeTimeWindows', () => {
   it('returns empty array when given no windows', () => {

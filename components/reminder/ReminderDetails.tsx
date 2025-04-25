@@ -11,20 +11,7 @@ import {
   TrashIcon,
   UndoIcon,
 } from "@/components/ui/icon";
-import {
-  recalcFutureNotifications,
-  undoOneTimeComplete,
-  updateNotificationResponse,
-  updateNotificationResponseOneTime,
-  updateReminderArchived,
-  updateReminderMuted,
-} from "@/lib/db-service";
-import {
-  NotificationResponseStatus,
-  Reminder,
-  ReminderNotification,
-} from "@/lib/types";
-import { formatFrequencyString, formatScheduleString } from "@/lib/utils";
+import { formatFrequencyString, formatScheduleString } from "@/lib/utils/format";
 import { useEffect, useRef, useState } from "react";
 import { Text } from "@/components/ui/text";
 import { HStack } from "@/components/ui/hstack";
@@ -32,10 +19,6 @@ import { VStack } from "@/components/ui/vstack";
 import { Switch } from "@/components/ui/switch";
 import colors from "tailwindcss/colors";
 import { Alert, AlertIcon, AlertText } from "@/components/ui/alert";
-import {
-  getNextUpcomingNotification,
-  getReminderPastNotifications,
-} from "@/lib/db-source";
 import dayjs from "dayjs";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { BlurView } from "expo-blur";
@@ -51,7 +34,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Card } from "../ui/card";
 import { Badge, BadgeText } from "../ui/badge";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { STATUS_COLOR_MAP } from "@/constants/utils";
@@ -60,6 +42,17 @@ import { useConfetti } from "@/hooks/useConfetti";
 import DeleteReminderDialog from "./DeleteReminderDialog";
 import ArchiveReminderDialog from "./ArchiveReminderDialog";
 import { useRouter } from "expo-router";
+import { Reminder } from "@/lib/reminders/reminders.types";
+import { NotificationResponseStatus, RNotification } from "@/lib/notifications/notifications.types";
+import {
+  getPastNotificationsByReminderId,
+  getNextUpcomingNotificationByReminderId,
+  updateNotificationResponse,
+  updateNotificationResponseOneTime,
+  recalcFutureNotifications,
+  undoOneTimeComplete,
+} from "@/lib/notifications/notifications.service";
+import { updateReminderArchived, updateReminderMuted } from "@/lib/reminders/reminders.service";
 
 type Props = {
   reminder: Reminder;
@@ -75,7 +68,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   const router = useRouter();
 
   const [pastNotifications, setPastNotificatons] = useState<
-    ReminderNotification[]
+    RNotification[]
   >([]);
   const [nextNotification, setNextNotification] = useState<{
     date: string;
@@ -85,19 +78,19 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   const [notificationStatusUpdateOpen, setNotificationStatusUpdateOpen] =
     useState(false);
   const [notificationToUpdate, setNotificationToUpdate] =
-    useState<ReminderNotification | null>(null);
+    useState<RNotification | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   async function fetchData() {
-    const notifications = await getReminderPastNotifications(reminder.id!);
-    const nextNotificationUpcoming = await getNextUpcomingNotification(
+    const notifications = await getPastNotificationsByReminderId(reminder.id!);
+    const nextNotificationUpcoming = await getNextUpcomingNotificationByReminderId(
       reminder.id!
     );
     setPastNotificatons(notifications);
     if (nextNotificationUpcoming) {
       setNextNotification({
-        date: dayjs(nextNotificationUpcoming.scheduled_at).format("YYYY-MM-DD"),
+        date: dayjs(nextNotificationUpcoming.scheduled_at).format("MMM D, YYYY"),
         time: dayjs(nextNotificationUpcoming.scheduled_at).format("h:mm a"),
       });
     } else {
@@ -158,7 +151,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   }
 
   async function handleNotificationEditOpen(
-    notification: ReminderNotification
+    notification: RNotification
   ) {
     setNotificationToUpdate(notification);
     setNotificationStatusUpdateOpen(true);
@@ -267,29 +260,36 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           </Box>
         </Box>
         {reminder.due_scheduled_at ? (
-          <HStack space="md">
-            <Button
-              size="xl"
-              variant="outline"
-              className="flex-1"
-              onPress={() =>
-                handleNotificationAction(
-                  reminder.is_recurring ? "skip" : "later"
-                )
-              }
-            >
-              <ButtonText>
-                {reminder.is_recurring ? "Skip" : "Do It Later"}
-              </ButtonText>
-            </Button>
-            <Button
-              size="xl"
-              className="flex-1"
-              onPress={() => handleNotificationAction("done")}
-            >
-              <ButtonText>Done</ButtonText>
-            </Button>
-          </HStack>
+          <>
+            <HStack space="md">
+              <Button
+                size="xl"
+                variant="outline"
+                className="flex-1"
+                onPress={() =>
+                  handleNotificationAction(
+                    reminder.is_recurring ? "skip" : "later"
+                  )
+                }
+              >
+                <ButtonText>
+                  {reminder.is_recurring ? "Skip" : "Do It Later"}
+                </ButtonText>
+              </Button>
+              <Button
+                size="xl"
+                className="flex-1"
+                onPress={() => handleNotificationAction("done")}
+              >
+                <ButtonText>Done</ButtonText>
+              </Button>
+            </HStack>
+            <Text className="-mt-2">
+              Triggered on{" "}
+              {dayjs(reminder.due_scheduled_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.due_scheduled_at).format("h:mma")}
+            </Text>
+          </>
         ) : (
           <>
             {nextNotification ? (
@@ -525,10 +525,10 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                               <TableData className="flex items-center w-full flex-1">
                                 <Badge
                                   size="xl"
-                                  action={STATUS_COLOR_MAP[n.response_status]}
+                                  action={STATUS_COLOR_MAP[n.response_status || 'no_response']}
                                 >
                                   <BadgeText>
-                                    {n.response_status.split("_").join(" ") ||
+                                    {n.response_status?.split("_").join(" ") ||
                                       "Pending"}
                                   </BadgeText>
                                 </Badge>
@@ -553,7 +553,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         setIsOpen={setNotificationStatusUpdateOpen}
         notification={notificationToUpdate!}
         onUpdate={notificationEditUpdateHandler}
-        recurring={reminder.is_recurring}
       />
       <ArchiveReminderDialog
         reminder={reminder}

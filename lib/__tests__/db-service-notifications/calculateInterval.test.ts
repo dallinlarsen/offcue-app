@@ -1,7 +1,7 @@
 process.env.TZ = 'America/Denver';
 
 import dayjs from 'dayjs';
-import { calculateCurrentInterval, convertToLocal, convertToUTC, splitIntervalIntoSegments } from '@/lib/db-service-notifications';
+import { calculateCurrentInterval, convertToLocal, convertToUTC, splitIntervalIntoSegments } from '@/lib/notifications/notifications.service';
 
 describe('calculateCurrentInterval (local→startOf→UTC)', () => {
   it('calculates a 1-day interval at index 0 correctly', () => {

@@ -1,9 +1,4 @@
 import {
-  NotificationResponseStatus,
-  Reminder,
-  ReminderNotification,
-} from "@/lib/types";
-import {
   Actionsheet,
   ActionsheetBackdrop,
   ActionsheetContent,
@@ -15,44 +10,28 @@ import {
 import { Heading } from "../ui/heading";
 import dayjs from "dayjs";
 import {
-  updateNotificationResponse,
-  updateNotificationResponseOneTime,
-} from "@/lib/db-service";
-import { useState } from "react";
-import OneTimeDoneToLaterDialog from "./OneTimeDoneToLaterDialog";
+  NotificationResponseStatus,
+  RNotification,
+} from "@/lib/notifications/notifications.types";
+import { updateNotificationResponse } from "@/lib/notifications/notifications.service";
 
 type Props = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  notification: ReminderNotification | null;
-  recurring: boolean;
+  notification: RNotification | null;
   onUpdate: () => void;
 };
 
-export default function ({
-  isOpen,
-  setIsOpen,
-  notification,
-  onUpdate,
-  recurring,
-}: Props) {
+export default function ({ isOpen, setIsOpen, notification, onUpdate }: Props) {
   async function updateNotificationHandler(status: NotificationResponseStatus) {
     if (!notification) return;
-    await updateNotificationResponse(notification.id, status, recurring);
+    await updateNotificationResponse(notification.id, status);
     onUpdate();
-    setDialogOpen(false);
     setIsOpen(false);
   }
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-
   return (
     <>
-      <OneTimeDoneToLaterDialog
-        isOpen={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onContinue={() => updateNotificationHandler("later")}
-      />
       <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ActionsheetBackdrop />
         <ActionsheetContent className="items-start">
@@ -66,15 +45,9 @@ export default function ({
           <ActionsheetItem onPress={() => updateNotificationHandler("done")}>
             <ActionsheetItemText size="xl">Done</ActionsheetItemText>
           </ActionsheetItem>
-          {recurring ? (
-            <ActionsheetItem onPress={() => updateNotificationHandler("skip")}>
-              <ActionsheetItemText size="xl">Skip</ActionsheetItemText>
-            </ActionsheetItem>
-          ) : (
-            <ActionsheetItem onPress={() => setDialogOpen(true)}>
-              <ActionsheetItemText size="xl">Later</ActionsheetItemText>
-            </ActionsheetItem>
-          )}
+          <ActionsheetItem onPress={() => updateNotificationHandler("skip")}>
+            <ActionsheetItemText size="xl">Skip</ActionsheetItemText>
+          </ActionsheetItem>
         </ActionsheetContent>
       </Actionsheet>
     </>

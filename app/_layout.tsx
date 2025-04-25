@@ -8,10 +8,10 @@ import "react-native-reanimated";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import * as SQLite from "expo-sqlite";
-import { createDatabase } from "@/lib/db-service";
 import { ConfettiProvider } from "@/hooks/useConfetti";
 import Navigation from "@/components/navigation/Navigation";
 import { NotificationProvider } from "@/hooks/useNotifications";
+import { initDatabase } from "@/lib/init/init.service";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -32,7 +32,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      createDatabase(); 
+      initDatabase(); 
       setTimeout(() => SplashScreen.hideAsync(), 1000);
     }
   }, [loaded]);
@@ -46,7 +46,7 @@ export default function RootLayout() {
       <ConfettiProvider>
         <NotificationProvider>
           <SafeAreaProvider>
-            <SafeAreaView className="flex-1 px-4 pt-6 bg-background-light dark:bg-background-dark">
+            <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
               <Stack
                 screenOptions={{
                   animation: "none",

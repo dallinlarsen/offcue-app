@@ -23,7 +23,6 @@ import { VStack } from "../ui/vstack";
 import DatePicker from "react-native-date-picker";
 import dayjs from "dayjs";
 import { Box } from "../ui/box";
-import { createSchedule } from "@/lib/db-service";
 import useWatch from "@/hooks/useWatch";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
@@ -33,6 +32,7 @@ import {
   FormControlError,
   FormControlErrorText,
 } from "../ui/form-control";
+import { createSchedule } from "@/lib/schedules/schedules.service";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
@@ -90,38 +90,27 @@ export function AddScheduleActionsheet({
   });
 
   useWatch(days, () => {
-    clearErrors('days');
-  })
+    clearErrors("days");
+  });
 
   const onSubmit = handleSubmit(async (model) => {
     const schedule = {
       label: model.label,
-      isSunday: model.days.includes("sunday"),
-      isMonday: model.days.includes("monday"),
-      isTuesday: model.days.includes("tuesday"),
-      isWednesday: model.days.includes("wednesday"),
-      isThursday: model.days.includes("thursday"),
-      isFriday: model.days.includes("friday"),
-      isSaturday: model.days.includes("saturday"),
-      startTime: dayjs(model.startTime).format("HH:mm"),
-      endTime: dayjs(model.endTime).format("HH:mm"),
+      is_sunday: model.days.includes("sunday"),
+      is_monday: model.days.includes("monday"),
+      is_tuesday: model.days.includes("tuesday"),
+      is_wednesday: model.days.includes("wednesday"),
+      is_thursday: model.days.includes("thursday"),
+      is_friday: model.days.includes("friday"),
+      is_saturday: model.days.includes("saturday"),
+      start_time: dayjs(model.startTime).format("HH:mm"),
+      end_time: dayjs(model.endTime).format("HH:mm"),
     };
 
     console.log("Saving schedule to database:", schedule);
 
     try {
-      await createSchedule(
-        schedule.label,
-        schedule.isSunday,
-        schedule.isMonday,
-        schedule.isTuesday,
-        schedule.isWednesday,
-        schedule.isThursday,
-        schedule.isFriday,
-        schedule.isSaturday,
-        schedule.startTime,
-        schedule.endTime
-      );
+      await createSchedule(schedule);
       console.log("Schedule saved successfully.");
     } catch (error) {
       console.error("Error saving schedule:", error);
@@ -187,7 +176,7 @@ export function AddScheduleActionsheet({
                 </Checkbox>
               ))}
             </CheckboxGroup>
-            <FormControlError className="-mt-2"> 
+            <FormControlError className="-mt-2">
               <FormControlErrorText>
                 {errors?.days?.message || ""}
               </FormControlErrorText>

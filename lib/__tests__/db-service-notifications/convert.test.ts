@@ -1,4 +1,4 @@
-import { convertToLocal, convertToUTC } from '@/lib/db-service-notifications';
+import { convertToLocal, convertToUTC } from '@/lib/notifications/notifications.service';
 
 describe('convertToLocal & convertToUTC', () => {
   // April 22, 2025 12:34:56 UTC

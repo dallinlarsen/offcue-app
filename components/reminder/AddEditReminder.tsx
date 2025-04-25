@@ -20,23 +20,20 @@ import { Text } from "@/components/ui/text";
 import { FREQUENCY_TYPES } from "@/constants/utils";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
-import { formatScheduleString } from "@/lib/utils";
+import { formatScheduleString } from "@/lib/utils/format";
 import {
   AddIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
   Icon,
-  PaperclipIcon,
   PushPinIcon,
   RepeatIcon,
 } from "../ui/icon";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
 import { ScheduleActionsheet } from "./ScheduleActionsheet";
-import { Reminder } from "@/lib/types";
 import { useState } from "react";
-import { createReminder, updateReminder } from "@/lib/db-service";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,17 +42,26 @@ import {
   FormControlError,
   FormControlErrorText,
 } from "../ui/form-control";
-import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import DatePicker from "react-native-date-picker";
 import useWatch from "@/hooks/useWatch";
 import Fade from "../Fade";
+import {
+  InsertReminder,
+  IntervalType,
+  Reminder,
+} from "@/lib/reminders/reminders.types";
+import { Schedule } from "@/lib/schedules/schedules.types";
+import {
+  createReminder,
+  updateReminder,
+} from "@/lib/reminders/reminders.service";
 
 dayjs.extend(isSameOrBefore);
 
 type AddEditReminderProps = {
-  data: Reminder;
+  data: InsertReminder & { schedules: Schedule[]; id?: number };
   onSave: (reminderId: number) => void;
   onCancel?: () => void;
   setArchiveDialogOpen?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -149,43 +155,40 @@ export default function AddEditReminder({
     try {
       let reminderId = data.id;
       if (data.id) {
-        await updateReminder(
-          data.id,
-          model.title,
-          model.description || "",
-          interval_type!,
-          parseInt(interval_num!),
-          parseInt(model.times),
-          model.schedules.map((s) => s.id),
-          model.track_streak,
-          data.track_notes,
-          data.is_muted,
-          model.start_date
+        await updateReminder({
+          id: data.id,
+          title: model.title,
+          description: model.description || undefined,
+          interval_type: (interval_type as IntervalType) || "day",
+          interval_num: parseInt(interval_num!),
+          times: parseInt(model.times),
+          scheduleIds: model.schedules.map((s) => s.id),
+          track_streak: model.track_streak,
+          start_date: model.start_date
             ? dayjs(model.start_date).format("YYYY-MM-DD")
             : undefined,
-          showEndDateOption
+          end_date: showEndDateOption
             ? dayjs(model.end_date).format("YYYY-MM-DD")
-            : undefined
-        );
+            : undefined,
+        });
       } else {
-        reminderId = await createReminder(
-          model.title,
-          model.description || "",
-          interval_type!,
-          parseInt(interval_num!),
-          parseInt(model.times),
-          model.schedules.map((s) => s.id),
-          model.track_streak,
-          false,
-          false,
-          model.recurring,
-          model.start_date
+        reminderId = await createReminder({
+          title: model.title,
+          description: model.description || undefined,
+          interval_type: (interval_type as IntervalType) || "day",
+          interval_num: parseInt(interval_num!),
+          times: parseInt(model.times),
+          scheduleIds: model.schedules.map((s) => s.id),
+          track_streak: model.track_streak,
+          track_notes: false,
+          is_recurring: model.recurring,
+          start_date: model.start_date
             ? dayjs(model.start_date).format("YYYY-MM-DD")
-            : undefined,
-          showEndDateOption && recurring
+            : dayjs().format("YYYY-MM-DD"),
+          end_date: showEndDateOption
             ? dayjs(model.end_date).format("YYYY-MM-DD")
-            : undefined
-        );
+            : null,
+        });
       }
       onSave(reminderId!);
     } catch (error) {

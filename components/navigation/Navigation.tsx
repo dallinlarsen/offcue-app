@@ -4,7 +4,7 @@ import NavigationItem from "./NavigationItem";
 import { VStack } from "../ui/vstack";
 import { BoxIcon, CalendarDaysIcon, Icon, SettingsIcon } from "../ui/icon";
 import { useRouteInfo } from "expo-router/build/hooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import useWatch from "@/hooks/useWatch";
 
 export default function () {

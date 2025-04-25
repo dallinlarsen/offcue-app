@@ -5,8 +5,8 @@ import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { ChevronRightIcon } from "@/components/ui/icon";
 import { VStack } from "@/components/ui/vstack";
-import { getUserSettings } from "@/lib/db-source";
-import { UserSettings } from "@/lib/types";
+import { getSettings } from "@/lib/settings/settings.source";
+import { Settings } from "@/lib/settings/settings.types";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -14,7 +14,7 @@ export default function SettingsScreen() {
   const router = useRouter();
 
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>([]);
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
 
   function setOpenHandler(open: boolean, key: string) {
     if (open && !accordiansOpen.includes(key)) {
@@ -25,21 +25,21 @@ export default function SettingsScreen() {
   }
 
   async function loadSettings() {
-    setUserSettings(await getUserSettings());
+    setSettings(await getSettings());
   }
 
   useEffect(() => {
     loadSettings();
   }, []);
 
-  return userSettings ? (
+  return settings ? (
     <ThemedContainer>
       <Box className="flex flex-row items-center mb-4">
         <Heading size="3xl">Settings</Heading>
       </Box>
       <VStack space="lg">
         <DarkMode
-          theme={userSettings.theme}
+          theme={settings.theme}
           open={accordiansOpen.includes("dark-mode")}
           setOpen={(open) => setOpenHandler(open, "dark-mode")}
         />

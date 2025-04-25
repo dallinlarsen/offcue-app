@@ -5,7 +5,7 @@ import { OverlayProvider } from "@gluestack-ui/overlay";
 import { ToastProvider } from "@gluestack-ui/toast";
 import { useColorScheme } from "nativewind";
 import { ModeType } from "./types";
-import { getUserSettings } from "@/lib/db-source";
+import { getSettings } from "@/lib/settings/settings.source";
 
 export function GluestackUIProvider({
   mode = "light",
@@ -18,7 +18,7 @@ export function GluestackUIProvider({
   const { colorScheme, setColorScheme } = useColorScheme();
 
   async function setUserTheme() {
-    const settings = await getUserSettings();
+    const settings = await getSettings();
     setColorScheme(settings.theme);
   }
 

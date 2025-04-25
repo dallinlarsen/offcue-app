@@ -1,4 +1,4 @@
-import { getBiasedRandomTime } from '@/lib/db-service-notifications';
+import { getBiasedRandomTime } from "@/lib/notifications/notifications.service";
 
 describe('getBiasedRandomTime', () => {
   const segmentStart = new Date(Date.UTC(2025, 0, 1, 0, 0, 0)); // Jan 1 00:00 UTC

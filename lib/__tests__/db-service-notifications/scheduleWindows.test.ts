@@ -1,9 +1,4 @@
-import dayjs from 'dayjs';
-import {
-  getScheduleWindowsWithinInterval,
-  convertToLocal,
-  convertToUTC
-} from '@/lib/db-service-notifications';
+import { convertToLocal, getScheduleWindowsWithinInterval } from "@/lib/notifications/notifications.service";
 
 describe('getScheduleWindowsWithinInterval', () => {
   it('returns a single full window when schedule and interval align on one day', () => {

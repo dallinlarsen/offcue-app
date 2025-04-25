@@ -1,6 +1,6 @@
 import { ColorValue, TouchableOpacity } from "react-native";
 import { VStack } from "../ui/vstack";
-import { Icon, SettingsIcon } from "../ui/icon";
+import { Icon } from "../ui/icon";
 import { Text } from "../ui/text";
 import { IIconComponentType } from "@gluestack-ui/icon/lib/createIcon";
 import { SvgProps } from "react-native-svg";

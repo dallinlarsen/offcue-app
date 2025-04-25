@@ -3,6 +3,7 @@ import { createInitialNotifications, recalcFutureNotifications } from "./db-serv
 import { NotificationResponseStatus } from "./types";
 import { scheduleAllUpcomingNotifications } from "./device-notifications.service";
 import dayjs from "dayjs";
+import { appLoop } from "./app-loop.service";
 
 export {
   getScheduleReminders,
@@ -57,6 +58,7 @@ export const createReminder = async (
 
   // Create notifications for the reminder
   await createInitialNotifications(result);
+  await appLoop();
 
   return result;
 };
@@ -77,7 +79,7 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
     await recalcFutureNotifications(id);
   }
 
-  await scheduleAllUpcomingNotifications();
+  await appLoop();
 
   return result;
 };
@@ -95,7 +97,7 @@ export const updateReminderArchived = async (
     await recalcFutureNotifications(id);
   }
 
-  await scheduleAllUpcomingNotifications();
+  await appLoop();
 
   return result;
 };
@@ -104,7 +106,7 @@ export const updateReminderArchived = async (
 export const deleteReminder = async (id: number) => {
   const result = await db_source.deleteReminder(id);
 
-  await scheduleAllUpcomingNotifications();
+  await appLoop();
   return result;
 };
 
@@ -240,7 +242,7 @@ export async function updateNotificationResponse(
       await recalcFutureNotifications(notification.reminder_id);
     }
   }
-  await scheduleAllUpcomingNotifications();
+  await appLoop();
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
@@ -263,7 +265,7 @@ export async function updateNotificationResponseOneTime(
     );
     await db_source.deleteFutureNotifications(reminderId);
   }
-  await scheduleAllUpcomingNotifications();
+  await appLoop();
 }
 
 ////////////////////////////////////////////

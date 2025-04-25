@@ -683,9 +683,38 @@ export const getAllSchedules = async (): Promise<any[]> => {
   return schedules;
 };
 
+// Function to fetch all reminders whose end date is in the past
+export const getReminderIDsWhoHaveEnded = async (): Promise<any[]> => {
+  const reminders = await db.getAllAsync(
+    `SELECT id FROM reminders WHERE end_date < CURRENT_TIMESTAMP;`,
+    []
+  );
+  return reminders;
+};
+
+// Function to fetch all reminders that are active
+export const getActiveReminders = async (): Promise<any[]> => {
+  const reminders = await db.getAllAsync(
+    `SELECT * FROM reminders WHERE is_archived = 0 AND is_muted = 0;`,
+    []
+  );
+  return reminders;
+}
+
 ////////////////////////////////////////////////////
 ////////// Get All Entities For Reminder //////////
 //////////////////////////////////////////////////
+
+// Function to fetch all future notifications for a specific reminder
+export const getFutureNotificationsForReminder = async (
+  reminderId: number
+): Promise<any[]> => {
+  const notifications = await db.getAllAsync(
+    `SELECT * FROM notifications WHERE reminder_id = ? AND scheduled_at > CURRENT_TIMESTAMP;`,
+    [reminderId]
+  );
+  return notifications;
+};
 
 // Function to fetch all notifications for a specific reminder
 export const getReminderNotifications = async (

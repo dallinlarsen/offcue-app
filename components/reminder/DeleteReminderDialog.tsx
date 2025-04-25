@@ -9,10 +9,10 @@ import {
 import { Heading } from "../ui/heading";
 import { HStack } from "../ui/hstack";
 import { Button, ButtonText } from "../ui/button";
-import { Reminder } from "@/lib/types";
 import { Text } from "@/components/ui/text";
 import { useRouter } from "expo-router";
-import { deleteReminder } from "@/lib/db-service";
+import { Reminder } from "@/lib/reminders/reminders.types";
+import { deleteReminder } from "@/lib/reminders/reminders.service";
 
 type Props = {
   isOpen: boolean;

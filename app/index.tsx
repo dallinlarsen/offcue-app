@@ -11,14 +11,14 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { AddIcon, ChevronRightIcon, Icon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-import { getAllReminders } from "@/lib/db-service";
 import { VStack } from "@/components/ui/vstack";
-import { Reminder } from "@/lib/types";
 import { HStack } from "@/components/ui/hstack";
 import Fade from "@/components/Fade";
 import EdgeFade from "@/components/EdgeFade";
 import ReminderGroup from "@/components/reminder/ReminderGroup";
 import { useNotifications } from "@/hooks/useNotifications";
+import { Reminder } from "@/lib/reminders/reminders.types";
+import { getReminders } from "@/lib/reminders/reminders.service";
 
 type CurrentFilterOptions =
   | "all"
@@ -73,7 +73,7 @@ export default function HomeScreen() {
   };
 
   const loadReminders = async () => {
-    const data = await getAllReminders();
+    const data = await getReminders();
     setReminders(data);
     console.log(data);
   };

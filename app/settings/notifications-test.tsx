@@ -14,16 +14,16 @@ import {
 } from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
-import { wipeDatabase } from "@/lib/db-service";
 import {
   createDeviceNotification,
   getAllScheduledNotifications,
-} from "@/lib/device-notifications.service";
+} from "@/lib/device-notifications/device-notifications.service";
+import { wipeDatabase } from "@/lib/init/init.service";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { NotificationRequest } from "expo-notifications";
-import { useNavigation, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 
 dayjs.extend(utc);

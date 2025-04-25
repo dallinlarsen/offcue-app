@@ -3,18 +3,12 @@ import { Card } from "../ui/card";
 import { VStack } from "../ui/vstack";
 import { Heading } from "../ui/heading";
 import { Text } from "@/components/ui/text";
-import { formatFrequencyString, formatScheduleString } from "@/lib/utils";
+import { formatFrequencyString } from "@/lib/utils/format";
 import { Box } from "../ui/box";
 import { HStack } from "../ui/hstack";
 import colors from "tailwindcss/colors";
 import { Switch } from "../ui/switch";
 import { useRouter } from "expo-router";
-import {
-  updateNotificationResponse,
-  updateNotificationResponseOneTime,
-  updateReminderMuted,
-} from "@/lib/db-service";
-import { NotificationResponseStatus, Reminder } from "@/lib/types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -22,6 +16,10 @@ import useWatch from "@/hooks/useWatch";
 import { Button, ButtonText } from "../ui/button";
 import { useConfetti } from "@/hooks/useConfetti";
 import { Icon, PushPinIcon, RepeatIcon } from "../ui/icon";
+import { Reminder } from "@/lib/reminders/reminders.types";
+import { updateReminderMuted } from "@/lib/reminders/reminders.service";
+import { NotificationResponseStatus } from "@/lib/notifications/notifications.types";
+import { updateNotificationResponse, updateNotificationResponseOneTime } from "@/lib/notifications/notifications.service";
 
 type Props = {
   reminder: Reminder;

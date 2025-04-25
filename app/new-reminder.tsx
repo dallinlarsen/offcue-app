@@ -5,16 +5,18 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Icon, ArrowLeftIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
-import { IntervalType, Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
-import { getReminder } from "@/lib/db-service";
+import { InsertReminder, IntervalType, Reminder } from "@/lib/reminders/reminders.types";
+import { Schedule } from "@/lib/schedules/schedules.types";
+import { getReminder } from "@/lib/reminders/reminders.service";
+import omit from 'lodash/omit';
 
 export default function NewReminder() {
   const router = useRouter();
   const { copy } = useLocalSearchParams<{ copy?: string }>();
   const [showForm, setShowForm] = useState(false);
 
-  const reminder = useRef<Reminder>({
+  const reminder = useRef<InsertReminder & { schedules: Schedule[] }>({
     title: "",
     description: "",
     interval_num: "" as any,
@@ -23,16 +25,9 @@ export default function NewReminder() {
     schedules: [],
     track_streak: false,
     track_notes: false,
-    is_muted: false,
-    due_scheduled_at: null,
-    due_notification_id: null,
-    created_at: "",
     is_recurring: true,
-    is_completed: false,
-    is_archived: false,
     start_date: "",
     end_date: "",
-    updated_at: "",
   });
 
   useEffect(() => {
@@ -40,17 +35,9 @@ export default function NewReminder() {
       if (copy) {
         const copyReminder = await getReminder(parseInt(copy));
         reminder.current = {
-          ...copyReminder,
-          is_muted: false,
-          due_scheduled_at: null,
-          due_notification_id: null,
-          created_at: "",
-          is_completed: false,
-          is_archived: false,
+          ...omit(copyReminder, ['id']),
           start_date: "",
           end_date: "",
-          updated_at: "",
-          id: undefined,
         };
       }
       setShowForm(true);

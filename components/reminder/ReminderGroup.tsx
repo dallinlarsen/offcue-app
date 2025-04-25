@@ -1,13 +1,10 @@
-import { TouchableOpacity } from "react-native";
 import { VStack } from "../ui/vstack";
-import { HStack } from "../ui/hstack";
 import { Heading } from "../ui/heading";
-import { ChevronDownIcon, ChevronRightIcon, Icon } from "../ui/icon";
-import { chunkIntoPairs } from "@/lib/utils";
+import { chunkIntoPairs } from "@/lib/utils/format";
 import ReminderSelectCard from "./ReminderSelectCard";
 import { Box } from "../ui/box";
-import { Reminder } from "@/lib/types";
 import { Text } from "@/components/ui/text";
+import { Reminder } from "@/lib/reminders/reminders.types";
 
 type Props = {
   title?: string;

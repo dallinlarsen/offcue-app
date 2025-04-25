@@ -1,12 +1,11 @@
 import dayjs from "dayjs";
 import * as Notifications from "expo-notifications";
 import utc from "dayjs/plugin/utc";
+import { formatFrequencyString } from "../utils/format";
 import {
-  getSoonestFutureNotificationsToSchedule,
   updateNotificationResponse,
-} from "./db-service";
-import { formatFrequencyString } from "./utils";
-import { router } from "expo-router";
+  getSoonestFutureNotificationsToSchedule,
+} from "../notifications/notifications.service";
 
 dayjs.extend(utc);
 

@@ -9,14 +9,14 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@/components/ui/icon";
-import { getReminder } from "@/lib/db-service";
-import { Reminder } from "@/lib/types";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { TouchableOpacity } from "react-native";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
 import Fade from "@/components/Fade";
 import { useNotifications } from "@/hooks/useNotifications";
+import { Reminder } from "@/lib/reminders/reminders.types";
+import { getReminder } from "@/lib/reminders/reminders.service";
 
 export default function ReminderDetailsPage() {
   const { id } = useLocalSearchParams();

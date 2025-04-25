@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import { IntervalType, Schedule } from "./types";
+import { IntervalType } from "../reminders/reminders.types";
+import { Schedule } from "../schedules/schedules.types";
 
 export function chunkIntoPairs<T>(list: T[]) {
   const result = [];

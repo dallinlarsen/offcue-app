@@ -4,12 +4,12 @@ import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Icon, ArrowLeftIcon, TrashIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-import { getReminder } from "@/lib/db-service";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
-import { Reminder } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
 import Fade from "@/components/Fade";
 import ArchiveReminderDialog from "@/components/reminder/ArchiveReminderDialog";
+import { getReminder } from "@/lib/reminders/reminders.service";
+import { Reminder } from "@/lib/reminders/reminders.types";
 
 export default function EditReminder() {
   const { id } = useLocalSearchParams();

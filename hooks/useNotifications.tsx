@@ -3,7 +3,7 @@ import * as Notifications from "expo-notifications";
 import {
   markDoneSkipNotificationCategoryListener,
   setupAndConfigureNotifications,
-} from "@/lib/device-notifications.service";
+} from "@/lib/device-notifications/device-notifications.service";
 import { useRouter } from "expo-router";
 
 type NotificationContextType = {

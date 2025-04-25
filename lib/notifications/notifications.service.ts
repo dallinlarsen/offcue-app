@@ -1,93 +1,30 @@
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import weekOfYear from 'dayjs/plugin/weekOfYear';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import weekOfYear from "dayjs/plugin/weekOfYear";
 
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
 
-import * as db_source from './db-source';
-import * as db_service from "./db-service";
-import { scheduleAllUpcomingNotifications } from './device-notifications.service';
+import * as source from "./notifications.source";
 
-/////////////////////////////////////////////
-////////// CRUD for notifications //////////
-///////////////////////////////////////////
+import { scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
+import { getReminder } from "../reminders/reminders.service";
+import { getSchedulesByReminderId } from "../schedules/schedules.service";
+import { NotificationResponseStatus } from "./notifications.types";
 
-export { createNotification, getNotification, updateNotification, deleteNotification } from "./db-source";
+export {
+  notificationsInit,
+  deleteFutureNotificationsByReminderId,
+  deleteNotificationsByReminderId,
+  getUnrespondedNotificationsByReminderId,
+  getSoonestFutureNotificationsToSchedule,
+  getPastNotificationsByReminderId,
+  getNextUpcomingNotificationByReminderId,
+} from "./notifications.source";
 
 /////////////////////////////////////////
 ////////// Notification Logic //////////
 ///////////////////////////////////////
-
-// Integration flow for processing reminder notifications:
-export const processReminderNotifications = async (reminderId: number, bias: number = 0.5): Promise<void> => {
-  try {
-    // 1. Fetch the reminder record.
-    const reminder = await db_service.getReminder(reminderId);
-    if (!reminder) {
-      console.error(`Reminder with id ${reminderId} not found.`);
-      return;
-    }
-    console.log("Reminder fetched:", reminder);
-
-    // 2. Determine the current interval index.
-    const intervalIndex = await determineIntervalIndex(reminderId);
-    console.log("Determined interval index:", intervalIndex);
-
-    // 3. (Optional) You can calculate and log the interval boundaries.
-    const { start, end } = calculateCurrentInterval(reminder, intervalIndex);
-    console.log("Calculated local interval boundaries:");
-    console.log(`   Start: ${start.toLocaleString()}`);
-    console.log(`   End:   ${end.toLocaleString()}`);
-
-    // 4. Retrieve the schedules for the reminder.
-    const schedules = await db_source.getReminderSchedules(reminderId);
-    if (!schedules || schedules.length === 0) {
-      console.error("No schedules defined for this reminder. Aborting notification generation.");
-      return;
-    }
-    console.log("Schedules fetched:", schedules);
-
-    // 5. Generate new notification times for the next interval.
-    const timeoutSeconds = 10;
-    const startTime = Date.now();
-    let attemptIntervalIndex = intervalIndex;  // Start with current interval index
-    let newNotifications = generateNotificationTimes(reminder, schedules, attemptIntervalIndex, bias);
-
-    while(newNotifications.length === 0 && (Date.now() - startTime) < timeoutSeconds * 1000) {
-      console.log(`No notifications generated for interval ${attemptIntervalIndex}. Trying next interval.`);
-      attemptIntervalIndex++;
-      newNotifications = generateNotificationTimes(reminder, schedules, attemptIntervalIndex, bias);
-    }
-    if(newNotifications.length === 0) {
-      console.error(`No allowed windows found in available intervals after ${timeoutSeconds} seconds.`);
-      return;
-    }
-    console.log("Generated notifications:", newNotifications);
-
-    // Filter out notifications that are scheduled in the past and loop until we have future notifications
-    let futureNotifications = newNotifications.filter((notif) => Date.parse(notif.scheduled_at) > Date.now());
-    while (futureNotifications.length === 0 && (Date.now() - startTime) < timeoutSeconds * 1000) {
-      console.log(`No future notifications generated for interval ${attemptIntervalIndex}. Trying next interval.`);
-      attemptIntervalIndex++;
-      newNotifications = generateNotificationTimes(reminder, schedules, attemptIntervalIndex, bias);
-      futureNotifications = newNotifications.filter((notif) => Date.parse(notif.scheduled_at) > Date.now());
-    }
-    if (futureNotifications.length === 0) {
-      console.error(`No allowed windows found in available intervals after ${timeoutSeconds} seconds.`);
-      return;
-    }
-
-    // 6. Persist the new notifications in the database.
-    //    Each notification has a scheduled_at timestamp (in UTC), interval index, and segment index.
-    await createNotifications(reminder, futureNotifications);
-    console.log(`Notifications for interval ${attemptIntervalIndex} have been created.`);
-
-  } catch (error) {
-    console.error("Error processing reminder notifications:", error);
-    throw error;
-  }
-};
 
 // Function to create initial notifications for a newly created reminder.
 // It calculates the number of intervals needed to get at least 'desiredCount' notifications.
@@ -97,48 +34,69 @@ export const createInitialNotifications = async (
   desiredCount: number = 10,
   bias: number = 0.5
 ): Promise<void> => {
-  const reminder = await db_service.getReminder(reminderId);
+  const reminder = await getReminder(reminderId);
   if (!reminder) {
     console.error(`Reminder with id ${reminderId} not found.`);
     return;
   }
-  
-  const schedules = await db_source.getReminderSchedules(reminderId);
+
+  const schedules = await getSchedulesByReminderId(reminderId);
   if (!schedules || schedules.length === 0) {
     console.error(`No schedules defined for reminder ${reminderId}.`);
     return;
   }
-  
-  console.log(`Creating initial notifications: $${desiredCount} notifications.`);
-  
+
+  console.log(
+    `Creating initial notifications: $${desiredCount} notifications.`
+  );
+
   let startingIntervalIndex = 0;
   // If there is an existing next notification, use its interval_index as a starting point.
-  const existingNext = await db_source.getNextNotification(reminderId);
+  const existingNext = await source.getNextNotificationByReminderId(reminderId);
   if (existingNext) {
     startingIntervalIndex = existingNext.interval_index;
   }
-  
+
   let allNotifications: NotificationTime[] = [];
   let intervalIndex = startingIntervalIndex;
 
+  let whileCounter = 0;
   // Loop until the desired number of notifications are reached.
   while (allNotifications.length < desiredCount) {
     // Generate notifications for this interval.
-    let notifications = generateNotificationTimes(reminder, schedules, intervalIndex, bias);
+    let notifications = generateNotificationTimes(
+      reminder,
+      schedules,
+      intervalIndex,
+      bias
+    );
     // Filter for future notifications (scheduled after the current time).
-    const futureNotifications = notifications.filter((notif) => dayjs(notif.scheduled_at).isAfter(dayjs()));
+    const futureNotifications = notifications.filter((notif) =>
+      dayjs(notif.scheduled_at).isAfter(dayjs())
+    );
     if (futureNotifications.length > 0) {
       allNotifications.push(...futureNotifications);
     } else {
-      console.log(`No future notifications found for interval ${intervalIndex}.`);
+      console.log(
+        `No future notifications found for interval ${intervalIndex}.`
+      );
     }
 
     intervalIndex++;
+    whileCounter++;
+
+    if (whileCounter > 100) {
+      throw new Error(
+        'Caught in an infinite loop in "createInitialNotifications"'
+      );
+    }
   }
 
   if (allNotifications.length > 0) {
     await createNotifications(reminder, allNotifications);
-    console.log(`✅ Created ${allNotifications.length} initial notifications for reminder ${reminderId}.`);
+    console.log(
+      `✅ Created ${allNotifications.length} initial notifications for reminder ${reminderId}.`
+    );
   } else {
     console.error("No notifications were created in the initial intervals.");
   }
@@ -155,9 +113,11 @@ export const recalcFutureNotifications = async (
   bias: number = 0.5
 ): Promise<void> => {
   // Delete all future notifications (those without a response and scheduled in the future).
-  await db_source.deleteFutureNotifications(reminderId);
-  console.log(`Future notifications for reminder ${reminderId} have been deleted. Recalculating...`);
-  
+  await source.deleteFutureNotificationsByReminderId(reminderId);
+  console.log(
+    `Future notifications for reminder ${reminderId} have been deleted. Recalculating...`
+  );
+
   // Create initial notifications anew.
   await createInitialNotifications(reminderId, desiredCount, bias);
 };
@@ -183,8 +143,12 @@ export const convertToUTC = (date: Date): Date => {
 // Determines the new interval index for a reminder.
 // If no notifications exist for this reminder, returns 0. Otherwise, returns
 // nextNotification.interval_index + 1.
-export const determineIntervalIndex = async (reminderId: number): Promise<number> => {
-  const nextNotification = await db_source.getNextNotification(reminderId);
+export const determineIntervalIndex = async (
+  reminderId: number
+): Promise<number> => {
+  const nextNotification = await source.getNextNotificationByReminderId(
+    reminderId
+  );
   if (!nextNotification) {
     return 0;
   }
@@ -209,14 +173,17 @@ export const calculateCurrentInterval = (
   // local start_date, then add (interval_num * intervalIndex).
   const localIntervalStart = dayjs(localStartDate)
     .startOf(reminder.interval_type as dayjs.OpUnitType)
-    .add(reminder.interval_num * intervalIndex, reminder.interval_type as dayjs.ManipulateType)
+    .add(
+      reminder.interval_num * intervalIndex,
+      reminder.interval_type as dayjs.ManipulateType
+    )
     .toDate();
 
   // The interval end is calculated from the start plus one interval length,
   // subtracting 1ms for an exact boundary.
   const localIntervalEnd = dayjs(localIntervalStart)
     .add(reminder.interval_num, reminder.interval_type as dayjs.ManipulateType)
-    .subtract(1, 'millisecond')
+    .subtract(1, "millisecond")
     .toDate();
 
   return { start: localIntervalStart, end: localIntervalEnd };
@@ -243,7 +210,9 @@ export const splitIntervalIntoSegments = (
   const segmentDuration = totalDuration / times;
 
   for (let segmentIndex = 0; segmentIndex < times; segmentIndex++) {
-    const segStart = new Date(intervalStart.getTime() + segmentIndex * segmentDuration);
+    const segStart = new Date(
+      intervalStart.getTime() + segmentIndex * segmentDuration
+    );
     const segEnd = new Date(segStart.getTime() + segmentDuration);
     segments.push({ start: segStart, end: segEnd });
   }
@@ -269,7 +238,11 @@ export const getScheduleWindowsWithinInterval = (
   const endDate = new Date(intervalEnd);
   endDate.setHours(0, 0, 0, 0);
 
-  for (let current = new Date(startDate); current <= endDate; current.setDate(current.getDate() + 1)) {
+  for (
+    let current = new Date(startDate);
+    current <= endDate;
+    current.setDate(current.getDate() + 1)
+  ) {
     const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, ... 6 = Saturday
     let applies = false;
     switch (dayOfWeek) {
@@ -297,8 +270,10 @@ export const getScheduleWindowsWithinInterval = (
     }
     if (applies) {
       // Combine the current date with the schedule’s start and end times (format: "HH:MM").
-      const [startHour, startMinute] = schedule.start_time.split(':').map(Number);
-      const [endHour, endMinute] = schedule.end_time.split(':').map(Number);
+      const [startHour, startMinute] = schedule.start_time
+        .split(":")
+        .map(Number);
+      const [endHour, endMinute] = schedule.end_time.split(":").map(Number);
       const windowStart = new Date(current);
       windowStart.setHours(startHour, startMinute, 0, 0);
       const windowEnd = new Date(current);
@@ -306,8 +281,10 @@ export const getScheduleWindowsWithinInterval = (
 
       // Clamp the window so that it lies within the interval boundaries.
       if (windowEnd > intervalStart && windowStart < intervalEnd) {
-        const clampedStart = windowStart < intervalStart ? new Date(intervalStart) : windowStart;
-        const clampedEnd = windowEnd > intervalEnd ? new Date(intervalEnd) : windowEnd;
+        const clampedStart =
+          windowStart < intervalStart ? new Date(intervalStart) : windowStart;
+        const clampedEnd =
+          windowEnd > intervalEnd ? new Date(intervalEnd) : windowEnd;
         if (clampedStart < clampedEnd) {
           windows.push({ start: clampedStart, end: clampedEnd });
         }
@@ -368,7 +345,8 @@ export const getBiasedRandomTime = (
 
   // Calculate the scheduled time in local time.
   const localScheduledTime = new Date(
-    segmentStart.getTime() + weight * (segmentEnd.getTime() - segmentStart.getTime())
+    segmentStart.getTime() +
+      weight * (segmentEnd.getTime() - segmentStart.getTime())
   );
   // Convert back to UTC for storage.
   return convertToUTC(localScheduledTime);
@@ -395,7 +373,8 @@ export const generateNotificationTimes = (
   bias: number
 ): NotificationTime[] => {
   // Calculate the current interval boundaries in local time.
-  const { start: localIntervalStart, end: localIntervalEnd } = calculateCurrentInterval(reminder, intervalIndex);
+  const { start: localIntervalStart, end: localIntervalEnd } =
+    calculateCurrentInterval(reminder, intervalIndex);
   // console.log("Start:", localIntervalStart.toLocaleString());
   // console.log("End:", localIntervalEnd.toLocaleString());
 
@@ -403,7 +382,11 @@ export const generateNotificationTimes = (
   let allowedWindows: { start: Date; end: Date }[] = [];
   schedules.forEach((schedule) => {
     allowedWindows = allowedWindows.concat(
-      getScheduleWindowsWithinInterval(schedule, localIntervalStart, localIntervalEnd)
+      getScheduleWindowsWithinInterval(
+        schedule,
+        localIntervalStart,
+        localIntervalEnd
+      )
     );
   });
 
@@ -413,7 +396,9 @@ export const generateNotificationTimes = (
   // Calculate total allowed minutes from mergedWindows
   let totalAllowedMinutes = 0;
   mergedWindows.forEach((window) => {
-    const durationMinutes = Math.floor((window.end.getTime() - window.start.getTime()) / (60 * 1000));
+    const durationMinutes = Math.floor(
+      (window.end.getTime() - window.start.getTime()) / (60 * 1000)
+    );
     totalAllowedMinutes += durationMinutes;
   });
 
@@ -436,19 +421,30 @@ export const generateNotificationTimes = (
     if (bias < 0 || bias > 1) {
       bias = 0.5;
     }
-    const exponent = bias === 0.5 ? 1 : (bias < 0.5 ? 1 + (0.5 - bias) * 2 : 1 / (1 + (bias - 0.5) * 2));
+    const exponent =
+      bias === 0.5
+        ? 1
+        : bias < 0.5
+        ? 1 + (0.5 - bias) * 2
+        : 1 / (1 + (bias - 0.5) * 2);
     const weight = Math.pow(u, exponent);
-    const offsetInSegment = Math.floor(minOffset + weight * (maxOffset - minOffset));
+    const offsetInSegment = Math.floor(
+      minOffset + weight * (maxOffset - minOffset)
+    );
 
     // Map the offset (in minutes) to an actual local time by traversing the mergedWindows
     let remainingOffset = offsetInSegment;
     let scheduledLocalTime: Date | null = null;
 
     for (let window of mergedWindows) {
-      const windowDurationMinutes = Math.floor((window.end.getTime() - window.start.getTime()) / (60 * 1000));
+      const windowDurationMinutes = Math.floor(
+        (window.end.getTime() - window.start.getTime()) / (60 * 1000)
+      );
       if (remainingOffset < windowDurationMinutes) {
         // Found the window where the offset falls
-        scheduledLocalTime = new Date(window.start.getTime() + remainingOffset * 60 * 1000);
+        scheduledLocalTime = new Date(
+          window.start.getTime() + remainingOffset * 60 * 1000
+        );
         break;
       } else {
         remainingOffset -= windowDurationMinutes;
@@ -461,10 +457,12 @@ export const generateNotificationTimes = (
       notifications.push({
         scheduled_at: scheduledTimeUTC.toISOString(),
         interval_index: intervalIndex,
-        segment_index: segmentIndex
+        segment_index: segmentIndex,
       });
     } else {
-      console.log(`Failed to map offset ${offsetInSegment} for segment ${segmentIndex}`);
+      console.log(
+        `Failed to map offset ${offsetInSegment} for segment ${segmentIndex}`
+      );
     }
   }
 
@@ -477,13 +475,91 @@ export const generateNotificationTimes = (
 
 // Loops over the generated notifications and persists each notification.
 // The first notification (segment_index === 0) is flagged as isScheduled.
-export const createNotifications = async (reminder: any, notifications: NotificationTime[]): Promise<void> => {
+export const createNotifications = async (
+  reminder: any,
+  notifications: NotificationTime[]
+): Promise<void> => {
   for (const notif of notifications) {
-    await db_source.createNotification(
-      reminder.id,
-      dayjs(notif.scheduled_at).utc().format('YYYY-MM-DD HH:mm:ssZ'),
-      notif.interval_index,
-      notif.segment_index
-    );
+    await source.createNotification({
+      reminder_id: reminder.id,
+      scheduled_at: dayjs(notif.scheduled_at)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ssZ"),
+      interval_index: notif.interval_index,
+      segment_index: notif.segment_index,
+    });
   }
 };
+
+// Force the recreation of notifications
+// First delete the existing notifications in the current interval index
+// Then create new notifications
+export const deleteNotificationsInInterval = async (
+  reminderId: number
+): Promise<void> => {
+  // Get the interval index of the reminder
+  const currentNotification =
+    await source.getUnrespondedNotificationsByReminderId(reminderId);
+  console.log("Current Notification: ", currentNotification);
+  const currentIntervalIndex = currentNotification[0].interval_index;
+  console.log("Current Interval Index: ", currentIntervalIndex);
+
+  // Delete all notifications in the current interval index
+  await source.deleteNotificationsInInterval(reminderId, currentIntervalIndex);
+};
+
+export async function updateNotificationResponse(
+  id: number,
+  responseStatus: NotificationResponseStatus,
+) {
+  await source.updateNotification(id, {
+    response_status: responseStatus,
+    response_at: dayjs().format("YYYY-MM-DD hh:mmZ"),
+  });
+
+  const notification = await source.getNotification(id);
+  if (notification?.reminder_id) {
+    await source.updateAllPastDueNotificationsToNoReponseByReminderId(
+      notification.reminder_id
+    );
+  }
+
+  await scheduleAllUpcomingNotifications();
+}
+
+export async function undoOneTimeComplete(reminderId: number) {
+  const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
+    reminderId
+  );
+  if (lastDoneNotification) {
+    await updateNotificationResponse(
+      lastDoneNotification.id,
+      "later",
+    );
+  }
+
+  await recalcFutureNotifications(reminderId);
+}
+
+export async function updateNotificationResponseOneTime(
+  reminderId: number,
+  responseStatus: NotificationResponseStatus
+) {
+  const notification = await source.getNextNotificationByReminderId(reminderId);
+  if (!notification) return;
+
+  await source.updateNotification(notification.id, {
+    response_status: responseStatus,
+    response_at: dayjs().format("YYYY-MM-DD hh:mmZ"),
+  });
+
+  await source.updateAllPastDueNotificationsToNoReponseByReminderId(reminderId);
+
+  if (responseStatus === "done") {
+    await source.updateNotification(notification.id, {
+      scheduled_at: dayjs().utc().format("YYYY-MM-DD hh:mmZ"),
+    });
+    await source.deleteFutureNotificationsByReminderId(reminderId);
+  }
+  await scheduleAllUpcomingNotifications();
+}

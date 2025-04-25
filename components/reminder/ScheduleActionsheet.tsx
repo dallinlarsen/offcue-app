@@ -12,17 +12,11 @@ import { Heading } from "../ui/heading";
 import { AddIcon, Icon, TrashIcon } from "../ui/icon";
 import { AddScheduleActionsheet } from "./AddScheduleActionsheet";
 import useWatch from "@/hooks/useWatch";
-import {
-  deleteSchedule,
-  getAllSchedules,
-  getScheduleReminders,
-} from "@/lib/db-service";
-import { formatScheduleString } from "@/lib/utils";
+import { formatScheduleString } from "@/lib/utils/format";
 import { Card } from "../ui/card";
 import { VStack } from "../ui/vstack";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
-import { Reminder, Schedule } from "@/lib/types";
 import { TouchableOpacity } from "react-native";
 import {
   AlertDialog,
@@ -32,6 +26,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
 } from "../ui/alert-dialog";
+import { Schedule } from "@/lib/schedules/schedules.types";
+import { ReminderBase } from "@/lib/reminders/reminders.types";
+import { deleteSchedule, getAllSchedules } from "@/lib/schedules/schedules.service";
+import { getRemindersByScheduleId } from "@/lib/reminders/reminders.source";
 
 type ScheduleActionsheetProps = {
   isOpen: boolean;
@@ -52,7 +50,7 @@ export function ScheduleActionsheet({
     null
   );
   const [deleteScheduleReminders, setDeleteScheduleReminders] = useState<
-    Reminder[]
+    ReminderBase[]
   >([]);
 
   const handleNewSchedulePressed = () => {
@@ -93,7 +91,7 @@ export function ScheduleActionsheet({
   };
 
   const handleScheduleTrashIconPressed = async (schedule: Schedule) => {
-    const scheduleReminders = await getScheduleReminders(schedule.id);
+    const scheduleReminders = await getRemindersByScheduleId(schedule.id);
     setDeleteScheduleReminders(scheduleReminders);
 
     setScheduleToDelete(schedule);

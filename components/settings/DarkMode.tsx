@@ -2,7 +2,6 @@ import SettingDropDown from "./SettingDropDown";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { setTheme } from "@/lib/db-service";
 import useWatch from "@/hooks/useWatch";
 import {
   Select,
@@ -18,6 +17,7 @@ import {
 } from "../ui/select";
 import { ChevronDownIcon } from "../ui/icon";
 import { useColorScheme } from "nativewind";
+import { updateSettings } from "@/lib/settings/settings.service";
 
 type Props = {
   theme: "light" | "dark" | "system";
@@ -50,7 +50,7 @@ export default function ({ open, setOpen, theme }: Props) {
   useWatch(themeValue, async (newVal, oldVal) => {
     if (newVal !== oldVal) { 
       setColorScheme(newVal);
-      await setTheme(newVal);
+      await updateSettings({ theme: newVal });
     }
   });
 

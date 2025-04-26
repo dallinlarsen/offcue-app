@@ -11,7 +11,10 @@ import {
   TrashIcon,
   UndoIcon,
 } from "@/components/ui/icon";
-import { formatFrequencyString, formatScheduleString } from "@/lib/utils/format";
+import {
+  formatFrequencyString,
+  formatScheduleString,
+} from "@/lib/utils/format";
 import { useEffect, useRef, useState } from "react";
 import { Text } from "@/components/ui/text";
 import { HStack } from "@/components/ui/hstack";
@@ -43,7 +46,10 @@ import DeleteReminderDialog from "./DeleteReminderDialog";
 import ArchiveReminderDialog from "./ArchiveReminderDialog";
 import { useRouter } from "expo-router";
 import { Reminder } from "@/lib/reminders/reminders.types";
-import { NotificationResponseStatus, RNotification } from "@/lib/notifications/notifications.types";
+import {
+  NotificationResponseStatus,
+  RNotification,
+} from "@/lib/notifications/notifications.types";
 import {
   getPastNotificationsByReminderId,
   getNextUpcomingNotificationByReminderId,
@@ -52,7 +58,10 @@ import {
   recalcFutureNotifications,
   undoOneTimeComplete,
 } from "@/lib/notifications/notifications.service";
-import { updateReminderArchived, updateReminderMuted } from "@/lib/reminders/reminders.service";
+import {
+  updateReminderArchived,
+  updateReminderMuted,
+} from "@/lib/reminders/reminders.service";
 
 type Props = {
   reminder: Reminder;
@@ -67,9 +76,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   const confetti = useConfetti();
   const router = useRouter();
 
-  const [pastNotifications, setPastNotificatons] = useState<
-    RNotification[]
-  >([]);
+  const [pastNotifications, setPastNotificatons] = useState<RNotification[]>(
+    []
+  );
   const [nextNotification, setNextNotification] = useState<{
     date: string;
     time: string;
@@ -84,13 +93,14 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   async function fetchData() {
     const notifications = await getPastNotificationsByReminderId(reminder.id!);
-    const nextNotificationUpcoming = await getNextUpcomingNotificationByReminderId(
-      reminder.id!
-    );
+    const nextNotificationUpcoming =
+      await getNextUpcomingNotificationByReminderId(reminder.id!);
     setPastNotificatons(notifications);
     if (nextNotificationUpcoming) {
       setNextNotification({
-        date: dayjs(nextNotificationUpcoming.scheduled_at).format("MMM D, YYYY"),
+        date: dayjs(nextNotificationUpcoming.scheduled_at).format(
+          "MMM D, YYYY"
+        ),
         time: dayjs(nextNotificationUpcoming.scheduled_at).format("h:mm a"),
       });
     } else {
@@ -150,9 +160,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     onNotificationResponse();
   }
 
-  async function handleNotificationEditOpen(
-    notification: RNotification
-  ) {
+  async function handleNotificationEditOpen(notification: RNotification) {
     setNotificationToUpdate(notification);
     setNotificationStatusUpdateOpen(true);
   }
@@ -297,7 +305,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 <Alert>
                   <AlertText size="lg">Next Reminder on</AlertText>
                   {hideNextNotification ? (
-                    <Box className="relative w-[180px] h-10 -ml-1 -my-2">
+                    <Box className="relative w-[200px] h-10 -ml-1 -my-2">
                       <Box className="absolute inset-0 flex items-center justify-center">
                         <AlertText size="lg">
                           {nextNotification.date} at
@@ -318,7 +326,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 </Alert>
                 <HStack space="md">
                   <Button
-                    size="lg"
+                    size="xl"
                     variant="outline"
                     className="flex-1"
                     onPress={() =>
@@ -333,7 +341,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                     </ButtonText>
                   </Button>
                   <Button
-                    size="lg"
+                    size="xl"
                     variant="outline"
                     className="flex-1"
                     onPress={recalcFutureNotificationsHandler}
@@ -380,7 +388,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             </Alert>
             <HStack space="md">
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 className="flex-1"
                 onPress={restoreClickedHandler}
@@ -393,7 +401,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 <ButtonText>Restore</ButtonText>
               </Button>
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 className="flex-1"
                 onPress={() => setDeleteDialogOpen(true)}
@@ -414,13 +422,13 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               <AlertIcon as={CheckCircleIcon} />
               <AlertText size="lg">
                 Completed on{" "}
-                {dayjs(pastNotifications[0]?.response_at).format("MMM D, YYYY")}{" "}
-                at {dayjs(pastNotifications[0]?.response_at).format("h:mm a")}
+                {dayjs(reminder.completed_at).format("MMM D, YYYY")} at{" "}
+                {dayjs(reminder.completed_at).format("h:mm a")}
               </AlertText>
             </Alert>
             <HStack space="md">
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 className="flex-1"
                 onPress={undoClickedHandler}
@@ -430,10 +438,10 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                   as={UndoIcon}
                   className="fill-typography-950"
                 />
-                <ButtonText>Undo Complete</ButtonText>
+                <ButtonText>Undo</ButtonText>
               </Button>
               <Button
-                size="lg"
+                size="xl"
                 variant="outline"
                 className="flex-1"
                 onPress={() => setDeleteDialogOpen(true)}
@@ -466,7 +474,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               </AlertText>
             </Alert>
             <Button
-              size="lg"
+              size="xl"
               variant="outline"
               onPress={() => setArchiveDialogOpen(true)}
             >
@@ -485,9 +493,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               <Heading size="xl" className="mt-3">
                 Notifications
               </Heading>
-              <Text className="-mt-3 text-typography-600">
-                Tap to edit status
-              </Text>
+              {pastNotifications.length > 0 && (
+                <Text className="-mt-3 text-typography-600">
+                  Tap to edit status
+                </Text>
+              )}
             </HStack>
             {pastNotifications.length > 0 ? (
               <>
@@ -525,7 +535,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                               <TableData className="flex items-center w-full flex-1">
                                 <Badge
                                   size="xl"
-                                  action={STATUS_COLOR_MAP[n.response_status || 'no_response']}
+                                  action={
+                                    STATUS_COLOR_MAP[
+                                      n.response_status || "no_response"
+                                    ]
+                                  }
                                 >
                                   <BadgeText>
                                     {n.response_status?.split("_").join(" ") ||

@@ -2,7 +2,7 @@ import db from "../db";
 type GenericObject = { [key: string]: any };
 
 function formatBoolean(value: any) {
- return typeof value === 'boolean' ? value ? 1 : 0 : value
+  return typeof value === "boolean" ? (value ? 1 : 0) : value;
 }
 
 export async function insertIntoTable<T extends GenericObject>(
@@ -58,10 +58,15 @@ export async function updateTable<
   await db.runAsync(
     `
     UPDATE ${tableName}
-    SET ${modelKeys.map((k) => `${k} = ?`).join(", ")}, updated_at = CURRENT_TIMESTAMP
+    SET ${modelKeys
+      .map((k) => `${k} = ?`)
+      .join(", ")}, updated_at = CURRENT_TIMESTAMP
     WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
     `,
-    [...modelKeys.map((k) => formatBoolean(model[k])), ...whereKeys.map((k) => formatBoolean(where[k]))]
+    [
+      ...modelKeys.map((k) => formatBoolean(model[k])),
+      ...whereKeys.map((k) => formatBoolean(where[k])),
+    ]
   );
 }
 
@@ -78,4 +83,15 @@ export async function deleteFromTable<T extends GenericObject>(
     `,
     whereKeys.map((k) => formatBoolean(where[k]))
   );
+}
+
+export function convertIntegerValuesToBoolean<T extends { [key: string]: any }>(
+  model: T,
+  keys: (keyof T)[]
+) {
+    for (const key of keys) {
+        (model[key] as boolean) = model[key] === 1
+    }
+
+    return model;
 }

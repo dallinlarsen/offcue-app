@@ -13,4 +13,7 @@ export type InsertSchedule = {
 
 export type Schedule = InsertSchedule & {
   id: number;
+  is_archived: boolean;
+  updated_at: string;
+  created_at: string;
 };

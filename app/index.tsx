@@ -19,6 +19,7 @@ import ReminderGroup from "@/components/reminder/ReminderGroup";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Reminder } from "@/lib/reminders/reminders.types";
 import { getReminders } from "@/lib/reminders/reminders.service";
+import { NO_REMINDERS_DUE_TEXT } from "@/constants";
 
 type CurrentFilterOptions =
   | "all"
@@ -58,6 +59,10 @@ export default function HomeScreen() {
 
   const [showLeftFade, setShowLeftFade] = useState(false);
   const [showRightFade, setShowRightFade] = useState(true);
+
+  const [nothingDueIndex] = useState(
+    Math.floor(Math.random() * NO_REMINDERS_DUE_TEXT.length)
+  );
 
   const [currentFilter, setCurrentFilter] =
     useState<CurrentFilterOptions>("all");
@@ -113,7 +118,7 @@ export default function HomeScreen() {
               reminders={reminders.filter((r) => r.due_scheduled_at)}
               onNotificationResponse={() => loadReminders()}
               onMuted={() => loadReminders()}
-              emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+              emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
             />
             <ReminderGroup
               title="Upcoming"
@@ -137,7 +142,7 @@ export default function HomeScreen() {
             reminders={reminders.filter((r) => r.due_scheduled_at)}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+            emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
           />
         );
       }
@@ -193,7 +198,7 @@ export default function HomeScreen() {
             reminders={reminders}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="Nothing’s Due—You’re Doing Great! 👍"
+            emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
           />
         );
       }
@@ -254,7 +259,7 @@ export default function HomeScreen() {
           <EdgeFade>
             {!showLeftFade && (
               <Box className="flex justify-center flex-1 items-end">
-                <Icon as={ChevronRightIcon} className='text-typography-500' />
+                <Icon as={ChevronRightIcon} className="text-typography-500" />
               </Box>
             )}
           </EdgeFade>

@@ -17,7 +17,7 @@ import {
   SelectTrigger,
 } from "../ui/select";
 import { Text } from "@/components/ui/text";
-import { FREQUENCY_TYPES } from "@/constants/utils";
+import { FREQUENCY_TYPES } from "@/constants";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
 import { formatScheduleString } from "@/lib/utils/format";

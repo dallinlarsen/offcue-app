@@ -202,3 +202,7 @@ export async function scheduleAllUpcomingNotifications() {
     }
   }
 }
+
+export async function dismissFromNotificationCenter(notificationId: number) {
+  await Notifications.dismissNotificationAsync(notificationId.toString());
+}

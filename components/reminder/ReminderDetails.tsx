@@ -39,7 +39,7 @@ import {
 } from "../ui/table";
 import { Badge, BadgeText } from "../ui/badge";
 import { ScrollView, TouchableOpacity } from "react-native";
-import { STATUS_COLOR_MAP } from "@/constants/utils";
+import { STATUS_COLOR_MAP } from "@/constants";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
 import { useConfetti } from "@/hooks/useConfetti";
 import DeleteReminderDialog from "./DeleteReminderDialog";
@@ -219,10 +219,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 )}
               </Text>
               <Box>
+                <Text size="xl">When</Text>
                 {reminder.schedules.map((s) => (
-                  <Text size="xl" key={s.id}>
-                    {formatScheduleString(s)}
-                  </Text>
+                  <Text>{s.label} ({formatScheduleString(s)})</Text>
                 ))}
               </Box>
             </VStack>
@@ -293,9 +292,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               </Button>
             </HStack>
             <Text className="-mt-2">
-              Triggered on{" "}
+              Notification sent on{" "}
               {dayjs(reminder.due_scheduled_at).format("MMM D, YYYY")} at{" "}
-              {dayjs(reminder.due_scheduled_at).format("h:mma")}
+              {dayjs(reminder.due_scheduled_at).format("h:mm a")}
             </Text>
           </>
         ) : (

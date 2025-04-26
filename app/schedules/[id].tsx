@@ -29,12 +29,10 @@ import {
   updateSchedule,
 } from "@/lib/schedules/schedules.service";
 import { Schedule } from "@/lib/schedules/schedules.types";
-import {
-  formatScheduleString,
-} from "@/lib/utils/format";
+import { formatScheduleString } from "@/lib/utils/format";
 import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 
 export default function () {
@@ -43,6 +41,7 @@ export default function () {
 
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [reminders, setReminders] = useState<ReminderBase[]>([]);
+  const [currentReminders, setCurrentReminders] = useState<ReminderBase[]>([]);
   const [editOpen, setEditOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -54,6 +53,12 @@ export default function () {
     setSchedule(await getSchedule(parseInt(id as string)));
     setReminders(await getRemindersByScheduleId(parseInt(id as string)));
   }
+
+  useEffect(() => {
+    setCurrentReminders(
+      reminders.filter((r) => !r.is_archived && !r.is_completed && !r.is_muted)
+    );
+  }, [reminders]);
 
   useFocusEffect(
     useCallback(() => {
@@ -166,18 +171,18 @@ export default function () {
           <VStack space="xl">
             <Box>
               <Heading size="lg">Current</Heading>
-              <VStack space="md">
-                {reminders
-                  .filter(
-                    (r) => !r.is_archived && !r.is_completed && !r.is_muted
-                  )
-                  .map((reminder) => (
+              {currentReminders.length > 0 ? (
+                <VStack space="md">
+                  {currentReminders.map((reminder) => (
                     <ScheduleReminderOption
                       key={reminder.id}
                       reminder={reminder}
                     />
                   ))}
-              </VStack>
+                </VStack>
+              ) : (
+                <Text>No current reminders are using this schedule.</Text>
+              )}
             </Box>
             <ScheduleReminderGroupDropDown
               reminders={reminders.filter((r) => r.is_muted && !r.is_archived)}
@@ -201,7 +206,7 @@ export default function () {
           </VStack>
         </ScrollView>
       ) : (
-        <Text>No Reminders are using this schedule.</Text>
+        <Text>No reminders are using this schedule.</Text>
       )}
       <Fade />
       <AddEditScheduleActionsheet

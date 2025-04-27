@@ -128,7 +128,8 @@ export async function getReminderOrGetReminders(
     ) AS schedules,
     ln.scheduled_at AS due_scheduled_at,
     ln.id AS due_notification_id,
-    n.id IS NOT NULL AS is_completed
+    n.id IS NOT NULL AS is_completed,
+    n.response_at AS completed_at
   FROM reminders r
   JOIN reminder_schedule rs ON rs.reminder_id = r.id
   JOIN schedules s ON s.id = rs.schedule_id
@@ -163,8 +164,10 @@ export async function getReminderOrGetReminders(
 
 export async function getRemindersByScheduleId(scheduleId: number) {
   return await db.getAllAsync<ReminderBase>(
-    `SELECT r.* FROM reminders r
-     JOIN reminder_schedule rs ON rs.reminder_id = r.id 
+    `SELECT r.*, n.id IS NOT NULL AS is_completed, n.response_at AS completed_at
+     FROM reminders r
+     JOIN reminder_schedule rs ON rs.reminder_id = r.id
+     LEFT JOIN notifications n ON n.reminder_id = r.id AND NOT r.is_recurring AND n.response_status = 'done' 
      WHERE rs.schedule_id = ?;`,
     [scheduleId]
   );

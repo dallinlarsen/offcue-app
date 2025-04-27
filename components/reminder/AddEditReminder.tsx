@@ -32,7 +32,7 @@ import {
 } from "../ui/icon";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
-import { ScheduleActionsheet } from "./ScheduleActionsheet";
+import { ScheduleActionsheet } from "@/components/schedule/ScheduleActionsheet";
 import { useState } from "react";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
@@ -50,13 +50,13 @@ import Fade from "../Fade";
 import {
   InsertReminder,
   IntervalType,
-  Reminder,
 } from "@/lib/reminders/reminders.types";
 import { Schedule } from "@/lib/schedules/schedules.types";
 import {
   createReminder,
   updateReminder,
 } from "@/lib/reminders/reminders.service";
+import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
 
 dayjs.extend(isSameOrBefore);
 
@@ -205,6 +205,8 @@ export default function AddEditReminder({
     "end_date",
   ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
+  const [addScheduleOpen, setAddScheduleOpen] = useState(false);
+  const [reopenSchedules, setReopenSchedules] = useState(false);
   const [additionalOptionsOpen, setAdditionalOptionsOpen] = useState(
     !!start_date
   );
@@ -213,10 +215,23 @@ export default function AddEditReminder({
   );
 
   const [showEndDateOption, setShowEndDateOption] = useState(!!end_date);
-
   useWatch(showEndDateOption, (value) => {
     if (!value) {
       setValue("end_date", undefined);
+    }
+  });
+  
+  function addScheduleOnCloseHandler() {
+    if (reopenSchedules) {
+      setSchedulesOpen(true);
+      setReopenSchedules(false);
+    }
+  }
+
+  useWatch(addScheduleOpen, (value) => {
+    if (value) {
+      setSchedulesOpen(false);
+      setReopenSchedules(true);
     }
   });
 
@@ -637,11 +652,21 @@ export default function AddEditReminder({
       <ScheduleActionsheet
         isOpen={schedulesOpen}
         setIsOpen={setSchedulesOpen}
+        setAddScheduleOpen={setAddScheduleOpen}
         addSchedule={(schedule) => {
           setValue("schedules", [...schedules, schedule]);
           clearErrors("schedules");
         }}
         filterIds={schedules.map((s) => s.id)}
+      />
+      <AddEditScheduleActionsheet
+        isOpen={addScheduleOpen}
+        setIsOpen={setAddScheduleOpen}
+        onClose={addScheduleOnCloseHandler}
+        onSave={(schedule) => {
+          setValue("schedules", [...schedules, schedule]);
+          clearErrors("schedules");
+        }}
       />
     </>
   );

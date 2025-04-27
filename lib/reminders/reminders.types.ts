@@ -16,14 +16,15 @@ export type ReminderBase = NReminder & {
   is_muted: boolean;
   is_completed: boolean;
   is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+  completed_at: string;
   start_date: string;
   end_date: string | null;
 };
 
 export type Reminder = ReminderBase & {
   schedules: Schedule[];
-  created_at: string;
-  updated_at: string;
   due_scheduled_at: string | null;
   due_notification_id: number | null;
   current_streak?: number;

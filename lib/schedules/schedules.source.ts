@@ -1,5 +1,10 @@
 import db from "../db";
-import { deleteFromTable, insertIntoTable, updateTable } from "../utils/db-helpers";
+import {
+  convertIntegerValuesToBoolean,
+  deleteFromTable,
+  insertIntoTable,
+  updateTable,
+} from "../utils/db-helpers";
 import { InsertSchedule, Schedule } from "./schedules.types";
 
 export async function schedulesInit() {
@@ -13,6 +18,7 @@ export async function schedulesInit() {
     is_thursday INTEGER NOT NULL DEFAULT 0,   -- Whether the schedule is on Thursday (1 for true, 0 for false)
     is_friday INTEGER NOT NULL DEFAULT 0,     -- Whether the schedule is on Friday (1 for true, 0 for false)
     is_saturday INTEGER NOT NULL DEFAULT 0,   -- Whether the schedule is on Saturday (1 for true, 0 for false)
+    is_archived INTEGER NOT NULL DEFAULT 0,   -- Archive state of the schedule
     start_time TEXT NOT NULL,                 -- Start time of the schedule in HH:MM format
     end_time TEXT NOT NULL,                   -- End time of the schedule in HH:MM format
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the schedule was created
@@ -33,32 +39,68 @@ export async function schedulesInit() {
   console.log("✅ Reminder schedule table created successfully");
 }
 
-// Get 
+// Get
 export async function getAllSchedules() {
-  return await db.getAllAsync<Schedule>(
+  const schedules = await db.getAllAsync<Schedule>(
     `SELECT * FROM schedules ORDER BY label;`,
     []
   );
-};
+
+  return schedules.map((s) =>
+    convertIntegerValuesToBoolean(s, [
+      "is_archived",
+      "is_sunday",
+      "is_monday",
+      "is_tuesday",
+      "is_wednesday",
+      "is_thursday",
+      "is_friday",
+      "is_saturday",
+    ])
+  );
+}
 
 export async function getSchedule(id: number) {
   const schedule = await db.getFirstAsync<Schedule>(
     `SELECT * FROM schedules WHERE id = ?;`,
     [id]
   );
-  return schedule;
-};
+  if (!schedule) return null;
+
+  return convertIntegerValuesToBoolean(schedule, [
+    "is_archived",
+    "is_sunday",
+    "is_monday",
+    "is_tuesday",
+    "is_wednesday",
+    "is_thursday",
+    "is_friday",
+    "is_saturday",
+  ]);
+}
 
 export async function getSchedulesByReminderId(reminderId: number) {
-  const schedule = await db.getAllAsync<Schedule>(
+  const schedules = await db.getAllAsync<Schedule>(
     `SELECT s.* 
      FROM schedules s
      JOIN reminder_schedule rs ON rs.schedule_id = s.id 
      WHERE rs.reminder_id = ?;`,
     [reminderId]
   );
-  return schedule;
-};
+  
+  return schedules.map((s) =>
+    convertIntegerValuesToBoolean(s, [
+      "is_archived",
+      "is_sunday",
+      "is_monday",
+      "is_tuesday",
+      "is_wednesday",
+      "is_thursday",
+      "is_friday",
+      "is_saturday",
+    ])
+  );
+}
 
 // Create
 export async function createSchedule(model: InsertSchedule) {
@@ -89,6 +131,7 @@ export async function createInitialSchedules() {
         is_thursday: true,
         is_friday: true,
         is_saturday: false,
+        is_archived: false,
         start_time: "08:00",
         end_time: "17:00",
       },
@@ -101,6 +144,7 @@ export async function createInitialSchedules() {
         is_thursday: true,
         is_friday: true,
         is_saturday: false,
+        is_archived: false,
         start_time: "18:00",
         end_time: "20:00",
       },
@@ -113,6 +157,7 @@ export async function createInitialSchedules() {
         is_thursday: false,
         is_friday: false,
         is_saturday: true,
+        is_archived: false,
         start_time: "10:00",
         end_time: "18:00",
       },
@@ -124,12 +169,10 @@ export async function createInitialSchedules() {
   console.log("✅ Example schedules added successfully");
 }
 
-
 // Update
 export async function updateSchedule(id: number, model: Partial<Schedule>) {
   return await updateTable("schedules", model, { id });
 }
-
 
 // Delete
 export async function deleteSchedule(id: number) {
@@ -140,7 +183,9 @@ export async function deleteReminderScheduleMap(id: number) {
   return await deleteFromTable("reminder_schedule", { id });
 }
 
-export async function deleteReminderScheduleMapByReminderId(reminderId: number) {
+export async function deleteReminderScheduleMapByReminderId(
+  reminderId: number
+) {
   return await deleteFromTable("reminder_schedule", {
     reminder_id: reminderId,
   });

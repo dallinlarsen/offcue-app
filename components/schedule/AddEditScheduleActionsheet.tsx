@@ -17,7 +17,7 @@ import {
 } from "../ui/checkbox";
 import { Heading } from "../ui/heading";
 import { Input, InputField } from "../ui/input";
-import { CheckIcon } from "@/components/ui/icon";
+import { CheckIcon, RepeatIcon } from "@/components/ui/icon";
 import { DAYS } from "@/constants/utils";
 import { VStack } from "../ui/vstack";
 import DatePicker from "react-native-date-picker";
@@ -32,11 +32,20 @@ import {
   FormControlError,
   FormControlErrorText,
 } from "../ui/form-control";
-import { createSchedule } from "@/lib/schedules/schedules.service";
+import {
+  createSchedule,
+  getSchedule,
+  updateSchedule,
+} from "@/lib/schedules/schedules.service";
+import { Schedule } from "@/lib/schedules/schedules.types";
+import { Alert, AlertIcon, AlertText } from "../ui/alert";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  schedule?: Schedule;
+  onSave?: (schedule: Schedule) => void;
+  onClose?: () => void;
 };
 
 const ZodSchema = z.object({
@@ -46,34 +55,54 @@ const ZodSchema = z.object({
   endTime: z.date(),
 });
 
-export function AddScheduleActionsheet({
+export default function ({
+  schedule,
   isOpen,
   setIsOpen,
+  onSave,
+  onClose,
 }: AddScheduleActionsheetProps) {
+  function getInitialFormState() {
+    return {
+      days: schedule
+        ? [
+            schedule.is_sunday && "sunday",
+            schedule.is_monday && "monday",
+            schedule.is_tuesday && "tuesday",
+            schedule.is_wednesday && "wednesday",
+            schedule.is_thursday && "thursday",
+            schedule.is_friday && "friday",
+            schedule.is_saturday && "saturday",
+          ].filter((d) => !!d)
+        : [
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+          ],
+      startTime: schedule
+        ? dayjs(`2000-01-01 ${schedule.start_time}`).toDate()
+        : dayjs("2000-01-01 00:00").toDate(),
+      endTime: schedule
+        ? dayjs(`2000-01-02 ${schedule.end_time}`).toDate()
+        : dayjs("2000-01-02 00:00").toDate(),
+      label: schedule ? schedule.label : "",
+    };
+  }
+
   const {
     control,
     handleSubmit,
     setValue,
     clearErrors,
-    reset,
     watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(ZodSchema),
-    defaultValues: {
-      days: [
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-      ],
-      startTime: dayjs("2000-01-01 00:00").toDate(),
-      endTime: dayjs("2000-01-02 00:00").toDate(),
-      label: "",
-    },
+    defaultValues: getInitialFormState(),
   });
 
   const [days, startTime, endTime] = watch(["days", "startTime", "endTime"]);
@@ -84,7 +113,13 @@ export function AddScheduleActionsheet({
 
   useWatch(isOpen, (val) => {
     if (val) {
-      reset();
+      const initialFormState = getInitialFormState();
+
+      setValue("label", initialFormState.label);
+      setValue("days", initialFormState.days);
+      setValue("startTime", initialFormState.startTime);
+      setValue("endTime", initialFormState.endTime);
+
       setShowDatePicker(null);
     }
   });
@@ -94,7 +129,7 @@ export function AddScheduleActionsheet({
   });
 
   const onSubmit = handleSubmit(async (model) => {
-    const schedule = {
+    const scheduleModel = {
       label: model.label,
       is_sunday: model.days.includes("sunday"),
       is_monday: model.days.includes("monday"),
@@ -107,10 +142,16 @@ export function AddScheduleActionsheet({
       end_time: dayjs(model.endTime).format("HH:mm"),
     };
 
-    console.log("Saving schedule to database:", schedule);
+    console.log("Saving schedule to database:", scheduleModel);
+
+    let scheduleId = schedule?.id;
 
     try {
-      await createSchedule(schedule);
+      if (schedule?.id) {
+        await updateSchedule(schedule.id, scheduleModel);
+      } else {
+        scheduleId = await createSchedule(scheduleModel);
+      }
       console.log("Schedule saved successfully.");
     } catch (error) {
       console.error("Error saving schedule:", error);
@@ -118,23 +159,44 @@ export function AddScheduleActionsheet({
 
     // Close the actionsheet after saving
     setIsOpen(false);
+
+    if (scheduleId) {
+      const newSchedule = await getSchedule(scheduleId);
+      newSchedule && onSave && onSave(newSchedule);
+    }
   });
 
+  function onCloseHandler() {
+    setIsOpen(false);
+    onClose && onClose();
+  }
+
   return (
-    <Actionsheet
-      snapPoints={[80]}
-      isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
-    >
+    <Actionsheet snapPoints={[80]} isOpen={isOpen} onClose={onCloseHandler}>
       <ActionsheetBackdrop />
       <ActionsheetContent className="items-start">
         <ActionsheetDragIndicatorWrapper>
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
         <Heading size="xl" className="mb-2">
-          New Schedule
+          {schedule ? "Edit" : "New"} Schedule
         </Heading>
         <ActionsheetScrollView>
+          {schedule && (
+            <Alert className="mb-2 bg-orange-100 dark:bg-orange-950 items-start">
+              <AlertIcon
+                as={RepeatIcon}
+                className="text-orange-800 dark:text-orange-100 mr-1"
+              />
+              <AlertText
+                size="lg"
+                className="text-orange-800 dark:text-orange-100"
+              >
+                Editing will recreate all reminder times for current reminders
+                on this schedule.
+              </AlertText>
+            </Alert>
+          )}
           <FormControl isInvalid={!!errors.label} className="mb-4">
             <Controller
               control={control}
@@ -230,7 +292,7 @@ export function AddScheduleActionsheet({
           </VStack>
         </ActionsheetScrollView>
         <Button className="w-full mt-4" size="xl" onPress={onSubmit}>
-          <ButtonText>Create Schedule</ButtonText>
+          <ButtonText>{schedule ? "Update" : "Create"} Schedule</ButtonText>
         </Button>
       </ActionsheetContent>
     </Actionsheet>

@@ -247,25 +247,25 @@ export const getScheduleWindowsWithinInterval = (
     let applies = false;
     switch (dayOfWeek) {
       case 0:
-        applies = schedule.is_sunday === 1;
+        applies = schedule.is_sunday;
         break;
       case 1:
-        applies = schedule.is_monday === 1;
+        applies = schedule.is_monday;
         break;
       case 2:
-        applies = schedule.is_tuesday === 1;
+        applies = schedule.is_tuesday;
         break;
       case 3:
-        applies = schedule.is_wednesday === 1;
+        applies = schedule.is_wednesday;
         break;
       case 4:
-        applies = schedule.is_thursday === 1;
+        applies = schedule.is_thursday;
         break;
       case 5:
-        applies = schedule.is_friday === 1;
+        applies = schedule.is_friday;
         break;
       case 6:
-        applies = schedule.is_saturday === 1;
+        applies = schedule.is_saturday;
         break;
     }
     if (applies) {
@@ -524,7 +524,7 @@ export async function updateNotificationResponse(
     );
   }
 
-  await scheduleAllUpcomingNotifications();
+  scheduleAllUpcomingNotifications();
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
@@ -561,5 +561,5 @@ export async function updateNotificationResponseOneTime(
     });
     await source.deleteFutureNotificationsByReminderId(reminderId);
   }
-  await scheduleAllUpcomingNotifications();
+  scheduleAllUpcomingNotifications();
 }

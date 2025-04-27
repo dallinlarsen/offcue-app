@@ -5,15 +5,16 @@ import { StyleSheet } from "react-native";
 type Props = {
     heightClassLight?: string
     heightClassDark?: string
+    className?: string
 }
 
-export default function ({ heightClassLight, heightClassDark }: Props) {
+export default function ({ heightClassLight, heightClassDark, className }: Props) {
   return (
     <>
       <Box
         className={`absolute bottom-0 right-0 left-0 ${
           heightClassLight ? heightClassLight : "h-28"
-        } dark:h-0`}
+        } dark:h-0 ${className}`}
         pointerEvents="none"
       >
         <LinearGradient
@@ -31,7 +32,7 @@ export default function ({ heightClassLight, heightClassDark }: Props) {
       <Box
         className={`absolute bottom-0 right-0 left-0 h-0 ${
           heightClassDark ? heightClassDark : "dark:h-28"
-        }`}
+        } ${className}`}
         pointerEvents="none"
       >
         <LinearGradient

@@ -7,7 +7,7 @@ dayjs.extend(weekOfYear);
 
 import * as source from "./notifications.source";
 
-import { scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
+import { dismissFromNotificationCenter, scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
 import { getReminder } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
@@ -524,21 +524,8 @@ export async function updateNotificationResponse(
     );
   }
 
+  dismissFromNotificationCenter(id);
   scheduleAllUpcomingNotifications();
-}
-
-export async function undoOneTimeComplete(reminderId: number) {
-  const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
-    reminderId
-  );
-  if (lastDoneNotification) {
-    await updateNotificationResponse(
-      lastDoneNotification.id,
-      "later",
-    );
-  }
-
-  await recalcFutureNotifications(reminderId);
 }
 
 export async function updateNotificationResponseOneTime(
@@ -561,5 +548,18 @@ export async function updateNotificationResponseOneTime(
     });
     await source.deleteFutureNotificationsByReminderId(reminderId);
   }
+
+  dismissFromNotificationCenter(notification.id);
   scheduleAllUpcomingNotifications();
+}
+
+export async function undoOneTimeComplete(reminderId: number) {
+  const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
+    reminderId
+  );
+  if (lastDoneNotification) {
+    await updateNotificationResponse(lastDoneNotification.id, "later");
+  }
+
+  await recalcFutureNotifications(reminderId);
 }

@@ -18,7 +18,7 @@ import {
 import { Heading } from "../ui/heading";
 import { Input, InputField } from "../ui/input";
 import { CheckIcon, RepeatIcon } from "@/components/ui/icon";
-import { DAYS } from "@/constants/utils";
+import { DAYS } from "@/constants";
 import { VStack } from "../ui/vstack";
 import DatePicker from "react-native-date-picker";
 import dayjs from "dayjs";

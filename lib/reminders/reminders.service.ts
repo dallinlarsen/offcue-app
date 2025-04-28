@@ -86,10 +86,10 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
     await deleteFutureNotificationsByReminderId(id);
   } else {
     // TODO: When future notification generation is implemented call it here.
-    await recalcFutureNotifications(id);
+    recalcFutureNotifications(id);
   }
 
-  await scheduleAllUpcomingNotifications();
+  scheduleAllUpcomingNotifications();
 };
 
 export const updateReminderArchived = async (

@@ -6,9 +6,26 @@ type Props = {
     heightClassLight?: string
     heightClassDark?: string
     className?: string
+    reverse?: boolean
 }
 
-export default function ({ heightClassLight, heightClassDark, className }: Props) {
+export default function ({ heightClassLight, heightClassDark, className, reverse }: Props) {
+  const LIGHT_COLORS = [
+    "rgba(251, 251, 251, 0)",
+    "rgba(251, 251, 251, .5)",
+    "rgba(251, 251, 251, .7)",
+    "rgba(251, 251, 251, .9)",
+    "rgba(251, 251, 251, 1)",
+  ];
+
+  const DARK_COLORS = [
+    "rgba(24, 23, 25, 0)",
+    "rgba(24, 23, 25, .5)",
+    "rgba(24, 23, 25, .7)",
+    "rgba(24, 23, 25, .9)",
+    "rgba(24, 23, 25, 1)",
+  ];
+  
   return (
     <>
       <Box
@@ -19,13 +36,8 @@ export default function ({ heightClassLight, heightClassDark, className }: Props
       >
         <LinearGradient
           pointerEvents="none"
-          colors={[
-            "rgba(251, 251, 251, 0)",
-            "rgba(251, 251, 251, .5)",
-            "rgba(251, 251, 251, .7)",
-            "rgba(251, 251, 251, .9)",
-            "rgba(251, 251, 251, 1)",
-          ]}
+          //@ts-ignore
+          colors={reverse ? LIGHT_COLORS.reverse() : LIGHT_COLORS}
           style={styles.background}
         />
       </Box>
@@ -37,13 +49,8 @@ export default function ({ heightClassLight, heightClassDark, className }: Props
       >
         <LinearGradient
           pointerEvents="none"
-          colors={[
-            "rgba(24, 23, 25, 0)",
-            "rgba(24, 23, 25, .5)",
-            "rgba(24, 23, 25, .7)",
-            "rgba(24, 23, 25, .9)",
-            "rgba(24, 23, 25, 1)",
-          ]}
+          //@ts-ignore
+          colors={reverse ? DARK_COLORS.reverse() : DARK_COLORS}
           style={styles.background}
         />
       </Box>

@@ -303,7 +303,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           </>
         ) : (
           <>
-            {nextNotification ? (
+            {nextNotification && !is_muted ? (
               <VStack space="sm">
                 <Alert>
                   <AlertText size="lg">Next Reminder on</AlertText>

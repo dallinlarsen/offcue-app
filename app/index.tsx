@@ -1,10 +1,19 @@
-import React, { useState, useEffect, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  MutableRefObject,
+  RefAttributes,
+} from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
+  TouchableOpacityProps,
+  View,
 } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
@@ -20,9 +29,15 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { Reminder } from "@/lib/reminders/reminders.types";
 import { getReminders } from "@/lib/reminders/reminders.service";
 import { NO_REMINDERS_DUE_TEXT } from "@/constants";
+import PagerView from "react-native-pager-view";
+import {
+  DirectEventHandler,
+  Double,
+} from "react-native/Libraries/Types/CodegenTypes";
+import React from "react";
 
 type CurrentFilterOptions =
-  | "all"
+  | "current"
   | "due"
   | "upcoming"
   | "completed"
@@ -33,22 +48,17 @@ type FilterOptionProps = {
   onPress: () => void;
   label: string;
   active?: boolean;
+  ref?: MutableRefObject<TouchableOpacityProps & RefAttributes<View>>;
 };
 
-function FilterOption({ onPress, label, active }: FilterOptionProps) {
-  return (
-    <TouchableOpacity onPress={onPress}>
-      <Heading
-        size="xl"
-        className={`${
-          active ? "text-typography-950" : "text-typography-500"
-        } pr-6`}
-      >
-        {label}
-      </Heading>
-    </TouchableOpacity>
-  );
-}
+const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
+  { key: "current", label: "Current" },
+  { key: "due", label: "Due" },
+  { key: "upcoming", label: "Upcoming" },
+  { key: "muted", label: "Muted" },
+  { key: "completed", label: "Completed" },
+  { key: "archived", label: "Archived" },
+];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -65,7 +75,10 @@ export default function HomeScreen() {
   );
 
   const [currentFilter, setCurrentFilter] =
-    useState<CurrentFilterOptions>("all");
+    useState<CurrentFilterOptions>("current");
+  const pagerRef = useRef<PagerView | null>(null);
+  const filterScrollViewRef = useRef<ScrollView | null>(null);
+  const filterRefs = useRef(FILTERS.map(() => React.createRef()));
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
@@ -78,6 +91,7 @@ export default function HomeScreen() {
   };
 
   const loadReminders = async () => {
+    console.log('Hello')
     const data = await getReminders();
     setReminders(data);
     console.log(data);
@@ -96,13 +110,32 @@ export default function HomeScreen() {
     }
   }, [lastNotification]);
 
-  function setOpenHandler(open: boolean, key: string) {
-    if (open && !accordiansOpen.includes(key)) {
-      setAccordiansOpen([...accordiansOpen, key]);
-    } else {
-      setAccordiansOpen(accordiansOpen.filter((k) => k !== key));
-    }
-  }
+  const scrollFilterIntoView = (index: number) => {
+    //@ts-ignore
+    filterRefs.current[index]?.current?.measureLayout(
+      filterScrollViewRef.current,
+      (x: number) => {
+        filterScrollViewRef?.current?.scrollTo({ x: x - 40, animated: true });
+      }
+    );
+  };
+
+  const handleTabPress = (filter: CurrentFilterOptions, idx: number) => {
+    setCurrentFilter(filter);
+    pagerRef.current?.setPage(idx);
+    scrollFilterIntoView(idx);
+  };
+
+  // When a page is swiped, update the filter
+  const handlePageSelected: DirectEventHandler<
+    Readonly<{
+      position: Double;
+    }>
+  > = (e) => {
+    const index = e.nativeEvent.position;
+    setCurrentFilter(FILTERS[index].key);
+    scrollFilterIntoView(index);
+  };
 
   function FilterOptionReminders({
     filterKey,
@@ -110,97 +143,117 @@ export default function HomeScreen() {
     filterKey: CurrentFilterOptions;
   }) {
     switch (filterKey) {
-      case "all": {
+      case "current": {
         return (
-          <VStack space="xl">
-            <ReminderGroup
-              title="Due"
-              reminders={reminders.filter((r) => r.due_scheduled_at)}
-              onNotificationResponse={() => loadReminders()}
-              onMuted={() => loadReminders()}
-              emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
-            />
-            <ReminderGroup
-              title="Upcoming"
-              reminders={reminders.filter(
-                (r) =>
-                  !r.due_scheduled_at &&
-                  !r.is_muted &&
-                  !r.is_completed &&
-                  !r.is_archived
-              )}
-              onNotificationResponse={() => loadReminders()}
-              onMuted={() => loadReminders()}
-              emptyMessage="No Upcoming Reminders."
-            />
-          </VStack>
+          <ReminderGroup
+            reminders={[
+              {
+                title: "Due",
+                reminders: reminders.filter((r) => r.due_scheduled_at),
+                emptyMessage: NO_REMINDERS_DUE_TEXT[nothingDueIndex],
+              },
+              {
+                title: "Upcoming",
+                reminders: reminders.filter(
+                  (r) =>
+                    !r.due_scheduled_at &&
+                    !r.is_muted &&
+                    !r.is_completed &&
+                    !r.is_archived
+                ),
+                emptyMessage: "No Upcoming Reminders.",
+              },
+            ]}
+            onNotificationResponse={() => loadReminders()}
+            onMuted={() => loadReminders()}
+          />
         );
       }
       case "due": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.due_scheduled_at)}
+            reminders={[
+              {
+                title: "",
+                reminders: reminders.filter((r) => r.due_scheduled_at),
+                emptyMessage: NO_REMINDERS_DUE_TEXT[nothingDueIndex],
+              },
+            ]}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
           />
         );
       }
       case "upcoming": {
         return (
           <ReminderGroup
-            reminders={reminders.filter(
-              (r) =>
-                !r.due_scheduled_at &&
-                !r.is_muted &&
-                !r.is_completed &&
-                !r.is_archived
-            )}
+            reminders={[
+              {
+                title: "",
+                reminders: reminders.filter(
+                  (r) =>
+                    !r.due_scheduled_at &&
+                    !r.is_muted &&
+                    !r.is_completed &&
+                    !r.is_archived
+                ),
+                emptyMessage: "No Upcoming Reminders.",
+              },
+            ]}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="No Upcoming Reminders."
           />
         );
       }
       case "muted": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_muted && !r.is_archived).reverse()}
+            reminders={[
+              {
+                title: "",
+                reminders: reminders
+                  .filter((r) => r.is_muted && !r.is_archived)
+                  .reverse(),
+                emptyMessage: "No Muted Reminders.",
+              },
+            ]}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="No Muted Reminders."
           />
         );
       }
       case "completed": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_completed).reverse()}
+            reminders={[
+              {
+                title: "",
+                reminders: reminders.filter((r) => r.is_completed).reverse(),
+                emptyMessage: "No Completed Reminders.",
+              },
+            ]}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="No Completed Reminders."
           />
         );
       }
       case "archived": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_archived).reverse()}
+            reminders={[
+              {
+                title: "",
+                reminders: reminders.filter((r) => r.is_archived).reverse(),
+                emptyMessage: "No Archived Reminders.",
+              },
+            ]}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
-            emptyMessage="No Archived Reminders."
           />
         );
       }
       default: {
-        return (
-          <ReminderGroup
-            reminders={reminders}
-            onNotificationResponse={() => loadReminders()}
-            onMuted={() => loadReminders()}
-            emptyMessage={NO_REMINDERS_DUE_TEXT[nothingDueIndex]}
-          />
-        );
+        return null;
       }
     }
   }
@@ -220,39 +273,27 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          ref={filterScrollViewRef}
         >
-          <HStack>
-            <FilterOption
-              label="Current"
-              onPress={() => setCurrentFilter("all")}
-              active={currentFilter === "all"}
-            />
-            <FilterOption
-              label="Due"
-              onPress={() => setCurrentFilter("due")}
-              active={currentFilter === "due"}
-            />
-            <FilterOption
-              label="Upcoming"
-              onPress={() => setCurrentFilter("upcoming")}
-              active={currentFilter === "upcoming"}
-            />
-            <FilterOption
-              label="Muted"
-              onPress={() => setCurrentFilter("muted")}
-              active={currentFilter === "muted"}
-            />
-            <FilterOption
-              label="Completed"
-              onPress={() => setCurrentFilter("completed")}
-              active={currentFilter === "completed"}
-            />
-            <FilterOption
-              label="Archived"
-              onPress={() => setCurrentFilter("archived")}
-              active={currentFilter === "archived"}
-            />
-          </HStack>
+          {FILTERS.map((filter, idx) => (
+            <TouchableOpacity
+              onPress={() => handleTabPress(filter.key, idx)}
+              /* @ts-ignore */
+              ref={filterRefs.current[idx]}
+              key={filter.key}
+            >
+              <Heading
+                size="xl"
+                className={`${
+                  currentFilter === filter.key
+                    ? "text-typography-950"
+                    : "text-typography-500"
+                } pr-6`}
+              >
+                {filter.label}
+              </Heading>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
         {showLeftFade && <EdgeFade left />}
         {showRightFade && (
@@ -265,10 +306,19 @@ export default function HomeScreen() {
           </EdgeFade>
         )}
       </Box>
-      <ScrollView>
-        <FilterOptionReminders filterKey={currentFilter} />
-        <Box className="h-36"></Box>
-      </ScrollView>
+
+      <PagerView
+        style={{ flex: 1 }}
+        initialPage={0}
+        onPageSelected={handlePageSelected}
+        ref={pagerRef}
+        pageMargin={42}
+      >
+        {FILTERS.map((filter) => (
+          <FilterOptionReminders key={filter.key} filterKey={filter.key} />
+        ))}
+      </PagerView>
+
       <Fab
         size="lg"
         placement="bottom right"

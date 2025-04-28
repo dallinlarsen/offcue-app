@@ -165,7 +165,7 @@ export default function HomeScreen() {
       case "muted": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_muted && !r.is_archived)}
+            reminders={reminders.filter((r) => r.is_muted && !r.is_archived).reverse()}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
             emptyMessage="No Muted Reminders."
@@ -175,7 +175,7 @@ export default function HomeScreen() {
       case "completed": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_completed)}
+            reminders={reminders.filter((r) => r.is_completed).reverse()}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
             emptyMessage="No Completed Reminders."
@@ -185,7 +185,7 @@ export default function HomeScreen() {
       case "archived": {
         return (
           <ReminderGroup
-            reminders={reminders.filter((r) => r.is_archived)}
+            reminders={reminders.filter((r) => r.is_archived).reverse()}
             onNotificationResponse={() => loadReminders()}
             onMuted={() => loadReminders()}
             emptyMessage="No Archived Reminders."

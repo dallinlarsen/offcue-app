@@ -30,14 +30,16 @@ export async function getReminders(
   limit?: number,
   offset?: number,
   wherePositive: ReminderBooleanColumn[] = [],
-  whereNegative: ReminderBooleanColumn[] = []
+  whereNegative: ReminderBooleanColumn[] = [],
+  orderByScheduledAt: "ASC" | "DESC" = "ASC"
 ) {
   return await source.getReminderOrGetReminders(
     undefined,
     limit,
     offset,
     wherePositive,
-    whereNegative
+    whereNegative,
+    orderByScheduledAt,
   );
 }
 

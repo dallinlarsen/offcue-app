@@ -68,7 +68,7 @@ export default function NotificationsTest() {
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 mb-4">
+      <Box className="flex flex-row items-center -mt-2 -ml-3 mb-4">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>

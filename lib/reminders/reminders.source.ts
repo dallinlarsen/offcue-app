@@ -39,7 +39,8 @@ export async function getReminderOrGetReminders(
   limit?: number,
   offset?: number,
   wherePositive: ReminderBooleanColumn[] = [],
-  whereNegative: ReminderBooleanColumn[] = []
+  whereNegative: ReminderBooleanColumn[] = [],
+  orderByScheduledAt: 'ASC' | 'DESC' = 'ASC',
 ) {
   if (
     id &&
@@ -107,6 +108,13 @@ export async function getReminderOrGetReminders(
     FROM notifications n
     WHERE scheduled_at <= CURRENT_TIMESTAMP
       AND response_at IS NULL
+  ),
+  future_notifications AS (
+    SELECT n.*,
+          ROW_NUMBER() OVER (PARTITION BY reminder_id ORDER BY scheduled_at) AS rn
+    FROM notifications n
+    WHERE scheduled_at > CURRENT_TIMESTAMP
+      AND response_at IS NULL
   )
   SELECT  
     r.*,
@@ -128,6 +136,7 @@ export async function getReminderOrGetReminders(
     ) AS schedules,
     ln.scheduled_at AS due_scheduled_at,
     ln.id AS due_notification_id,
+    fn.scheduled_at AS future_scheduled_at,
     n.id IS NOT NULL AS is_completed,
     n.response_at AS completed_at
   FROM reminders r
@@ -139,12 +148,17 @@ export async function getReminderOrGetReminders(
     SELECT * FROM latest_notifications
     WHERE rn = 1
   ) ln ON ln.reminder_id = r.id
+  LEFT JOIN (
+    SELECT * FROM future_notifications
+    WHERE rn = 1
+  ) fn ON fn.reminder_id = r.id
   WHERE TRUE ${id ? "AND r.id = ?" : ""}
   ${wherePositive.length > 0 ? "AND " + wherePositive.join(" AND ") : ""}
   ${
     whereNegative.length > 0 ? "AND NOT " + whereNegative.join(" AND NOT ") : ""
   }
   GROUP BY r.id
+  ORDER BY due_scheduled_at DESC, fn.scheduled_at ${orderByScheduledAt}
   ${limit ? "LIMIT = ?" : ""} ${limit && offset ? "OFFSET = ?" : ""};
   `,
     [id || null, limit || null, offset || null].filter((i) => i !== null)

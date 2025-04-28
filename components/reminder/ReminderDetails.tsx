@@ -220,9 +220,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               </Text>
               <Box>
                 <Text size="xl">When</Text>
-                {reminder.schedules.map((s) => (
-                  <Text>{s.label} ({formatScheduleString(s)})</Text>
-                ))}
               </Box>
             </VStack>
             {reminder.is_recurring && !reminder.is_archived && (
@@ -244,6 +241,13 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               </HStack>
             )}
           </HStack>
+          <Box className="mb-1">
+            {reminder.schedules.map((s) => (
+              <Text numberOfLines={1} key={s.id}>
+                {s.label} ({formatScheduleString(s)})
+              </Text>
+            ))}
+          </Box>
           <Box>
             {showStartDate.current && !showEndDate.current ? (
               <Text size="xl">

@@ -549,7 +549,12 @@ export async function updateNotificationResponseOneTime(
     await source.deleteFutureNotificationsByReminderId(reminderId);
   }
 
-  dismissFromNotificationCenter(notification.id);
+  const pastNotifications = await source.getPastNotificationsByReminderId(reminderId);
+
+  for (const pastNotification of pastNotifications) {
+    dismissFromNotificationCenter(pastNotification.id);
+  }
+  
   scheduleAllUpcomingNotifications();
 }
 

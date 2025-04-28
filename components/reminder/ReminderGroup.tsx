@@ -1,62 +1,84 @@
-import { VStack } from "../ui/vstack";
 import { Heading } from "../ui/heading";
 import { chunkIntoPairs } from "@/lib/utils/format";
 import ReminderSelectCard from "./ReminderSelectCard";
 import { Box } from "../ui/box";
 import { Text } from "@/components/ui/text";
 import { Reminder } from "@/lib/reminders/reminders.types";
+import { SectionList } from "react-native";
+import { useRef } from "react";
+import Fade from "../Fade";
 
 type Props = {
-  title?: string;
-  reminders: Reminder[];
+  reminders: { title: string; reminders: Reminder[], emptyMessage?: string }[];
   onNotificationResponse: () => void;
   onMuted: () => void;
   open?: boolean;
   setOpen?: (open: boolean) => void;
-  emptyMessage?: string;
 };
 
 export default function ReminderGroup({
-  title,
   reminders,
   onMuted,
   onNotificationResponse,
-  emptyMessage,
 }: Props) {
+  const chunkedReminders = useRef(
+    reminders.map((r) => ({ ...r, data: chunkIntoPairs(r.reminders) }))
+  );
+
   return (
-    <VStack space="xs">
-      {title && (
-        <Heading size="md">
-          {title}
-        </Heading>
+    <SectionList
+      sections={chunkedReminders.current}
+      renderItem={({ item }) => (
+        <Box className="flex flex-row gap-4 mb-4">
+          {item.map((r, idx) =>
+            r ? (
+              <ReminderSelectCard
+                key={r.id}
+                reminder={r}
+                onNotificationResponse={onNotificationResponse}
+                onMuted={onMuted}
+              />
+            ) : (
+              <Box
+                key={`idx_${idx}`}
+                className="p-3 flex-1 aspect-square opacity-0"
+              />
+            )
+          )}
+        </Box>
       )}
-      <VStack space="lg">
-        {reminders.length === 0 ? (
-          <Box className="items-center">
-            <Text size="xl">{emptyMessage || "No Reminders Found"}</Text>
-          </Box>
+      renderSectionHeader={({ section: { title, reminders, emptyMessage } }) =>
+        reminders.length > 0 ? (
+          title !== "" ? (
+            <>
+              <Heading
+                size="lg"
+                className="mb-2 bg-background-light dark:bg-background-dark"
+              >
+                {title}
+              </Heading>
+              <Box>
+                <Fade heightClassDark="dark:h-2" heightClassLight="h-2" reverse />
+              </Box>
+            </>
+          ) : (
+            <></>
+          )
         ) : (
-          chunkIntoPairs(reminders).map((p, idx) => (
-            <Box className="flex flex-row gap-4" key={idx}>
-              {p.map((r, idx) =>
-                r ? (
-                  <ReminderSelectCard
-                    key={r.id}
-                    reminder={r}
-                    onNotificationResponse={onNotificationResponse}
-                    onMuted={onMuted}
-                  />
-                ) : (
-                  <Box
-                    key={`idx_${idx}`}
-                    className="p-3 flex-1 aspect-square opacity-0"
-                  />
-                )
-              )}
+          <Box>
+            <Heading
+              size="lg"
+              className="mb-1 bg-background-light dark:bg-background-dark"
+            >
+              {title}
+            </Heading>
+            <Box className="items-center mb-12">
+              <Text size="xl">{emptyMessage || "No Reminders Found"}</Text>
             </Box>
-          ))
-        )}
-      </VStack>
-    </VStack>
+          </Box>
+        )
+      }
+      keyExtractor={(item, index) => JSON.stringify(item) + index}
+    />
   );
 }

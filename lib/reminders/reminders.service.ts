@@ -30,14 +30,16 @@ export async function getReminders(
   limit?: number,
   offset?: number,
   wherePositive: ReminderBooleanColumn[] = [],
-  whereNegative: ReminderBooleanColumn[] = []
+  whereNegative: ReminderBooleanColumn[] = [],
+  orderByScheduledAt: "ASC" | "DESC" = "ASC"
 ) {
   return await source.getReminderOrGetReminders(
     undefined,
     limit,
     offset,
     wherePositive,
-    whereNegative
+    whereNegative,
+    orderByScheduledAt,
   );
 }
 
@@ -84,10 +86,10 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
     await deleteFutureNotificationsByReminderId(id);
   } else {
     // TODO: When future notification generation is implemented call it here.
-    await recalcFutureNotifications(id);
+    recalcFutureNotifications(id);
   }
 
-  await scheduleAllUpcomingNotifications();
+  scheduleAllUpcomingNotifications();
 };
 
 export const updateReminderArchived = async (

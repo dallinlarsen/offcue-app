@@ -121,6 +121,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
                 )}
               </Text>
               <Text
+                numberOfLines={1}
                 className={
                   is_muted && !reminder.is_archived ? "text-typography-500" : ""
                 }

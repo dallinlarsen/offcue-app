@@ -50,7 +50,7 @@ export default function ReminderDetailsPage() {
 
   return reminder ? (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2">
+      <Box className="flex flex-row items-center -mt-2 -ml-3">
         <TouchableOpacity className="p-3" onPress={goBackHandler}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>

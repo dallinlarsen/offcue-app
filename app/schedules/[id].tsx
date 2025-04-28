@@ -92,7 +92,7 @@ export default function () {
 
   return schedule ? (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2">
+      <Box className="flex flex-row items-center -mt-2 -ml-3">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
@@ -106,7 +106,7 @@ export default function () {
         </Heading>
       </Box>
       <VStack space="md">
-        <HStack className="justify-between items-start">
+        <HStack className="items-start">
           <Heading size="xl">{formatScheduleString(schedule)}</Heading>
         </HStack>
         {schedule.is_archived ? (

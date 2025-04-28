@@ -47,10 +47,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import DatePicker from "react-native-date-picker";
 import useWatch from "@/hooks/useWatch";
 import Fade from "../Fade";
-import {
-  InsertReminder,
-  IntervalType,
-} from "@/lib/reminders/reminders.types";
+import { InsertReminder, IntervalType } from "@/lib/reminders/reminders.types";
 import { Schedule } from "@/lib/schedules/schedules.types";
 import {
   createReminder,
@@ -220,7 +217,7 @@ export default function AddEditReminder({
       setValue("end_date", undefined);
     }
   });
-  
+
   function addScheduleOnCloseHandler() {
     if (reopenSchedules) {
       setSchedulesOpen(true);
@@ -562,21 +559,21 @@ export default function AddEditReminder({
                 onCancel={() => setShowDatePicker(null)}
               />
               {recurring && (
-                <TouchableOpacity
-                  onPress={() => setShowEndDateOption(!showEndDateOption)}
-                >
-                  <HStack space="sm" className="items-center">
-                    <Heading size="lg">Set End Date</Heading>
-                    {
-                      <Icon
-                        size="lg"
-                        as={
-                          showEndDateOption ? ChevronDownIcon : ChevronRightIcon
-                        }
-                      />
-                    }
-                  </HStack>
-                </TouchableOpacity>
+                <HStack space="xl" className="items-center mb-1">
+                  <Text size="xl" className="font-quicksand-semibold">
+                    Set End Date
+                  </Text>
+                  <Switch
+                    value={showEndDateOption}
+                    onValueChange={(show) => setShowEndDateOption(show)}
+                    trackColor={{
+                      false: colors.gray[300],
+                      true: colors.gray[500],
+                    }}
+                    thumbColor={colors.gray[50]}
+                    ios_backgroundColor={colors.gray[300]}
+                  />
+                </HStack>
               )}
               {recurring && showEndDateOption && (
                 <>

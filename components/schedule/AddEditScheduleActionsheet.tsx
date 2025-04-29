@@ -48,12 +48,22 @@ type AddScheduleActionsheetProps = {
   onClose?: () => void;
 };
 
-const ZodSchema = z.object({
-  label: z.string().min(1, "Required"),
-  days: z.array(z.any()).min(1, "At least one day must be selected"),
-  startTime: z.date(),
-  endTime: z.date(),
-});
+const ZodSchema = z
+  .object({
+    label: z.string().min(1, "Required"),
+    days: z.array(z.any()).min(1, "At least one day must be selected"),
+    startTime: z.date(),
+    endTime: z.date(),
+  })
+  .refine(
+    ({ startTime, endTime }) => {
+      const startDateInt = parseInt(dayjs(startTime).format("HHmm"));
+      const endDateInt = parseInt(dayjs(endTime).format("HHmm"));
+      if (startDateInt === 0 && endDateInt === 0) return true;
+      else return startDateInt < endDateInt;
+    },
+    { message: "Start time must be before end time.", path: ["startTime"] }
+  );
 
 export default function ({
   schedule,
@@ -98,6 +108,7 @@ export default function ({
     handleSubmit,
     setValue,
     clearErrors,
+    trigger,
     watch,
     formState: { errors },
   } = useForm({
@@ -105,7 +116,7 @@ export default function ({
     defaultValues: getInitialFormState(),
   });
 
-  const [days, startTime, endTime] = watch(["days", "startTime", "endTime"]);
+  const [days, endTime] = watch(["days", "endTime"]);
 
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null
@@ -121,11 +132,17 @@ export default function ({
       setValue("endTime", initialFormState.endTime);
 
       setShowDatePicker(null);
+
+      clearErrors();
     }
   });
 
   useWatch(days, () => {
     clearErrors("days");
+  });
+
+  useWatch(endTime, () => {
+    trigger("startTime");
   });
 
   const onSubmit = handleSubmit(async (model) => {
@@ -246,49 +263,83 @@ export default function ({
           </FormControl>
           <Heading>Between</Heading>
           <VStack space="xs" className="w-full">
-            <Input
-              size="xl"
-              isReadOnly
-              onTouchEnd={() =>
-                setShowDatePicker(showDatePicker === "start" ? null : "start")
-              }
-            >
-              <InputField
-                placeholder="Start Time"
-                value={dayjs(startTime).format("h:mm a")}
+            <FormControl isInvalid={!!errors.startTime}>
+              <Controller
+                control={control}
+                name="startTime"
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <Input
+                      size="xl"
+                      isReadOnly
+                      onTouchEnd={() =>
+                        setShowDatePicker(
+                          showDatePicker === "start" ? null : "start"
+                        )
+                      }
+                    >
+                      <InputField
+                        placeholder="Start Time"
+                        value={dayjs(value).format("h:mm a")}
+                      />
+                    </Input>
+                    <FormControlError>
+                      <FormControlErrorText>
+                        {errors?.startTime?.message || ""}
+                      </FormControlErrorText>
+                    </FormControlError>
+                    {showDatePicker === "start" ? (
+                      <Box className="flex w-full items-center">
+                        <DatePicker
+                          mode="time"
+                          date={value}
+                          onDateChange={onChange}
+                        />
+                      </Box>
+                    ) : null}
+                  </>
+                )}
               />
-            </Input>
-            {showDatePicker === "start" ? (
-              <Box className="flex w-full items-center">
-                <DatePicker
-                  mode="time"
-                  date={startTime}
-                  onDateChange={(value) => setValue("startTime", value)}
-                />
-              </Box>
-            ) : null}
+            </FormControl>
             <Heading size="md">And</Heading>
-            <Input
-              size="xl"
-              isReadOnly
-              onTouchEnd={() =>
-                setShowDatePicker(showDatePicker === "end" ? null : "end")
-              }
-            >
-              <InputField
-                placeholder="End Time"
-                value={dayjs(endTime).format("h:mm a")}
+            <FormControl isInvalid={!!errors.endTime}>
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field: { onChange, value } }) => (
+                  <>
+                    <Input
+                      size="xl"
+                      isReadOnly
+                      onTouchEnd={() =>
+                        setShowDatePicker(
+                          showDatePicker === "end" ? null : "end"
+                        )
+                      }
+                    >
+                      <InputField
+                        placeholder="End Time"
+                        value={dayjs(value).format("h:mm a")}
+                      />
+                    </Input>
+                    <FormControlError>
+                      <FormControlErrorText>
+                        {errors?.endTime?.message || ""}
+                      </FormControlErrorText>
+                    </FormControlError>
+                    {showDatePicker === "end" ? (
+                      <Box className="flex w-full items-center">
+                        <DatePicker
+                          mode="time"
+                          date={value}
+                          onDateChange={onChange}
+                        />
+                      </Box>
+                    ) : null}
+                  </>
+                )}
               />
-            </Input>
-            {showDatePicker === "end" ? (
-              <Box className="flex w-full items-center">
-                <DatePicker
-                  mode="time"
-                  date={endTime}
-                  onDateChange={(value) => setValue("endTime", value)}
-                />
-              </Box>
-            ) : null}
+            </FormControl>
           </VStack>
         </ActionsheetScrollView>
         <Button className="w-full mt-4" size="xl" onPress={onSubmit}>

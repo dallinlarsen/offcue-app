@@ -45,6 +45,7 @@ export default function ({ reminder }: Props) {
     <TouchableOpacity
       key={reminder.id}
       onPress={() => router.push(`/reminder/${reminder.id}`)}
+      className="mb-2"
     >
       <Card variant="filled">
         <HStack className="justify-between items-center flex-wrap">

@@ -18,7 +18,7 @@ export async function schedulesInit() {
     is_thursday INTEGER NOT NULL DEFAULT 0,   -- Whether the schedule is on Thursday (1 for true, 0 for false)
     is_friday INTEGER NOT NULL DEFAULT 0,     -- Whether the schedule is on Friday (1 for true, 0 for false)
     is_saturday INTEGER NOT NULL DEFAULT 0,   -- Whether the schedule is on Saturday (1 for true, 0 for false)
-    is_archived INTEGER NOT NULL DEFAULT 0,   -- Archive state of the schedule
+    is_active INTEGER NOT NULL DEFAULT 1,     -- Active state of the schedule
     start_time TEXT NOT NULL,                 -- Start time of the schedule in HH:MM format
     end_time TEXT NOT NULL,                   -- End time of the schedule in HH:MM format
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the schedule was created
@@ -48,7 +48,7 @@ export async function getAllSchedules() {
 
   return schedules.map((s) =>
     convertIntegerValuesToBoolean(s, [
-      "is_archived",
+      "is_active",
       "is_sunday",
       "is_monday",
       "is_tuesday",
@@ -68,7 +68,7 @@ export async function getSchedule(id: number) {
   if (!schedule) return null;
 
   return convertIntegerValuesToBoolean(schedule, [
-    "is_archived",
+    "is_active",
     "is_sunday",
     "is_monday",
     "is_tuesday",
@@ -90,7 +90,7 @@ export async function getSchedulesByReminderId(reminderId: number) {
   
   return schedules.map((s) =>
     convertIntegerValuesToBoolean(s, [
-      "is_archived",
+      "is_active",
       "is_sunday",
       "is_monday",
       "is_tuesday",
@@ -131,7 +131,7 @@ export async function createInitialSchedules() {
         is_thursday: true,
         is_friday: true,
         is_saturday: false,
-        is_archived: false,
+        is_active: true,
         start_time: "08:00",
         end_time: "17:00",
       },
@@ -144,7 +144,7 @@ export async function createInitialSchedules() {
         is_thursday: true,
         is_friday: true,
         is_saturday: false,
-        is_archived: false,
+        is_active: true,
         start_time: "18:00",
         end_time: "20:00",
       },
@@ -157,7 +157,7 @@ export async function createInitialSchedules() {
         is_thursday: false,
         is_friday: false,
         is_saturday: true,
-        is_archived: false,
+        is_active: true,
         start_time: "10:00",
         end_time: "18:00",
       },

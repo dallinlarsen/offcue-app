@@ -18,6 +18,7 @@ export default function({ schedule }: Props) {
     return (
       <TouchableOpacity
         onPress={() => router.push(`/schedules/${schedule.id}`)}
+        className="mb-4"
       >
         <Card key={schedule.id} variant="filled">
           <HStack className="justify-between items-center flex-wrap">

@@ -1,6 +1,6 @@
 import Fade from "@/components/Fade";
 import AddEditScheduleActionsheet from "@/components/schedule/AddEditScheduleActionsheet";
-import ArchiveScheduleDialog from "@/components/schedule/ArchiveScheduleDialog";
+import InactivateScheduleDialog from "@/components/schedule/InactivateScheduleDialog";
 import DeleteScheduleDialog from "@/components/schedule/DeleteScheduleDialog";
 import ScheduleReminderGroupDropDown from "@/components/schedule/ScheduleReminderGroupDropDown";
 import ScheduleReminderOption from "@/components/schedule/ScheduleReminderOption";
@@ -12,9 +12,11 @@ import { Fab, FabIcon } from "@/components/ui/fab";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
 import {
-  ArchiveArrowUp,
-  ArchiveOutlineIcon,
   ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  EyeIcon,
+  EyeOffIcon,
   Icon,
   PencilIcon,
   TrashIcon,
@@ -33,7 +35,7 @@ import { formatScheduleString } from "@/lib/utils/format";
 import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { ScrollView, SectionList, TouchableOpacity } from "react-native";
 
 export default function () {
   const { id } = useLocalSearchParams();
@@ -42,8 +44,15 @@ export default function () {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [reminders, setReminders] = useState<ReminderBase[]>([]);
   const [currentReminders, setCurrentReminders] = useState<ReminderBase[]>([]);
+  const [mutedReminders, setMutedReminders] = useState<ReminderBase[]>([]);
+  const [completedReminders, setCompletedReminders] = useState<ReminderBase[]>(
+    []
+  );
+  const [archivedReminders, setArchivedReminders] = useState<ReminderBase[]>(
+    []
+  );
   const [editOpen, setEditOpen] = useState(false);
-  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [inactivateOpen, setInactivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reminderGroupsToShow, setReminderGroupsToShow] = useState<string[]>(
     []
@@ -58,6 +67,9 @@ export default function () {
     setCurrentReminders(
       reminders.filter((r) => !r.is_archived && !r.is_completed && !r.is_muted)
     );
+    setMutedReminders(reminders.filter((r) => r.is_muted && !r.is_archived));
+    setCompletedReminders(reminders.filter((r) => r.is_completed));
+    setArchivedReminders(reminders.filter((r) => r.is_archived));
   }, [reminders]);
 
   useFocusEffect(
@@ -66,14 +78,14 @@ export default function () {
     }, [])
   );
 
-  async function archiveScheduleHandler() {
-    setArchiveOpen(false);
-    await updateSchedule(schedule?.id!, { is_archived: true });
+  async function inactivateScheduleHandler() {
+    setInactivateOpen(false);
+    await updateSchedule(schedule?.id!, { is_active: false });
     fetchData();
   }
 
   async function restoreScheduleHandler() {
-    await updateSchedule(schedule?.id!, { is_archived: false });
+    await updateSchedule(schedule?.id!, { is_active: true });
     fetchData();
   }
 
@@ -87,6 +99,23 @@ export default function () {
       setReminderGroupsToShow(reminderGroupsToShow.filter((r) => r !== value));
     } else {
       setReminderGroupsToShow([...reminderGroupsToShow, value]);
+    }
+  }
+
+  function getReminderListSize(key: string) {
+    switch (key) {
+      case "muted": {
+        return mutedReminders.length;
+      }
+      case "completed": {
+        return completedReminders.length;
+      }
+      case "archived": {
+        return archivedReminders.length;
+      }
+      default: {
+        return 0;
+      }
     }
   }
 
@@ -109,18 +138,18 @@ export default function () {
         <HStack className="items-start">
           <Heading size="xl">{formatScheduleString(schedule)}</Heading>
         </HStack>
-        {schedule.is_archived ? (
+        {!schedule.is_active ? (
           <>
             <Alert className="bg-orange-100 dark:bg-orange-950">
               <AlertIcon
-                as={ArchiveOutlineIcon}
-                className="fill-orange-800 dark:fill-orange-100"
+                as={EyeOffIcon}
+                className="text-orange-800 dark:text-orange-100"
               />
               <AlertText
                 size="lg"
                 className="text-orange-800 dark:text-orange-100"
               >
-                Archived on{" "}
+                Inactivated on{" "}
                 {dayjs(schedule.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
                 {dayjs(schedule.updated_at + "+00:00").format("h:mm a")}
               </AlertText>
@@ -132,11 +161,8 @@ export default function () {
                 size="xl"
                 onPress={restoreScheduleHandler}
               >
-                <ButtonIcon
-                  as={ArchiveArrowUp}
-                  className="fill-typography-950"
-                />
-                <ButtonText>Restore</ButtonText>
+                <ButtonIcon as={EyeIcon} />
+                <ButtonText>Activate</ButtonText>
               </Button>
               <Button
                 className="flex-1"
@@ -153,13 +179,10 @@ export default function () {
           <Button
             variant="outline"
             size="xl"
-            onPress={() => setArchiveOpen(true)}
+            onPress={() => setInactivateOpen(true)}
           >
-            <ButtonIcon
-              as={ArchiveOutlineIcon}
-              className="fill-typography-950"
-            />
-            <ButtonText>Archive</ButtonText>
+            <ButtonIcon as={EyeOffIcon} />
+            <ButtonText>Inactivate</ButtonText>
           </Button>
         )}
         <Heading size="xl" className="mt-3">
@@ -167,44 +190,96 @@ export default function () {
         </Heading>
       </VStack>
       {reminders.length > 0 ? (
-        <ScrollView>
-          <VStack space="xl">
-            <Box>
-              <Heading size="lg">Current</Heading>
-              {currentReminders.length > 0 ? (
-                <VStack space="md">
-                  {currentReminders.map((reminder) => (
-                    <ScheduleReminderOption
-                      key={reminder.id}
-                      reminder={reminder}
-                    />
-                  ))}
-                </VStack>
-              ) : (
-                <Text>No current reminders are using this schedule.</Text>
-              )}
-            </Box>
-            <ScheduleReminderGroupDropDown
-              reminders={reminders.filter((r) => r.is_muted && !r.is_archived)}
-              label="Muted"
-              showDropDown={reminderGroupsToShow.includes("muted")}
-              onPress={() => toggleReminderGroup("muted")}
-            />
-            <ScheduleReminderGroupDropDown
-              reminders={reminders.filter((r) => r.is_completed)}
-              label="Completed"
-              showDropDown={reminderGroupsToShow.includes("completed")}
-              onPress={() => toggleReminderGroup("completed")}
-            />
-            <ScheduleReminderGroupDropDown
-              reminders={reminders.filter((r) => r.is_archived)}
-              label="Archived"
-              showDropDown={reminderGroupsToShow.includes("archived")}
-              onPress={() => toggleReminderGroup("archived")}
-            />
-            <Box className="h-24" />
-          </VStack>
-        </ScrollView>
+        <SectionList
+          showsVerticalScrollIndicator={false}
+          sections={[
+            {
+              title: "Current",
+              data: currentReminders,
+            },
+            {
+              title: "Muted",
+              data: reminderGroupsToShow.includes("muted")
+                ? mutedReminders
+                : [],
+            },
+            {
+              title: "Completed",
+              data: reminderGroupsToShow.includes("completed")
+                ? completedReminders
+                : [],
+            },
+            {
+              title: "Archived",
+              data: reminderGroupsToShow.includes("archived")
+                ? archivedReminders
+                : [],
+            },
+            {
+              title: "",
+              data: [null, null],
+            },
+          ]}
+          renderItem={({ item }) =>
+            item ? (
+              <ScheduleReminderOption reminder={item} />
+            ) : (
+              <Box className="h-12" />
+            )
+          }
+          renderSectionHeader={({ section: { title, data } }) =>
+            title === "Current" ? (
+              <Box className="-mb-4">
+                <Box className="bg-background-light dark:bg-background-dark mb-3">
+                  <Heading size="lg">{title}</Heading>
+                  {currentReminders.length === 0 && (
+                    <Text className="mb-8">No current reminders are using this schedule.</Text>
+                  )}
+                </Box>
+                <Box>
+                  <Fade
+                    heightClassDark="dark:h-4"
+                    heightClassLight="h-4"
+                    reverse
+                  />
+                </Box>
+              </Box>
+            ) : title.trim() !== "" &&
+              getReminderListSize(title.toLowerCase()) !== 0 ? (
+              <TouchableOpacity
+                onPress={() => toggleReminderGroup(title.toLowerCase())}
+                className={
+                  reminderGroupsToShow.includes(title.toLowerCase())
+                    ? `-mb-4`
+                    : "mb-4"
+                }
+              >
+                <HStack
+                  space="sm"
+                  className="items-center mb-3 bg-background-light dark:bg-background-dark"
+                >
+                  <Heading size="lg">{title}</Heading>
+                  <Icon
+                    size="md"
+                    as={
+                      reminderGroupsToShow.includes(title.toLowerCase())
+                        ? ChevronDownIcon
+                        : ChevronRightIcon
+                    }
+                  />
+                </HStack>
+                <Box>
+                  <Fade
+                    heightClassDark="dark:h-4"
+                    heightClassLight="h-4"
+                    reverse
+                  />
+                </Box>
+              </TouchableOpacity>
+            ) : null
+          }
+          SectionSeparatorComponent={() => <Box className="h-4" />}
+        />
       ) : (
         <Text>No reminders are using this schedule.</Text>
       )}
@@ -215,11 +290,11 @@ export default function () {
         setIsOpen={setEditOpen}
         onSave={(schedule) => setSchedule(schedule)}
       />
-      <ArchiveScheduleDialog
-        isOpen={archiveOpen}
+      <InactivateScheduleDialog
+        isOpen={inactivateOpen}
         schedule={schedule}
-        onCancel={() => setArchiveOpen(false)}
-        onArchive={archiveScheduleHandler}
+        onCancel={() => setInactivateOpen(false)}
+        onInactivate={inactivateScheduleHandler}
       />
       <DeleteScheduleDialog
         isOpen={deleteOpen}
@@ -228,7 +303,7 @@ export default function () {
         onCancel={() => setDeleteOpen(false)}
         onDelete={deleteScheduleHandler}
       />
-      {!schedule.is_archived && (
+      {schedule.is_active && (
         <Fab size="lg" onPress={() => setEditOpen(true)}>
           <FabIcon as={PencilIcon} size="xl" className="fill-typography-50" />
         </Fab>

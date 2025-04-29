@@ -30,7 +30,7 @@ export default function EdgeFadeOverlay({ left, children }: Props) {
       <Box
         className={`absolute top-0 bottom-0 ${
           left ? "left-0" : "right-0"
-        } w-8 h-0 dark:h-8`}
+        } w-4 h-0 dark:h-8`}
         pointerEvents="none"
       >
         <LinearGradient
@@ -46,7 +46,7 @@ export default function EdgeFadeOverlay({ left, children }: Props) {
       <Box
         className={`absolute top-0 bottom-0 ${
           left ? "left-0" : "right-0"
-        } w-8 dark:h-0`}
+        } w-4 dark:h-0`}
         pointerEvents="none"
       >
         <LinearGradient

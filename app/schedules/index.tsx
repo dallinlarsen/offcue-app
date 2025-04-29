@@ -3,7 +3,6 @@ import AddEditScheduleActionsheet from "@/components/schedule/AddEditScheduleAct
 import ScheduleOption from "@/components/schedule/ScheduleOption";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
-import { Card } from "@/components/ui/card";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { Heading } from "@/components/ui/heading";
 import { HStack } from "@/components/ui/hstack";
@@ -14,13 +13,11 @@ import {
   Icon,
 } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { VStack } from "@/components/ui/vstack";
 import { getAllSchedules } from "@/lib/schedules/schedules.service";
 import { Schedule } from "@/lib/schedules/schedules.types";
-import { formatScheduleString } from "@/lib/utils/format";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { SectionList, TouchableOpacity } from "react-native";
 
 export default function SchedulesScreen() {
   const router = useRouter();
@@ -28,6 +25,8 @@ export default function SchedulesScreen() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [showAddSchedule, setShowAddSchedule] = useState(false);
+  const [activeSchedules, setActiveSchedules] = useState<Schedule[]>([]);
+  const [inactiveSchedules, setInactiveSchedules] = useState<Schedule[]>([]);
 
   const loadSchedules = async () => {
     const data = await getAllSchedules();
@@ -41,43 +40,82 @@ export default function SchedulesScreen() {
     }, [])
   );
 
+  useEffect(() => {
+    setActiveSchedules(schedules.filter((s) => s.is_active));
+    setInactiveSchedules(schedules.filter((s) => !s.is_active));
+  }, [schedules]);
+
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center mb-4">
+      <Box className="flex flex-row items-center pb-4">
         <Heading size="3xl">Schedules</Heading>
       </Box>
-      <ScrollView>
-        <VStack space="md">
-          {schedules.filter((s) => s.is_archived).length > 0 && (
-            <Heading size="xl">Current</Heading>
-          )}
-          {schedules
-            .filter((s) => !s.is_archived)
-            .map((schedule) => (
-              <ScheduleOption key={schedule.id} schedule={schedule} />
-            ))}
-
-          {schedules.filter((s) => s.is_archived).length > 0 && (
-            <>
+      <SectionList
+        sections={[
+          {
+            title: "Active",
+            data:
+              inactiveSchedules.length > 0
+                ? activeSchedules
+                : [...activeSchedules, null, null],
+          },
+          {
+            title: "Inactive",
+            data: showArchived
+              ? [...inactiveSchedules, null, null]
+              : [null, null],
+          },
+        ]}
+        renderItem={({ item }) =>
+          item ? <ScheduleOption schedule={item} /> : <Box className="h-12" />
+        }
+        //@ts-ignore
+        renderSectionHeader={({ section: { title }}) =>
+          title === "Inactive" ? (
+            inactiveSchedules.length > 0 && (
               <TouchableOpacity onPress={() => setShowArchived(!showArchived)}>
-                <HStack className="items-center mt-4" space="sm">
-                  <Heading size="xl">Archived</Heading>
+                <HStack
+                  className="items-center mb-2 bg-background-light dark:bg-background-dark"
+                  space="sm"
+                >
+                  <Heading size="xl">Inactive</Heading>
                   <Icon
                     as={showArchived ? ChevronDownIcon : ChevronRightIcon}
                   />
                 </HStack>
+                <Box>
+                  <Fade
+                    heightClassDark="dark:h-2"
+                    heightClassLight="h-2"
+                    reverse
+                  />
+                </Box>
               </TouchableOpacity>
-              {showArchived &&
-                schedules
-                  .filter((s) => s.is_archived)
-                  .map((schedule) => (
-                    <ScheduleOption key={schedule.id} schedule={schedule} />
-                  ))}
+            )
+          ) : (
+            <>
+              <Heading
+                size="xl"
+                className="bg-background-light dark:bg-background-dark mb-2"
+              >
+                {title}
+              </Heading>
+              {activeSchedules.length === 0 && (
+                <Text className="pb-4 -mt-2">No Active Schedules.</Text>
+              )}
+              <Box>
+                <Fade
+                  heightClassDark="dark:h-2"
+                  heightClassLight="h-2"
+                  reverse
+                />
+              </Box>
             </>
-          )}
-        </VStack>
-        <Box className="h-24" />
-      </ScrollView>
+          )
+        }
+        showsVerticalScrollIndicator={false}
+        keyExtractor={(item, index) => JSON.stringify(item) + index}
+      />
       <Fab
         size="lg"
         placement="bottom right"

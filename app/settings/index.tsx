@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 export default function SettingsScreen() {
   const router = useRouter();
 
-  const [accordiansOpen, setAccordiansOpen] = useState<string[]>([]);
+  const [accordiansOpen, setAccordiansOpen] = useState<string[]>(['dark-mode']);
   const [settings, setSettings] = useState<Settings | null>(null);
 
   function setOpenHandler(open: boolean, key: string) {
@@ -43,14 +43,14 @@ export default function SettingsScreen() {
           open={accordiansOpen.includes("dark-mode")}
           setOpen={(open) => setOpenHandler(open, "dark-mode")}
         />
-        <Button
+        {/* <Button
           size="xl"
           className="mt-8"
           onPress={() => router.push("/settings/notifications-test")}
         >
           <ButtonText>Notifications Testing</ButtonText>
           <ButtonIcon as={ChevronRightIcon} />
-        </Button>
+        </Button> */}
       </VStack>
     </ThemedContainer>
   ) : (

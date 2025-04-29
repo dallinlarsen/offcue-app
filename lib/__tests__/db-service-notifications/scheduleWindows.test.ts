@@ -90,4 +90,30 @@ describe('getScheduleWindowsWithinInterval', () => {
     const windows = getScheduleWindowsWithinInterval(schedule, localIntervalStart, localIntervalEnd);
     expect(windows).toHaveLength(0);
   });
+
+  it('returns a window for an all-day schedule from 00:00 to 00:00', () => {
+    const schedule = {
+      is_sunday:    1,
+      is_monday:    1,
+      is_tuesday:   1,
+      is_wednesday: 1,
+      is_thursday:  1,
+      is_friday:    1,
+      is_saturday:  1,
+      start_time: '00:00',
+      end_time:   '00:00',
+    };
+    const intervalStart = new Date(Date.UTC(2027, 0, 15, 0, 0, 0));
+    const intervalEnd   = new Date(Date.UTC(2027, 0, 15, 23, 59, 59));
+    const localIntervalStart = convertToLocal(intervalStart);
+    const localIntervalEnd   = convertToLocal(intervalEnd);
+
+    const windows = getScheduleWindowsWithinInterval(
+      schedule,
+      localIntervalStart,
+      localIntervalEnd
+    );
+
+    expect(windows.length).toBeGreaterThan(0);
+  });
 });

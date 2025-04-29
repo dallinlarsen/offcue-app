@@ -8,14 +8,12 @@ dayjs.extend(weekOfYear);
 import * as source from "./notifications.source";
 
 import { dismissFromNotificationCenter, scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
-import { getReminder } from "../reminders/reminders.service";
+import { getReminder, getReminders, updateReminderArchived } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
 
 export {
   notificationsInit,
-  deleteFutureNotificationsByReminderId,
-  deleteNotificationsByReminderId,
   getUnrespondedNotificationsByReminderId,
   getSoonestFutureNotificationsToSchedule,
   getPastNotificationsByReminderId,
@@ -26,100 +24,95 @@ export {
 ////////// Notification Logic //////////
 ///////////////////////////////////////
 
-// Function to create initial notifications for a newly created reminder.
-// It calculates the number of intervals needed to get at least 'desiredCount' notifications.
-// It then generates notifications per interval (filtering for future notifications) and persists them.
 export const createInitialNotifications = async (
+  reminderId: number,
+  desiredCount: number = 10,
+  bias: number = 0.5
+): Promise<void> => {
+  await ensureNotificationsForReminder(reminderId, desiredCount, bias);
+  runNotificationMaintenance();
+};
+
+export const recalcFutureNotifications = async (
+  reminderId: number,
+  desiredCount: number = 10,
+  bias: number = 0.5
+): Promise<void> => {
+  await source.deleteFutureNotificationsByReminderId(reminderId);
+  console.log(`Deleted future notifications for ${reminderId}. Recalculating...`);
+  await ensureNotificationsForReminder(reminderId, desiredCount, bias);
+  await runNotificationMaintenance();
+};
+
+/**
+ * Generate at least `desiredCount` future notification times for a reminder.
+ * @throws if loop exceeds safe iteration count.
+ */
+async function generateFutureNotifications(
+  reminder: any,
+  schedules: any[],
+  startingIntervalIndex: number,
+  desiredCount: number,
+  bias: number
+): Promise<NotificationTime[]> {
+  let intervalIndex = startingIntervalIndex;
+  const allNotifications: NotificationTime[] = [];
+  let iterations = 0;
+
+  while (allNotifications.length < desiredCount) {
+    const notifications = generateNotificationTimes(reminder, schedules, intervalIndex, bias);
+    const futureNotifications = notifications.filter((n) =>
+      dayjs(n.scheduled_at).isAfter(dayjs())
+    );
+
+    if (futureNotifications.length > 0) {
+      allNotifications.push(...futureNotifications);
+    } else {
+      console.log(`No future notifications for interval ${intervalIndex}.`);
+    }
+
+    intervalIndex++;
+    if (++iterations > 100) {
+      throw new Error('generateFutureNotifications exceeded iteration limit');
+    }
+  }
+
+  return allNotifications;
+}
+
+/**
+ * Ensure a reminder has at least `desiredCount` notifications,
+ * then persist them.
+ */
+export const ensureNotificationsForReminder = async (
   reminderId: number,
   desiredCount: number = 10,
   bias: number = 0.5
 ): Promise<void> => {
   const reminder = await getReminder(reminderId);
   if (!reminder) {
-    console.error(`Reminder with id ${reminderId} not found.`);
+    console.error(`Reminder ${reminderId} not found.`);
     return;
   }
-
   const schedules = await getSchedulesByReminderId(reminderId);
   if (!schedules || schedules.length === 0) {
-    console.error(`No schedules defined for reminder ${reminderId}.`);
+    console.error(`No schedules for reminder ${reminderId}.`);
     return;
   }
 
-  console.log(
-    `Creating initial notifications: $${desiredCount} notifications.`
-  );
-
-  let startingIntervalIndex = 0;
-  // If there is an existing next notification, use its interval_index as a starting point.
   const existingNext = await source.getNextNotificationByReminderId(reminderId);
-  if (existingNext) {
-    startingIntervalIndex = existingNext.interval_index;
-  }
-
-  let allNotifications: NotificationTime[] = [];
-  let intervalIndex = startingIntervalIndex;
-
-  let whileCounter = 0;
-  // Loop until the desired number of notifications are reached.
-  while (allNotifications.length < desiredCount) {
-    // Generate notifications for this interval.
-    let notifications = generateNotificationTimes(
-      reminder,
-      schedules,
-      intervalIndex,
-      bias
-    );
-    // Filter for future notifications (scheduled after the current time).
-    const futureNotifications = notifications.filter((notif) =>
-      dayjs(notif.scheduled_at).isAfter(dayjs())
-    );
-    if (futureNotifications.length > 0) {
-      allNotifications.push(...futureNotifications);
-    } else {
-      console.log(
-        `No future notifications found for interval ${intervalIndex}.`
-      );
-    }
-
-    intervalIndex++;
-    whileCounter++;
-
-    if (whileCounter > 100) {
-      throw new Error(
-        'Caught in an infinite loop in "createInitialNotifications"'
-      );
-    }
-  }
-
-  if (allNotifications.length > 0) {
-    await createNotifications(reminder, allNotifications);
-    console.log(
-      `✅ Created ${allNotifications.length} initial notifications for reminder ${reminderId}.`
-    );
-  } else {
-    console.error("No notifications were created in the initial intervals.");
-  }
-
-  scheduleAllUpcomingNotifications();
-};
-
-// Function to recalculate (delete and recreate) all future notifications for a reminder.
-// It deletes all notifications that haven't received a response and then recreates
-// a fresh batch of at least 'desiredCount' notifications.
-export const recalcFutureNotifications = async (
-  reminderId: number,
-  desiredCount: number = 10,
-  bias: number = 0.5
-): Promise<void> => {
-  // Delete all future notifications (those without a response and scheduled in the future).
-  await source.deleteFutureNotificationsByReminderId(reminderId);
-  console.log(
-    `Future notifications for reminder ${reminderId} have been deleted. Recalculating...`
+  const startIndex = existingNext ? existingNext.interval_index : 0;
+  const notifications = await generateFutureNotifications(
+    reminder,
+    schedules,
+    startIndex,
+    desiredCount,
+    bias
   );
-
-  // Create initial notifications anew.
-  await createInitialNotifications(reminderId, desiredCount, bias);
+  if (notifications.length > 0) {
+    await createNotifications(reminder, notifications);
+    console.log(`✅ Ensured ${notifications.length} notifications for ${reminderId}.`);
+  }
 };
 
 //------------------------------------------------------------------------------
@@ -269,11 +262,18 @@ export const getScheduleWindowsWithinInterval = (
         break;
     }
     if (applies) {
-      // Combine the current date with the schedule’s start and end times (format: "HH:MM").
-      const [startHour, startMinute] = schedule.start_time
-        .split(":")
-        .map(Number);
-      const [endHour, endMinute] = schedule.end_time.split(":").map(Number);
+      // Determine start and end hours/minutes, treating identical times as all-day
+      let startHour: number, startMinute: number, endHour: number, endMinute: number;
+      if (schedule.start_time === schedule.end_time) {
+        // All-day schedule: cover full day
+        startHour = 0;
+        startMinute = 0;
+        endHour = 23;
+        endMinute = 59;
+      } else {
+        [startHour, startMinute] = schedule.start_time.split(":").map(Number);
+        [endHour, endMinute] = schedule.end_time.split(":").map(Number);
+      }
       const windowStart = new Date(current);
       windowStart.setHours(startHour, startMinute, 0, 0);
       const windowEnd = new Date(current);
@@ -339,14 +339,14 @@ export const getBiasedRandomTime = (
     bias === 0.5
       ? 1
       : bias < 0.5
-      ? 1 + (0.5 - bias) * 2
-      : 1 / (1 + (bias - 0.5) * 2);
+        ? 1 + (0.5 - bias) * 2
+        : 1 / (1 + (bias - 0.5) * 2);
   const weight = Math.pow(u, exponent);
 
   // Calculate the scheduled time in local time.
   const localScheduledTime = new Date(
     segmentStart.getTime() +
-      weight * (segmentEnd.getTime() - segmentStart.getTime())
+    weight * (segmentEnd.getTime() - segmentStart.getTime())
   );
   // Convert back to UTC for storage.
   return convertToUTC(localScheduledTime);
@@ -375,8 +375,6 @@ export const generateNotificationTimes = (
   // Calculate the current interval boundaries in local time.
   const { start: localIntervalStart, end: localIntervalEnd } =
     calculateCurrentInterval(reminder, intervalIndex);
-  // console.log("Start:", localIntervalStart.toLocaleString());
-  // console.log("End:", localIntervalEnd.toLocaleString());
 
   // Get allowed schedule windows for the entire interval from all schedules.
   let allowedWindows: { start: Date; end: Date }[] = [];
@@ -403,7 +401,6 @@ export const generateNotificationTimes = (
   });
 
   if (totalAllowedMinutes === 0) {
-    // console.log('No allowed minutes available in merged windows.');
     return [];
   }
 
@@ -425,8 +422,8 @@ export const generateNotificationTimes = (
       bias === 0.5
         ? 1
         : bias < 0.5
-        ? 1 + (0.5 - bias) * 2
-        : 1 / (1 + (bias - 0.5) * 2);
+          ? 1 + (0.5 - bias) * 2
+          : 1 / (1 + (bias - 0.5) * 2);
     const weight = Math.pow(u, exponent);
     const offsetInSegment = Math.floor(
       minOffset + weight * (maxOffset - minOffset)
@@ -500,9 +497,7 @@ export const deleteNotificationsInInterval = async (
   // Get the interval index of the reminder
   const currentNotification =
     await source.getUnrespondedNotificationsByReminderId(reminderId);
-  console.log("Current Notification: ", currentNotification);
   const currentIntervalIndex = currentNotification[0].interval_index;
-  console.log("Current Interval Index: ", currentIntervalIndex);
 
   // Delete all notifications in the current interval index
   await source.deleteNotificationsInInterval(reminderId, currentIntervalIndex);
@@ -525,7 +520,7 @@ export async function updateNotificationResponse(
   }
 
   dismissFromNotificationCenter(id);
-  scheduleAllUpcomingNotifications();
+  await runNotificationMaintenance();
 }
 
 export async function updateNotificationResponseOneTime(
@@ -546,7 +541,9 @@ export async function updateNotificationResponseOneTime(
     await source.updateNotification(notification.id, {
       scheduled_at: dayjs().utc().format("YYYY-MM-DD hh:mmZ"),
     });
-    await source.deleteFutureNotificationsByReminderId(reminderId);
+    await deleteFutureNotificationsByReminderId(reminderId);
+  } else {
+    await runNotificationMaintenance();
   }
 
   const pastNotifications = await source.getPastNotificationsByReminderId(reminderId);
@@ -554,8 +551,6 @@ export async function updateNotificationResponseOneTime(
   for (const pastNotification of pastNotifications) {
     dismissFromNotificationCenter(pastNotification.id);
   }
-  
-  scheduleAllUpcomingNotifications();
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
@@ -566,5 +561,57 @@ export async function undoOneTimeComplete(reminderId: number) {
     await updateNotificationResponse(lastDoneNotification.id, "later");
   }
 
-  await recalcFutureNotifications(reminderId);
+  await runNotificationMaintenance();
 }
+
+export async function deleteFutureNotificationsByReminderId(
+  reminderId: number
+): Promise<void> {
+  const notifications = await source.getUnrespondedNotificationsByReminderId(
+    reminderId
+  );
+  for (const notification of notifications) {
+    await source.deleteNotification(notification.id);
+  }
+  await source.deleteFutureNotificationsByReminderId(reminderId);
+  await runNotificationMaintenance();
+}
+
+export async function deleteNotificationsByReminderId(
+  reminderId: number
+): Promise<void> {
+  const notifications = await source.getUnrespondedNotificationsByReminderId(
+    reminderId
+  );
+  for (const notification of notifications) {
+    await source.deleteNotification(notification.id);
+  }
+  await runNotificationMaintenance();
+}
+
+/**
+ * Run full notification maintenance:
+ * 1. Archive expired reminders and delete their future notifications.
+ * 2. Ensure active reminders have at least 10 notifications.
+ * 3. Schedule all upcoming notifications in the system.
+ */
+export const runNotificationMaintenance = async (): Promise<void> => {
+  const reminders = await getReminders();
+  const today = dayjs();
+
+  // Archive expired and clean up
+  for (const rem of reminders) {
+    if (rem.end_date && dayjs(rem.end_date).isBefore(today)) {
+      await updateReminderArchived(rem.id, true);
+      await source.deleteFutureNotificationsByReminderId(rem.id);
+    }
+  }
+
+  // Ensure notifications for active
+  for (const rem of reminders.filter((r) => !r.is_archived)) {
+    await ensureNotificationsForReminder(rem.id);
+  }
+
+  // Finally, schedule all
+  scheduleAllUpcomingNotifications();
+};

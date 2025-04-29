@@ -1,10 +1,10 @@
-import { scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
 import { deleteNotesByReminderId } from "../notes/notes.source";
 import {
   createInitialNotifications,
   deleteFutureNotificationsByReminderId,
   deleteNotificationsByReminderId,
   recalcFutureNotifications,
+  runNotificationMaintenance,
 } from "../notifications/notifications.service";
 import {
   createScheduleReminderMaps,
@@ -78,6 +78,7 @@ export async function updateReminder(
   }
 
   await createScheduleReminderMaps(model.id!, schedulesToAdd);
+  await recalcFutureNotifications(model.id!);
 }
 
 export const updateReminderMuted = async (id: number, isMuted: boolean) => {
@@ -85,11 +86,8 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
   if (isMuted) {
     await deleteFutureNotificationsByReminderId(id);
   } else {
-    // TODO: When future notification generation is implemented call it here.
-    recalcFutureNotifications(id);
+    await recalcFutureNotifications(id);
   }
-
-  scheduleAllUpcomingNotifications();
 };
 
 export const updateReminderArchived = async (
@@ -106,8 +104,6 @@ export const updateReminderArchived = async (
     // TODO: When future notification generation is implemented call it here.
     await recalcFutureNotifications(id);
   }
-
-  await scheduleAllUpcomingNotifications();
 };
 
 export const deleteReminder = async (id: number) => {
@@ -115,6 +111,4 @@ export const deleteReminder = async (id: number) => {
   await deleteNotificationsByReminderId(id);
   await deleteReminderScheduleMapByReminderId(id);
   await source.deleteReminder(id);
-
-  await scheduleAllUpcomingNotifications();
 };

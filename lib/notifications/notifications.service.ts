@@ -89,6 +89,15 @@ export const ensureNotificationsForReminder = async (
   desiredCount: number = 10,
   bias: number = 0.5
 ): Promise<void> => {
+  // Fetch existing unresponded future notifications
+  const existing = await source.getUnrespondedNotificationsByReminderId(reminderId);
+  const existingCount = existing.length;
+  if (existingCount >= desiredCount) {
+    console.log(`Already have ${existingCount} future notifications for reminder ${reminderId}.`);
+    return;
+  }
+
+  // Load reminder and schedules
   const reminder = await getReminder(reminderId);
   if (!reminder) {
     console.error(`Reminder ${reminderId} not found.`);
@@ -100,18 +109,24 @@ export const ensureNotificationsForReminder = async (
     return;
   }
 
-  const existingNext = await source.getNextNotificationByReminderId(reminderId);
-  const startIndex = existingNext ? existingNext.interval_index : 0;
+  // Determine where to start generating additional notifications
+  const startIntervalIndex =
+    existingCount > 0
+      ? Math.max(...existing.map((n) => n.interval_index)) + 1
+      : 0;
+  const missingCount = desiredCount - existingCount;
+
+  // Generate and persist only the missing notifications
   const notifications = await generateFutureNotifications(
     reminder,
     schedules,
-    startIndex,
-    desiredCount,
+    startIntervalIndex,
+    missingCount,
     bias
   );
   if (notifications.length > 0) {
     await createNotifications(reminder, notifications);
-    console.log(`✅ Ensured ${notifications.length} notifications for ${reminderId}.`);
+    console.log(`Created ${notifications.length} new notifications for reminder ${reminderId}.`);
   }
 };
 

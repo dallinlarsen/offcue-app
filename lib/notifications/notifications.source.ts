@@ -20,6 +20,8 @@ export async function notificationsInit() {
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was created                                            
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was last updated
         FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE
+
+        UNIQUE (reminder_id, interval_index, segment_index)
     );
   `);
 

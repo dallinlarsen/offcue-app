@@ -234,7 +234,7 @@ export default function AddEditReminder({
 
   return (
     <>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <VStack space="xl" className="mb-16">
           <VStack space="sm">
             <FormControl isInvalid={!!errors.title}>

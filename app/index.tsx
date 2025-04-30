@@ -20,7 +20,6 @@ import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
 import { AddIcon, ChevronRightIcon, Icon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
-import { VStack } from "@/components/ui/vstack";
 import { HStack } from "@/components/ui/hstack";
 import Fade from "@/components/Fade";
 import EdgeFade from "@/components/EdgeFade";
@@ -91,7 +90,6 @@ export default function HomeScreen() {
   };
 
   const loadReminders = async () => {
-    console.log('Hello')
     const data = await getReminders();
     setReminders(data);
     console.log(data);
@@ -266,7 +264,7 @@ export default function HomeScreen() {
         </HStack>
       </Box>
 
-      <Box className="relative mb-4">
+      <Box className="relative mb-4 -mx-3">
         <ScrollView
           horizontal
           className="flex-grow-0"
@@ -275,6 +273,7 @@ export default function HomeScreen() {
           scrollEventThrottle={16}
           ref={filterScrollViewRef}
         >
+          <Box className="w-3" />
           {FILTERS.map((filter, idx) => (
             <TouchableOpacity
               onPress={() => handleTabPress(filter.key, idx)}
@@ -295,16 +294,8 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        {showLeftFade && <EdgeFade left />}
-        {showRightFade && (
-          <EdgeFade>
-            {!showLeftFade && (
-              <Box className="flex justify-center flex-1 items-end">
-                <Icon as={ChevronRightIcon} className="text-typography-500" />
-              </Box>
-            )}
-          </EdgeFade>
-        )}
+        <EdgeFade left />
+        <EdgeFade />
       </Box>
 
       <PagerView

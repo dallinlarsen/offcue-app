@@ -9,11 +9,9 @@ import { useRef } from "react";
 import Fade from "../Fade";
 
 type Props = {
-  reminders: { title: string; reminders: Reminder[], emptyMessage?: string }[];
+  reminders: { title: string; reminders: Reminder[]; emptyMessage?: string }[];
   onNotificationResponse: () => void;
   onMuted: () => void;
-  open?: boolean;
-  setOpen?: (open: boolean) => void;
 };
 
 export default function ReminderGroup({
@@ -22,12 +20,19 @@ export default function ReminderGroup({
   onNotificationResponse,
 }: Props) {
   const chunkedReminders = useRef(
-    reminders.map((r) => ({ ...r, data: chunkIntoPairs(r.reminders) }))
+    reminders.map((r, idx) => ({
+      ...r,
+      data:
+        r.reminders.length > 0
+          ? [...chunkIntoPairs(r.reminders), reminders.length === idx + 1 ? [null, null] : []]
+          : [],
+    }))
   );
 
   return (
     <SectionList
       sections={chunkedReminders.current}
+      showsVerticalScrollIndicator={false}
       renderItem={({ item }) => (
         <Box className="flex flex-row gap-4 mb-4">
           {item.map((r, idx) =>
@@ -58,7 +63,11 @@ export default function ReminderGroup({
                 {title}
               </Heading>
               <Box>
-                <Fade heightClassDark="dark:h-2" heightClassLight="h-2" reverse />
+                <Fade
+                  heightClassDark="dark:h-2"
+                  heightClassLight="h-2"
+                  reverse
+                />
               </Box>
             </>
           ) : (

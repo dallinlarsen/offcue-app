@@ -127,9 +127,11 @@ export function formatScheduleString(schedule: Schedule) {
   // Create a set of all days for checking if every day is included.
   const inputSet = new Set(days.map((d) => d.toLowerCase()));
 
-  const timeString = `${formatTime(schedule.start_time)} - ${formatTime(
+  let timeString = `${formatTime(schedule.start_time)} - ${formatTime(
     schedule.end_time
   )}`;
+
+  if (schedule.start_time === schedule.end_time) timeString = 'all day'
 
   // If every day of the week is selected, return only the time string.
   if (weekDays.every((d) => inputSet.has(d))) {

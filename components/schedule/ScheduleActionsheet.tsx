@@ -5,14 +5,13 @@ import {
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
-  ActionsheetScrollView,
+  ActionsheetFlatList,
 } from "../ui/actionsheet";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { Heading } from "../ui/heading";
 import { AddIcon } from "../ui/icon";
 import { formatScheduleString } from "@/lib/utils/format";
 import { Card } from "../ui/card";
-import { VStack } from "../ui/vstack";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { TouchableOpacity } from "react-native";
@@ -41,7 +40,9 @@ export function ScheduleActionsheet({
   const loadSchedules = async () => {
     try {
       const data = await getAllSchedules();
-      setSchedules(data.filter((s) => !s.is_archived && !filterIds.includes(s.id)));
+      setSchedules(
+        data.filter((s) => s.is_active && !filterIds.includes(s.id))
+      );
       console.log(data);
     } catch (error) {
       console.error("Error loading schedules:", error);
@@ -74,39 +75,41 @@ export function ScheduleActionsheet({
             Schedules
           </Heading>
           {/* List of existing schedules */}
-          <ActionsheetScrollView>
-            <VStack space="sm">
-              {schedules.length > 0 ? (
-                schedules
-                  .map((schedule) => (
-                    <Card key={schedule.id} variant="filled">
-                      <HStack className="justify-between items-center flex-wrap">
-                        <TouchableOpacity
-                          onPress={() => schedulePressedHandler(schedule)}
-                          className="py-4 pl-4 -my-4 mr-4 -ml-4 flex-1"
+          <ActionsheetFlatList
+            data={[...schedules, null]}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) =>
+              item ? (
+                <Card variant="filled" className="mb-2">
+                  <HStack className="justify-between items-center flex-wrap">
+                    <TouchableOpacity
+                      onPress={() => schedulePressedHandler(item as Schedule)}
+                      className="py-4 pl-4 -my-4 mr-4 -ml-4 flex-1"
+                    >
+                      <HStack className="items-end flex-wrap -ml-2">
+                        <Text
+                          numberOfLines={1}
+                          size="xl"
+                          className="font-semibold ml-2"
                         >
-                          <HStack className="items-end flex-wrap -ml-2">
-                            <Text
-                              numberOfLines={1}
-                              size="xl"
-                              className="font-semibold ml-2"
-                            >
-                              {schedule.label || "No Label"}
-                            </Text>
-                            <Text className="ml-2">
-                              {formatScheduleString(schedule)}
-                            </Text>
-                          </HStack>
-                        </TouchableOpacity>
+                          {(item as Schedule).label || "No Label"}
+                        </Text>
+                        <Text className="ml-2">
+                          {formatScheduleString(item as Schedule)}
+                        </Text>
                       </HStack>
-                    </Card>
-                  ))
-              ) : (
+                    </TouchableOpacity>
+                  </HStack>
+                </Card>
+              ) : schedules.length === 0 ? (
                 <Text>No schedules found.</Text>
-              )}
-            </VStack>
-            <Box className="h-14" />
-          </ActionsheetScrollView>
+              ) : (
+                <Box className="h-12" />
+              )
+            }
+            keyExtractor={(item, idx) => `${idx}_${(item as Schedule)?.id}`}
+          />
+
           <Fade
             className="bottom-24"
             heightClassLight="h-14"

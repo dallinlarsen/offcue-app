@@ -16,14 +16,14 @@ type Props = {
   schedule: Schedule;
   isOpen: boolean;
   onCancel: () => void;
-  onArchive: () => void;
+  onInactivate: () => void;
 };
 
 export default function ({
   schedule,
   isOpen,
   onCancel,
-  onArchive,
+  onInactivate,
 }: Props) {
   return (
     <AlertDialog isOpen={isOpen} onClose={onCancel}>
@@ -31,12 +31,12 @@ export default function ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <Heading size="xl" className="font-quicksand-semibold">
-            Archive Schedule
+            Inactivate Schedule
           </Heading>
         </AlertDialogHeader>
         <AlertDialogBody>
           <Text size="lg" className="leading-6">
-            Are you sure you want to archive the "{schedule.label}" schedule?
+            Are you sure you want to inactivate the "{schedule.label}" schedule?
             This will remove it from the schedules you can select when creating
             a reminder.
           </Text>
@@ -55,9 +55,9 @@ export default function ({
               action="primary"
               className="flex-1"
               size="xl"
-              onPress={onArchive}
+              onPress={onInactivate}
             >
-              <ButtonText>Archive</ButtonText>
+              <ButtonText>Inactivate</ButtonText>
             </Button>
           </HStack>
         </AlertDialogFooter>

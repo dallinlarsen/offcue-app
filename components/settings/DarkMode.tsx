@@ -82,9 +82,7 @@ export default function ({ open, setOpen, theme }: Props) {
                   <SelectDragIndicator />
                 </SelectDragIndicatorWrapper>
                 {SELECT_OPTIONS.map((t) => (
-                  <SelectItem key={t.value} label={t.label} value={t.value}>
-                    Hello
-                  </SelectItem>
+                  <SelectItem key={t.value} label={t.label} value={t.value} />
                 ))}
               </SelectContent>
             </SelectPortal>

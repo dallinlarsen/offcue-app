@@ -22,8 +22,6 @@ export async function setupAndConfigureNotifications() {
     }),
   });
 
-  await Notifications.requestPermissionsAsync();
-
   await Notifications.setNotificationCategoryAsync(
     "reminder-actions-recurring",
     [
@@ -67,6 +65,10 @@ export async function setupAndConfigureNotifications() {
       },
     ]
   );
+}
+
+export async function requestNotificationsPermission() {
+  await Notifications.requestPermissionsAsync();
 }
 
 export function markDoneSkipNotificationCategoryListener(

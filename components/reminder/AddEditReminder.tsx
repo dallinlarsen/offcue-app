@@ -72,12 +72,12 @@ const ZodSchema = z
     interval_num: z
       .string()
       .nullish()
-      .refine((num) => !num || parseInt(num) < 60, "Must be less than 60")
+      .refine((num) => !num || parseInt(num) < 100, "Must be less than 100")
       .refine((num) => !num || parseInt(num) > 0, "Must be greater than 0"),
     times: z
       .string()
       .min(1, "Required")
-      .refine((num) => parseInt(num) < 20, "Must be less than 20")
+      .refine((num) => parseInt(num) < 50, "Must be less than 50")
       .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
     track_streak: z.boolean(),
     schedules: z

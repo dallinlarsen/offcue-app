@@ -4,7 +4,6 @@ import {
   deleteFutureNotificationsByReminderId,
   deleteNotificationsByReminderId,
   recalcFutureNotifications,
-  runNotificationMaintenance,
 } from "../notifications/notifications.service";
 import {
   createScheduleReminderMaps,

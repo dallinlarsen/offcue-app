@@ -18,6 +18,8 @@ export {
   getSoonestFutureNotificationsToSchedule,
   getPastNotificationsByReminderId,
   getNextUpcomingNotificationByReminderId,
+  deleteFutureNotificationsByReminderId,
+  deleteNotificationsByReminderId,
 } from "./notifications.source";
 
 /////////////////////////////////////////
@@ -492,14 +494,27 @@ export const createNotifications = async (
   notifications: NotificationTime[]
 ): Promise<void> => {
   for (const notif of notifications) {
-    await source.createNotification({
-      reminder_id: reminder.id,
-      scheduled_at: dayjs(notif.scheduled_at)
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ssZ"),
-      interval_index: notif.interval_index,
-      segment_index: notif.segment_index,
-    });
+    try {
+      await source.createNotification({
+        reminder_id: reminder.id,
+        scheduled_at: dayjs(notif.scheduled_at)
+          .utc()
+          .format("YYYY-MM-DD HH:mm:ssZ"),
+        interval_index: notif.interval_index,
+        segment_index: notif.segment_index,
+      });
+    } catch (e: any) {
+      if (
+        e.message.includes("UNIQUE constraint failed") ||
+        e.message.includes("SQLITE_CONSTRAINT")
+      ) {
+        console.log(
+          `Skipped duplicate notification for reminder ${reminder.id}, interval ${notif.interval_index}, segment ${notif.segment_index}`
+        );
+      } else {
+        throw e;
+      }
+    }
   }
 };
 
@@ -556,7 +571,7 @@ export async function updateNotificationResponseOneTime(
     await source.updateNotification(notification.id, {
       scheduled_at: dayjs().utc().format("YYYY-MM-DD hh:mmZ"),
     });
-    await deleteFutureNotificationsByReminderId(reminderId);
+    await source.deleteFutureNotificationsByReminderId(reminderId);
   } else {
     await runNotificationMaintenance();
   }
@@ -579,31 +594,6 @@ export async function undoOneTimeComplete(reminderId: number) {
   await runNotificationMaintenance();
 }
 
-export async function deleteFutureNotificationsByReminderId(
-  reminderId: number
-): Promise<void> {
-  const notifications = await source.getUnrespondedNotificationsByReminderId(
-    reminderId
-  );
-  for (const notification of notifications) {
-    await source.deleteNotification(notification.id);
-  }
-  await source.deleteFutureNotificationsByReminderId(reminderId);
-  await runNotificationMaintenance();
-}
-
-export async function deleteNotificationsByReminderId(
-  reminderId: number
-): Promise<void> {
-  const notifications = await source.getUnrespondedNotificationsByReminderId(
-    reminderId
-  );
-  for (const notification of notifications) {
-    await source.deleteNotification(notification.id);
-  }
-  await runNotificationMaintenance();
-}
-
 /**
  * Run full notification maintenance:
  * 1. Archive expired reminders and delete their future notifications.
@@ -616,9 +606,12 @@ export const runNotificationMaintenance = async () => {
 
   // Archive expired and clean up
   for (const rem of reminders) {
-    if (rem.end_date && dayjs(rem.end_date).isBefore(today)) {
+    if (rem.end_date && dayjs(rem.end_date).isBefore(today, "day")) {
       await updateReminderArchived(rem.id, true);
-      await source.deleteFutureNotificationsByReminderId(rem.id);
+      const cutoff = dayjs(rem.end_date)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ssZ");
+      await source.deleteNotificationsAfterDate(rem.id, cutoff);
     }
   }
   // Ensure notifications for active

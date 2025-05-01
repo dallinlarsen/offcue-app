@@ -191,6 +191,22 @@ export async function deleteFutureNotificationsByReminderId(
   );
 }
 
+/**
+ * Delete unresponded notifications scheduled after a specific cutoff datetime.
+ */
+export async function deleteNotificationsAfterDate(
+  reminderId: number,
+  cutoff: string
+): Promise<void> {
+  await db.runAsync(
+    `DELETE FROM notifications
+     WHERE reminder_id = ?
+       AND response_at IS NULL
+       AND scheduled_at > ?;`,
+    [reminderId, cutoff]
+  );
+}
+
 export async function deleteNotificationsInInterval(
   reminder_id: number,
   interval_index: number

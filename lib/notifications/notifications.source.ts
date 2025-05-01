@@ -37,6 +37,16 @@ export async function getNotification(id: number) {
   return notification;
 }
 
+export async function getNotificationsByReminderId(reminderId: number) {
+  const notifications = await db.getAllAsync<RNotification>(
+    `SELECT * 
+     FROM notifications 
+     WHERE reminder_id = ?;`,
+    [reminderId]
+  );
+  return notifications;
+}
+
 export async function getPastNotificationsByReminderId(
   reminderId: number,
   limit?: number,
@@ -188,6 +198,22 @@ export async function deleteFutureNotificationsByReminderId(
        AND response_at IS NULL 
        AND scheduled_at > CURRENT_TIMESTAMP;`,
     [reminderId]
+  );
+}
+
+/**
+ * Delete unresponded notifications scheduled after a specific cutoff datetime.
+ */
+export async function deleteNotificationsAfterDate(
+  reminderId: number,
+  cutoff: string
+): Promise<void> {
+  await db.runAsync(
+    `DELETE FROM notifications
+     WHERE reminder_id = ?
+       AND response_at IS NULL
+       AND scheduled_at > ?;`,
+    [reminderId, cutoff]
   );
 }
 

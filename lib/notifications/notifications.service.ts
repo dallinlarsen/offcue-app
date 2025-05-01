@@ -19,6 +19,7 @@ export {
   getPastNotificationsByReminderId,
   getNextUpcomingNotificationByReminderId,
   deleteFutureNotificationsByReminderId,
+  deleteNotificationsByReminderId,
 } from "./notifications.source";
 
 /////////////////////////////////////////
@@ -590,18 +591,6 @@ export async function undoOneTimeComplete(reminderId: number) {
     await updateNotificationResponse(lastDoneNotification.id, "later");
   }
 
-  await runNotificationMaintenance();
-}
-
-export async function deleteNotificationsByReminderId(
-  reminderId: number
-): Promise<void> {
-  const notifications = await source.getNotificationsByReminderId(
-    reminderId
-  );
-  for (const notification of notifications) {
-    await source.deleteNotification(notification.id);
-  }
   await runNotificationMaintenance();
 }
 

@@ -1,6 +1,9 @@
 import { Settings } from "./settings.types";
 import db from "../db";
-import { updateTable } from "../utils/db-helpers";
+import {
+  convertIntegerValuesToBoolean,
+  updateTable,
+} from "../utils/db-helpers";
 
 export async function settingsInit() {
   await db.execAsync(`CREATE TABLE IF NOT EXISTS settings (
@@ -17,14 +20,13 @@ export async function settingsInit() {
 
   const userSettings = await getSettings();
 
-  if (!userSettings.id) {
+  if (!userSettings?.id) {
     await db.runAsync(
       `INSERT INTO settings (has_completed_tutorial) VALUES (0);`
     );
   }
   console.log("✅ Settings table created successfully");
 }
-
 
 // Get
 export const getSettings = async () => {
@@ -33,21 +35,19 @@ export const getSettings = async () => {
      FROM settings;`
   );
 
-  return {
-    ...result,
-    has_completed_tutorial:
-      result?.has_completed_tutorial === (1 as unknown as boolean),
-    notification_sound:
-      result?.notification_sound === (1 as unknown as boolean),
-    notification_vibration:
-      result?.notification_vibration === (1 as unknown as boolean),
-  } as Settings;
+  if (!result) return null;
+  return convertIntegerValuesToBoolean(result, [
+    "has_completed_tutorial",
+    "notification_sound",
+    "notification_vibration",
+  ]);
 };
-
 
 // Update
 export async function updateSettings(model: Partial<Settings>) {
   const settings = await getSettings();
-  console.log(model);
-  return await updateTable("settings", model, { id: settings.id });
+
+  if (settings) {
+    return await updateTable("settings", model, { id: settings.id });
+  }
 }

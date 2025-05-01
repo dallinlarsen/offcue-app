@@ -1,7 +1,7 @@
 import "@/global.css";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
@@ -12,6 +12,8 @@ import { ConfettiProvider } from "@/hooks/useConfetti";
 import Navigation from "@/components/navigation/Navigation";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { initDatabase } from "@/lib/init/init.service";
+import { getSettings } from "@/lib/settings/settings.source";
+import { useRouteInfo } from "expo-router/build/hooks";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -19,6 +21,8 @@ const db = SQLite.openDatabaseSync("reminders.db");
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const router = useRouter();
+  const route = useRouteInfo();
   useDrizzleStudio(db);
 
   const [loaded] = useFonts({
@@ -30,10 +34,18 @@ export default function RootLayout() {
     "Quicksand-Bold": require("../assets/fonts/Quicksand/Quicksand-Bold.ttf"),
   });
 
+  async function setupState() {
+    await initDatabase();
+    const settings = await getSettings();
+    if (!settings?.has_completed_tutorial) {
+      router.replace("/welcome");
+    }
+    setTimeout(() => SplashScreen.hideAsync(), 1000);
+  }
+
   useEffect(() => {
     if (loaded) {
-      initDatabase(); 
-      setTimeout(() => SplashScreen.hideAsync(), 1000);
+      setupState();
     }
   }, [loaded]);
 
@@ -53,7 +65,7 @@ export default function RootLayout() {
                   headerShown: false,
                 }}
               />
-              <Navigation />
+              {!route.pathname.startsWith("/welcome") && <Navigation />}
             </SafeAreaView>
           </SafeAreaProvider>
         </NotificationProvider>

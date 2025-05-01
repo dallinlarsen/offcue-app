@@ -22,8 +22,6 @@ export async function setupAndConfigureNotifications() {
     }),
   });
 
-  await Notifications.requestPermissionsAsync();
-
   await Notifications.setNotificationCategoryAsync(
     "reminder-actions-recurring",
     [
@@ -67,6 +65,10 @@ export async function setupAndConfigureNotifications() {
       },
     ]
   );
+}
+
+export async function requestNotificationsPermission() {
+  await Notifications.requestPermissionsAsync();
 }
 
 export function markDoneSkipNotificationCategoryListener(
@@ -162,7 +164,7 @@ export async function scheduleAllUpcomingNotifications() {
 
   // 2. Fetch new ones from DB
   const notifications = await getSoonestFutureNotificationsToSchedule();
-  console.log("Notifications to create:", notifications.length);
+  // console.log("Notifications to create:", notifications.length);
 
   // 3. Recreate each one
   for (const notification of notifications) {
@@ -188,7 +190,7 @@ export async function scheduleAllUpcomingNotifications() {
           scheduledAt: notification.scheduled_at,
         },
       });
-      console.log(`Scheduled notification ${notification.id}`);
+      // console.log(`Scheduled notification ${notification.id}`);
     } catch (err) {
       console.error(`Failed to schedule notification ${notification.id}:`, err);
     }

@@ -37,16 +37,6 @@ export async function getNotification(id: number) {
   return notification;
 }
 
-export async function getNotificationsByReminderId(reminderId: number) {
-  const notifications = await db.getAllAsync<RNotification>(
-    `SELECT * 
-     FROM notifications 
-     WHERE reminder_id = ?;`,
-    [reminderId]
-  );
-  return notifications;
-}
-
 export async function getPastNotificationsByReminderId(
   reminderId: number,
   limit?: number,

@@ -610,7 +610,7 @@ export async function deleteNotificationsByReminderId(
  * 2. Ensure active reminders have at least 10 notifications.
  * 3. Schedule all upcoming notifications in the system.
  */
-export const runNotificationMaintenance = async (): Promise<void> => {
+export const runNotificationMaintenance = async () => {
   const reminders = await getReminders();
   const today = dayjs();
 
@@ -621,12 +621,14 @@ export const runNotificationMaintenance = async (): Promise<void> => {
       await source.deleteFutureNotificationsByReminderId(rem.id);
     }
   }
-
   // Ensure notifications for active
   for (const rem of reminders.filter((r) => !r.is_archived)) {
-    await ensureNotificationsForReminder(rem.id);
+    try {
+      await ensureNotificationsForReminder(rem.id);
+    } catch(e) {
+      console.error(e);
+    }
   }
-
   // Finally, schedule all
   scheduleAllUpcomingNotifications();
 };

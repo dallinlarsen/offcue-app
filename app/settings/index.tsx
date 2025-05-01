@@ -1,4 +1,5 @@
 import DarkMode from "@/components/settings/DarkMode";
+import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
@@ -13,7 +14,10 @@ import { useEffect, useState } from "react";
 export default function SettingsScreen() {
   const router = useRouter();
 
-  const [accordiansOpen, setAccordiansOpen] = useState<string[]>(['dark-mode']);
+  const [accordiansOpen, setAccordiansOpen] = useState<string[]>([
+    "dark-mode",
+    "welcome-tutorial",
+  ]);
   const [settings, setSettings] = useState<Settings | null>(null);
 
   function setOpenHandler(open: boolean, key: string) {
@@ -42,6 +46,10 @@ export default function SettingsScreen() {
           theme={settings.theme}
           open={accordiansOpen.includes("dark-mode")}
           setOpen={(open) => setOpenHandler(open, "dark-mode")}
+        />
+        <WelcomeTutorial
+          open={accordiansOpen.includes("welcome-tutorial")}
+          setOpen={(open) => setOpenHandler(open, "welcome-tutorial")}
         />
         {/* <Button
           size="xl"

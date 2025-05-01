@@ -2,7 +2,6 @@ import { useAssets } from "expo-asset";
 import { Box } from "../ui/box";
 import { Heading } from "../ui/heading";
 import { Image } from "expo-image";
-import { Text } from "../ui/text";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { ChevronRightIcon } from "../ui/icon";
@@ -28,7 +27,7 @@ export default function Welcome0({ onNext }: Props) {
     <VStack className="justify-between flex-1">
       <ScrollView>
         <Box>
-          <Heading size="4xl">Welcome to</Heading>
+          <Heading size="4xl" className='text-center'>Welcome to</Heading>
           <Box className="flex dark:hidden">
             {assets?.[0] && (
               <Image

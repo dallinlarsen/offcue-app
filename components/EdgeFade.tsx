@@ -6,9 +6,10 @@ import { ReactNode } from "react";
 type Props = {
   left?: boolean;
   children?: ReactNode;
+  className?: string;
 };
 
-export default function EdgeFadeOverlay({ left, children }: Props) {
+export default function EdgeFadeOverlay({ left, children, className }: Props) {
   const LIGHT_COLORS = [
     "rgba(251, 251, 251, 0)",
     "rgba(251, 251, 251, .5)",
@@ -30,7 +31,7 @@ export default function EdgeFadeOverlay({ left, children }: Props) {
       <Box
         className={`absolute top-0 bottom-0 ${
           left ? "left-0" : "right-0"
-        } w-4 h-0 dark:h-8`}
+        } w-4 h-0 dark:h-8 ${className ? className : ""}`}
         pointerEvents="none"
       >
         <LinearGradient

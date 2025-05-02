@@ -1,22 +1,17 @@
 import { ThemedContainer } from "@/components/ThemedContainer";
-import { Box } from "@/components/ui/box";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { Heading } from "@/components/ui/heading";
 import {
-  ArrowLeftIcon,
-  EditIcon,
-  Icon,
+
   PencilIcon,
-  TrashIcon,
 } from "@/components/ui/icon";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { TouchableOpacity } from "react-native";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
 import Fade from "@/components/Fade";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Reminder } from "@/lib/reminders/reminders.types";
 import { getReminder } from "@/lib/reminders/reminders.service";
+import ScrollingHeader from "@/components/ScrollingHeader";
 
 export default function ReminderDetailsPage() {
   const { id } = useLocalSearchParams();
@@ -49,20 +44,8 @@ export default function ReminderDetailsPage() {
   }
 
   return reminder ? (
-    <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 -ml-3">
-        <TouchableOpacity className="p-3" onPress={goBackHandler}>
-          <Icon as={ArrowLeftIcon} size="xl" />
-        </TouchableOpacity>
-        <Heading
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          size="3xl"
-          className="flex-1"
-        >
-          {reminder.title}
-        </Heading>
-      </Box>
+    <ThemedContainer className="-mt-2">
+      <ScrollingHeader text={reminder.title} goBack={goBackHandler} />
       <ReminderDetails
         reminder={reminder}
         onNotificationResponse={() => fetchData()}

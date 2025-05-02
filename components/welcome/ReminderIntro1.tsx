@@ -1,13 +1,11 @@
 import { Box } from "../ui/box";
 import { Heading } from "../ui/heading";
-import { Image } from "expo-image";
 import { VStack } from "../ui/vstack";
-import { Button, ButtonIcon, ButtonText } from "../ui/button";
-import { ChevronRightIcon } from "../ui/icon";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { Card } from "../ui/card";
 import { Text } from "../ui/text";
 import Fade from "../Fade";
+import { InsertReminder, InsertReminderModel } from "@/lib/reminders/reminders.types";
 
 const HABITS = [
   "💧 Drink a glass of water",
@@ -43,7 +41,7 @@ const HABITS = [
 ];
 
 type Props = {
-  onNext: () => void;
+  onNext: (reminder: Partial<InsertReminderModel>) => void;
 };
 
 export default function ReminderIntro1({ onNext }: Props) {
@@ -57,7 +55,7 @@ export default function ReminderIntro1({ onNext }: Props) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <VStack space="lg">
           {HABITS.map((h, idx) => (
-            <TouchableOpacity key={idx} onPress={onNext}>
+            <TouchableOpacity key={idx} onPress={() => onNext({ title: h })}>
               <Card variant="filled">
                 <Text size="xl">{h}</Text>
               </Card>

@@ -57,7 +57,7 @@ export default function Welcome0({ onNext }: Props) {
             )}
           </Box>
         </Box>
-        <VStack space="2xl">
+        <VStack space="2xl" className="px-1">
           <Heading size="xl">
             The app that helps{" "}
             <Heading size="xl" className="font-quicksand-bold">

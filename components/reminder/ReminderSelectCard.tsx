@@ -23,15 +23,16 @@ import { updateNotificationResponse, updateNotificationResponseOneTime } from "@
 
 type Props = {
   reminder: Reminder;
-  onNotificationResponse: () => void;
-  onMuted: () => void;
+  onNotificationResponse?: () => void;
+  onMuted?: () => void;
+  displayOnly?: boolean;
 };
 
 const ZodSchema = z.object({
   is_muted: z.boolean(),
 });
 
-export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
+export default function ({ reminder, onNotificationResponse, onMuted, displayOnly }: Props) {
   const router = useRouter();
   const confetti = useConfetti();
 
@@ -46,7 +47,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
 
   useWatch(is_muted, async (newVal) => {
     await updateReminderMuted(reminder.id!, newVal);
-    onMuted();
+    onMuted && onMuted();
   });
 
   useWatch(reminder, (r) => {
@@ -71,7 +72,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
     if (response === "done") {
       sendConfetti();
     }
-    onNotificationResponse();
+    onNotificationResponse && onNotificationResponse();
   }
 
   return (
@@ -82,7 +83,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
       } p-3 flex-1 aspect-square justify-between rounded-2xl border-background-500`}
     >
       <TouchableOpacity
-        onPress={() => router.push(`/reminder/${reminder.id}`)}
+        onPress={() => !displayOnly && router.push(`/reminder/${reminder.id}`)}
         className="flex-1"
       >
         <VStack>
@@ -157,7 +158,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
             <ButtonText>Done</ButtonText>
           </Button>
         </VStack>
-      ) : reminder.is_recurring && !reminder.is_archived ? (
+      ) : reminder.is_recurring && !reminder.is_archived && !displayOnly ? (
         <Box className="flex flex-row">
           <Box className="flex-grow" />
           <HStack space="sm" className="items-center">
@@ -182,7 +183,7 @@ export default function ({ reminder, onNotificationResponse, onMuted }: Props) {
           <ButtonText>Completed</ButtonText>
         </Button>
       ) : (
-        !reminder.is_archived && (
+        !reminder.is_archived && !displayOnly && (
           <Button size="xl" onPress={() => handleNotificationAction("done")}>
             <ButtonText>Done</ButtonText>
           </Button>

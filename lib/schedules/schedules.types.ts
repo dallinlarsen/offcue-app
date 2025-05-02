@@ -9,6 +9,7 @@ export type InsertSchedule = {
   is_saturday: boolean;
   start_time: string;
   end_time: string;
+  is_active?: boolean | null;
 };
 
 export type Schedule = InsertSchedule & {

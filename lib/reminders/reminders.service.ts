@@ -38,7 +38,7 @@ export async function getReminders(
     offset,
     wherePositive,
     whereNegative,
-    orderByScheduledAt,
+    orderByScheduledAt
   );
 }
 

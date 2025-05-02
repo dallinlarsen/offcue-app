@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { IntervalType } from "../reminders/reminders.types";
-import { Schedule } from "../schedules/schedules.types";
+import { InsertSchedule, Schedule } from "../schedules/schedules.types";
 
 export function chunkIntoPairs<T>(list: T[]) {
   const result = [];
@@ -113,7 +113,7 @@ function compressDays(days: DayList): string {
   return formattedSegments.join(", ");
 }
 
-export function formatScheduleString(schedule: Schedule) {
+export function formatScheduleString(schedule: InsertSchedule) {
   const days = [
     schedule.is_sunday && "sunday",
     schedule.is_monday && "monday",

@@ -1,4 +1,4 @@
-import { Schedule } from "../schedules/schedules.types";
+import { InsertSchedule, Schedule } from "../schedules/schedules.types";
 
 export type NReminder = {
   title: string;
@@ -41,6 +41,10 @@ export type InsertReminder = {
   track_notes: boolean;
   start_date: string;
   end_date: string | null;
+};
+
+export type InsertReminderModel = InsertReminder & {
+  schedules: (Schedule | InsertSchedule)[];
 };
 
 export type IntervalType =

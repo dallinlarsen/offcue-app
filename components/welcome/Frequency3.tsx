@@ -2,7 +2,6 @@ import { ScrollView } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { ChevronDownIcon, ChevronRightIcon } from "../ui/icon";
-import { Box } from "../ui/box";
 import {
   FormControl,
   FormControlError,
@@ -25,7 +24,10 @@ import { Controller, useForm } from "react-hook-form";
 import { Input, InputField } from "../ui/input";
 import { Heading } from "../ui/heading";
 import { Text } from "../ui/text";
-import { InsertReminder, InsertReminderModel, IntervalType } from "@/lib/reminders/reminders.types";
+import {
+  InsertReminderModel,
+  IntervalType,
+} from "@/lib/reminders/reminders.types";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ReminderSummaryBox from "./ReminderSummaryBox";
@@ -70,7 +72,11 @@ export default function Frequency3({ onNext, reminder }: Props) {
   return (
     <VStack space="lg" className="justify-between flex-1">
       <ReminderSummaryBox reminder={reminder} />
+      <Heading size="2xl">How often do you want to be reminded?</Heading>
       <ScrollView showsVerticalScrollIndicator={false}>
+        <Heading size="xl" className="font-quicksand-bold mb-4">
+          Now for the random part! 🎲
+        </Heading>
         <VStack space="md">
           <VStack>
             <Heading size="xl">Remind Me</Heading>
@@ -181,6 +187,17 @@ export default function Frequency3({ onNext, reminder }: Props) {
             </HStack>
           </VStack>
         </VStack>
+        <Text size="2xl" className="leading-normal mt-6">
+          Unlike other apps, offcue lets you set reminders to{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            pop up at random times
+          </Heading>{" "}
+          within a schedule you choose. That means no more stressing about the
+          perfect time, just set it and let the{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            magic happen! 🪄
+          </Heading>{" "}
+        </Text>
       </ScrollView>
       <Button size="xl" onPress={nextPressedHandler}>
         <ButtonText>Next</ButtonText>

@@ -1,7 +1,7 @@
 import { recalcFutureNotifications } from '../notifications/notifications.service';
 import { getRemindersByScheduleId } from '../reminders/reminders.source';
 import * as source from './schedules.source';
-import { Schedule } from './schedules.types';
+import { InsertSchedule, Schedule } from './schedules.types';
 
 export {
   schedulesInit,
@@ -11,7 +11,6 @@ export {
   deleteReminderScheduleMapByReminderIdAndScheduleId,
   createInitialSchedules,
   getSchedule,
-  createSchedule,
   deleteSchedule,
   getAllSchedules,
 } from "./schedules.source";
@@ -27,4 +26,12 @@ export async function updateSchedule(id: number, schedule: Partial<Schedule>) {
   }
 
   updateReminders();
+}
+
+export async function createSchedule(schedule: InsertSchedule) {
+  const existingScheduleId = await source.doesSameScheduleConfigurationExist(schedule);
+
+  if (existingScheduleId) return existingScheduleId;
+
+  return await source.createSchedule(schedule);
 }

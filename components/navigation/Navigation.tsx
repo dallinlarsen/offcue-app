@@ -26,7 +26,7 @@ export default function () {
   });
 
   return (
-    <HStack className="w-full pt-6">
+    <HStack className="w-full pt-6 pb-2">
       <NavigationItem
         label="Reminders"
         onPress={() => router.dismissTo("/")}

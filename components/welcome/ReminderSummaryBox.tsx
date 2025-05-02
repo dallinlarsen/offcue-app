@@ -19,23 +19,33 @@ export default function ReminderSummaryBox({ reminder }: Props) {
   return (
     <Card variant="filled">
       <VStack space="sm">
-        <Heading size="lg">{reminder.title}</Heading>
-        {reminder.description && <Text size="lg">{reminder.description}</Text>}
-        {reminder.interval_type && reminder.interval_num && reminder.times && (
-          <Text size="lg">
-            {formatFrequencyString(
-              reminder.times,
-              reminder.interval_num,
-              reminder.interval_type
+        <Heading size="lg" numberOfLines={1}>
+          {reminder.title}
+        </Heading>
+        <VStack>
+          {reminder.description && (
+            <Text size="lg" numberOfLines={2}>
+              {reminder.description}
+            </Text>
+          )}
+          {reminder.interval_type &&
+            reminder.interval_num &&
+            reminder.times && (
+              <Text size="lg">
+                {formatFrequencyString(
+                  reminder.times,
+                  reminder.interval_num,
+                  reminder.interval_type
+                )}
+              </Text>
             )}
-          </Text>
-        )}
-        {reminder.schedules && reminder.schedules.length > 0 && (
-          <Text size="lg">
-            {reminder.schedules[0].label} (
-            {formatScheduleString(reminder.schedules[0])})
-          </Text>
-        )}
+          {reminder.schedules && reminder.schedules.length > 0 && (
+            <Text size="lg">
+              {reminder.schedules[0].label} (
+              {formatScheduleString(reminder.schedules[0])})
+            </Text>
+          )}
+        </VStack>
       </VStack>
     </Card>
   );

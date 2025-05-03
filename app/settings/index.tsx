@@ -38,8 +38,8 @@ export default function SettingsScreen() {
 
   return settings ? (
     <ThemedContainer>
-      <Box className="flex flex-row items-center mb-4">
-        <Heading size="3xl">Settings</Heading>
+      <Box className="flex flex-row items-center mb-1">
+        <Heading size="2xl">Settings</Heading>
       </Box>
       <VStack space="lg">
         <DarkMode

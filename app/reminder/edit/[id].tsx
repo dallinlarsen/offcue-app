@@ -29,11 +29,11 @@ export default function EditReminder() {
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 -ml-3 mb-2">
+      <Box className="flex flex-row items-center -mt-2 -ml-4 mb-2">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
-        <Heading size="3xl">Edit Reminder</Heading>
+        <Heading size="2xl">Edit Reminder</Heading>
       </Box>
       <Fade />
       {reminder ? (

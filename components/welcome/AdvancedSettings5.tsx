@@ -56,7 +56,7 @@ export default function AdvancedSettings5({ onNext, reminder }: Props) {
     resolver: zodResolver(ZodSchema),
     defaultValues: {
       track_streak: false,
-    }
+    },
   });
 
   const [track_streak, start_date, end_date] = watch([
@@ -82,8 +82,9 @@ export default function AdvancedSettings5({ onNext, reminder }: Props) {
   });
 
   return (
-    <VStack className="justify-between flex-1">
+    <VStack space="lg" className="justify-between flex-1">
       <ReminderSummaryBox reminder={reminder} />
+      <Heading size="2xl">Other Advanced Options</Heading>
       <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         <VStack space="lg">
           <HStack space="xl" className="items-center">
@@ -183,6 +184,10 @@ export default function AdvancedSettings5({ onNext, reminder }: Props) {
             )}
           </VStack>
         </VStack>
+        <Text size="2xl" className="leading-normal mt-6">
+          Track your streak 🔥, customize when you want the reminder to begin or end. Its your reminder so make it yours! 🫵
+          
+        </Text>
       </ScrollView>
       <Button size="xl" onPress={nextPressedHandler}>
         <ButtonText>Next</ButtonText>

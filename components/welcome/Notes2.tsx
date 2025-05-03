@@ -12,7 +12,9 @@ import { Input, InputField } from "../ui/input";
 import { Textarea, TextareaInput } from "../ui/textarea";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InsertReminder, InsertReminderModel } from "@/lib/reminders/reminders.types";
+import { InsertReminderModel } from "@/lib/reminders/reminders.types";
+import { Heading } from "../ui/heading";
+import { Text } from "../ui/text";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
@@ -43,8 +45,15 @@ export default function Notes2({ onNext, reminder }: Props) {
 
   return (
     <VStack className="justify-between flex-1">
+      <Heading size="2xl" className="mb-2">
+        Add a description
+      </Heading>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <VStack space="sm">
+        <Heading size="xl" className="font-quicksand-bold">
+          Need a little extra motivation? ✨
+        </Heading>
+
+        <VStack space="sm" className="mt-6">
           <FormControl isInvalid={!!errors.title}>
             <Controller
               control={control}
@@ -89,6 +98,21 @@ export default function Notes2({ onNext, reminder }: Props) {
             </FormControlError>
           </FormControl>
         </VStack>
+        <Text size="2xl" className="leading-normal mt-6">
+          Every reminder lets you add an{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            optional description
+          </Heading>
+          . Perfect if you want to keep the{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            title short 📝
+          </Heading>{" "}
+          or give yourself a{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            boost of encouragement
+          </Heading>{" "}
+          to get it done! 💪
+        </Text>
       </ScrollView>
       <Button size="xl" onPress={nextPressedHandler}>
         <ButtonText>Next</ButtonText>

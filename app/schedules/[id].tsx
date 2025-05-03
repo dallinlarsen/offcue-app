@@ -36,6 +36,7 @@ import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, SectionList, TouchableOpacity } from "react-native";
+import ScrollingHeader from "@/components/ScrollingHeader";
 
 export default function () {
   const { id } = useLocalSearchParams();
@@ -121,19 +122,7 @@ export default function () {
 
   return schedule ? (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 -ml-3">
-        <TouchableOpacity className="p-3" onPress={() => router.back()}>
-          <Icon as={ArrowLeftIcon} size="xl" />
-        </TouchableOpacity>
-        <Heading
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          size="3xl"
-          className="flex-1"
-        >
-          {schedule.label}
-        </Heading>
-      </Box>
+      <ScrollingHeader text={schedule.label} goBack={() => router.back()} />
       <VStack space="md">
         <HStack className="items-start">
           <Heading size="xl">{formatScheduleString(schedule)}</Heading>
@@ -233,7 +222,9 @@ export default function () {
                 <Box className="bg-background-light dark:bg-background-dark mb-3">
                   <Heading size="lg">{title}</Heading>
                   {currentReminders.length === 0 && (
-                    <Text className="mb-8">No current reminders are using this schedule.</Text>
+                    <Text className="mb-8">
+                      No current reminders are using this schedule.
+                    </Text>
                   )}
                 </Box>
                 <Box>

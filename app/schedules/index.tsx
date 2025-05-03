@@ -47,8 +47,8 @@ export default function SchedulesScreen() {
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center pb-4">
-        <Heading size="3xl">Schedules</Heading>
+      <Box className="flex flex-row items-center pb-1">
+        <Heading size="2xl">Schedules</Heading>
       </Box>
       <SectionList
         sections={[
@@ -70,7 +70,7 @@ export default function SchedulesScreen() {
           item ? <ScheduleOption schedule={item} /> : <Box className="h-12" />
         }
         //@ts-ignore
-        renderSectionHeader={({ section: { title }}) =>
+        renderSectionHeader={({ section: { title } }) =>
           title === "Inactive" ? (
             inactiveSchedules.length > 0 && (
               <TouchableOpacity onPress={() => setShowArchived(!showArchived)}>

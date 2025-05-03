@@ -6,10 +6,14 @@ import { Icon, ArrowLeftIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import AddEditReminder from "@/components/reminder/AddEditReminder";
 import { TouchableOpacity } from "react-native";
-import { InsertReminder, IntervalType, Reminder } from "@/lib/reminders/reminders.types";
+import {
+  InsertReminder,
+  IntervalType,
+  Reminder,
+} from "@/lib/reminders/reminders.types";
 import { Schedule } from "@/lib/schedules/schedules.types";
 import { getReminder } from "@/lib/reminders/reminders.service";
-import omit from 'lodash/omit';
+import omit from "lodash/omit";
 
 export default function NewReminder() {
   const router = useRouter();
@@ -35,7 +39,7 @@ export default function NewReminder() {
       if (copy) {
         const copyReminder = await getReminder(parseInt(copy));
         reminder.current = {
-          ...omit(copyReminder, ['id']),
+          ...omit(copyReminder, ["id"]),
           start_date: "",
           end_date: "",
         };
@@ -47,11 +51,11 @@ export default function NewReminder() {
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center -mt-2 mb-2 -ml-3">
+      <Box className="flex flex-row items-center -mt-2 mb-2 -ml-4">
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
-        <Heading size="3xl">New Reminder</Heading>
+        <Heading size="2xl">New Reminder</Heading>
       </Box>
       {showForm && (
         <AddEditReminder

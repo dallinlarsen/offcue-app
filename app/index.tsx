@@ -258,9 +258,9 @@ export default function HomeScreen() {
 
   return (
     <ThemedContainer>
-      <Box className="mb-2">
+      <Box className="mb-1">
         <HStack className="justify-between items-start">
-          <Heading size="3xl">Reminders</Heading>
+          <Heading size="2xl">Reminders</Heading>
         </HStack>
       </Box>
 

@@ -102,9 +102,46 @@ export async function getSchedulesByReminderId(reminderId: number) {
   );
 }
 
+export async function doesSameScheduleConfigurationExist(
+  schedule: InsertSchedule
+): Promise<number | null> {
+  const trimmedLabel = schedule.label.trim();
+
+  const result = await db.getFirstAsync<{
+    id: number;
+  }>(
+    `SELECT id FROM schedules
+     WHERE label = ?
+       AND is_sunday = ?
+       AND is_monday = ?
+       AND is_tuesday = ?
+       AND is_wednesday = ?
+       AND is_thursday = ?
+       AND is_friday = ?
+       AND is_saturday = ?
+       AND start_time = ?
+       AND end_time = ?
+     LIMIT 1`,
+    [
+      trimmedLabel,
+      schedule.is_sunday,
+      schedule.is_monday,
+      schedule.is_tuesday,
+      schedule.is_wednesday,
+      schedule.is_thursday,
+      schedule.is_friday,
+      schedule.is_saturday,
+      schedule.start_time,
+      schedule.end_time,
+    ]
+  );
+
+  return result?.id ?? null;
+}
+
 // Create
 export async function createSchedule(model: InsertSchedule) {
-  return await insertIntoTable("schedules", model);
+  return await insertIntoTable("schedules", { ...model, label: model.label.trim() });
 }
 
 export async function createScheduleReminderMaps(
@@ -171,7 +208,11 @@ export async function createInitialSchedules() {
 
 // Update
 export async function updateSchedule(id: number, model: Partial<Schedule>) {
-  return await updateTable("schedules", model, { id });
+  return await updateTable(
+    "schedules",
+    { ...model, label: model?.label?.trim() },
+    { id }
+  );
 }
 
 // Delete

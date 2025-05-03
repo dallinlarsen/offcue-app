@@ -72,7 +72,7 @@ export default function NotificationsTest() {
         <TouchableOpacity className="p-3" onPress={() => router.back()}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
-        <Heading size="3xl">Notifications Test</Heading>
+        <Heading size="2xl">Notifications Test</Heading>
       </Box>
       <VStack space="sm">
         <Text>Creates notification 10 seconds from now</Text>

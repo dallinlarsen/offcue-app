@@ -25,7 +25,7 @@ export default function ({ reminder, isOpen, onClose }: Props) {
 
   async function deleteReminderHandler() {
     await deleteReminder(reminder.id!);
-    router.replace('/');
+    router.dismissTo('/');
   }
 
   return (

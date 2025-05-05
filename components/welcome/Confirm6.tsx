@@ -12,13 +12,19 @@ import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import MenuOption from "./MenuOption";
+import { useRouter } from "expo-router";
+import Fade from "../Fade";
+import { useHasHomeButton } from "@/hooks/useHasHomeButton";
 
 type Props = {
   onNext: () => void;
+  onStartOver: () => void;
   reminderId: number | null;
 };
 
-export default function Confirm6({ onNext, reminderId }: Props) {
+export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
+  const router = useRouter();
+  const hasHomeButton = useHasHomeButton();
   const [reminder, setReminder] = useState<Reminder | null>(null);
 
   useEffect(() => {
@@ -27,10 +33,6 @@ export default function Confirm6({ onNext, reminderId }: Props) {
     }
     fetchReminder();
   }, [reminderId]);
-
-  function nextPressedHandler() {
-    onNext();
-  }
 
   return (
     <VStack className="justify-between flex-1">
@@ -51,33 +53,35 @@ export default function Confirm6({ onNext, reminderId }: Props) {
           <Heading size="xl" className="font-quicksand-bold">
             Contratulations! 🥳
           </Heading>
-          <Text size="xl" className="leading-normal mb-2">
+          <Text size="xl" className="leading-normal mb-4">
             If you would like to go through this tutorial again it is always
             available in the settings menu. Choose what to do next! 👇
           </Text>
+
           <MenuOption
             text="☝️ Create another reminder"
-            onPress={nextPressedHandler}
+            onPress={() => router.replace("/new-reminder")}
           />
           <MenuOption
             text="🗓️ Add more schedules"
-            onPress={nextPressedHandler}
+            onPress={onNext}
           />
           <MenuOption
             text="🎓 Do this tutorial again"
-            onPress={nextPressedHandler}
+            onPress={onStartOver}
           />
           <MenuOption
             text="🤔 Learn more about offcue"
-            onPress={nextPressedHandler}
+            onPress={() => router.dismissTo("/")}
           />
           <MenuOption
-            text="📋 See all reminders"
-            onPress={nextPressedHandler}
+            text="✌️ Close this tutorial"
+            onPress={() => router.dismissTo("/")}
           />
-          <Box className="h-24" />
+          <Box className="h-36" />
         </ScrollView>
       </VStack>
+      <Fade className={hasHomeButton ? "-mb-3" : ""} />
     </VStack>
   );
 }

@@ -160,17 +160,17 @@ export async function createInitialSchedules() {
     // Add a few example schedules to the database
     const exampleSchedules = [
       {
-        label: "Work",
-        is_sunday: false,
+        label: "Awake",
+        is_sunday: true,
         is_monday: true,
         is_tuesday: true,
         is_wednesday: true,
         is_thursday: true,
         is_friday: true,
-        is_saturday: false,
+        is_saturday: true,
         is_active: true,
-        start_time: "08:00",
-        end_time: "17:00",
+        start_time: "07:00",
+        end_time: "21:00",
       },
       {
         label: "Evening",
@@ -208,9 +208,14 @@ export async function createInitialSchedules() {
 
 // Update
 export async function updateSchedule(id: number, model: Partial<Schedule>) {
+  let labelTrimObject = {};
+  if (Object.keys(model).includes('label')) {
+    labelTrimObject = { label: model.label?.trim() }
+  }
+
   return await updateTable(
     "schedules",
-    { ...model, label: model?.label?.trim() },
+    { ...model, ...labelTrimObject },
     { id }
   );
 }

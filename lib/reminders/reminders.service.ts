@@ -1,3 +1,4 @@
+import { scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
 import { deleteNotesByReminderId } from "../notes/notes.source";
 import {
   createInitialNotifications,
@@ -87,6 +88,8 @@ export const updateReminderMuted = async (id: number, isMuted: boolean) => {
   } else {
     await recalcFutureNotifications(id);
   }
+
+  scheduleAllUpcomingNotifications();
 };
 
 export const updateReminderArchived = async (
@@ -100,9 +103,10 @@ export const updateReminderArchived = async (
   if (isArchived) {
     await deleteFutureNotificationsByReminderId(id);
   } else {
-    // TODO: When future notification generation is implemented call it here.
     await recalcFutureNotifications(id);
   }
+
+  scheduleAllUpcomingNotifications();
 };
 
 export const deleteReminder = async (id: number) => {

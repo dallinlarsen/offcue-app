@@ -49,10 +49,20 @@ export default function NewReminder() {
     getCopyReminder();
   }, []);
 
+  function goBackHandler() {
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else router.dismissTo("/");
+    } catch (e) {
+      router.dismissTo("/");
+    }
+  }
+
   return (
     <ThemedContainer>
       <Box className="flex flex-row items-center -mt-2 mb-2 -ml-4">
-        <TouchableOpacity className="p-3" onPress={() => router.back()}>
+        <TouchableOpacity className="p-3" onPress={goBackHandler}>
           <Icon as={ArrowLeftIcon} size="xl" />
         </TouchableOpacity>
         <Heading size="2xl">New Reminder</Heading>

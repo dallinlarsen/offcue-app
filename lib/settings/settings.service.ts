@@ -1,1 +1,1 @@
-export { settingsInit, updateSettings } from "./settings.source";
+export { settingsInit, updateSettings, getSettings } from "./settings.source";

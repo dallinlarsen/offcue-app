@@ -1,7 +1,7 @@
 import { ScrollView } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
-import { ChevronRightIcon } from "../ui/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "../ui/icon";
 import {
   FormControl,
   FormControlError,
@@ -15,9 +15,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InsertReminderModel } from "@/lib/reminders/reminders.types";
 import { Heading } from "../ui/heading";
 import { Text } from "../ui/text";
+import { HStack } from "../ui/hstack";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
+  onPrevious: (reminder: Partial<InsertReminderModel>) => void;
   reminder: Partial<InsertReminderModel>;
 };
 
@@ -26,7 +28,7 @@ const ZodSchema = z.object({
   description: z.string().optional(),
 });
 
-export default function Notes2({ onNext, reminder }: Props) {
+export default function Notes2({ onNext, onPrevious, reminder }: Props) {
   const {
     control,
     handleSubmit,
@@ -42,6 +44,10 @@ export default function Notes2({ onNext, reminder }: Props) {
   const nextPressedHandler = handleSubmit(async (model) => {
     onNext(model);
   });
+
+  function previousPressedHandler() {
+    onPrevious(reminder);
+  };
 
   return (
     <VStack className="justify-between flex-1">
@@ -114,10 +120,21 @@ export default function Notes2({ onNext, reminder }: Props) {
           to get it done! 💪
         </Text>
       </ScrollView>
-      <Button size="xl" onPress={nextPressedHandler}>
-        <ButtonText>Next</ButtonText>
-        <ButtonIcon as={ChevronRightIcon} />
-      </Button>
+      <HStack space="sm">
+        <Button
+          className="flex-1"
+          size="xl"
+          variant="outline"
+          onPress={previousPressedHandler}
+        >
+          <ButtonIcon as={ChevronLeftIcon} />
+          <ButtonText>Previous</ButtonText>
+        </Button>
+        <Button className="flex-1" size="xl" onPress={nextPressedHandler}>
+          <ButtonText>Next</ButtonText>
+          <ButtonIcon as={ChevronRightIcon} />
+        </Button>
+      </HStack>
     </VStack>
   );
 }

@@ -1,7 +1,7 @@
 import { ScrollView } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
-import { ChevronRightIcon } from "../ui/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "../ui/icon";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { Switch } from "../ui/switch";
@@ -24,6 +24,7 @@ import ReminderSummaryBox from "./ReminderSummaryBox";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
+  onPrevious: (reminder: Partial<InsertReminderModel>) => void;
   reminder: Partial<InsertReminderModel>;
 };
 
@@ -46,7 +47,7 @@ const ZodSchema = z
     }
   );
 
-export default function AdvancedSettings5({ onNext, reminder }: Props) {
+export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Props) {
   const {
     handleSubmit,
     setValue,
@@ -80,6 +81,10 @@ export default function AdvancedSettings5({ onNext, reminder }: Props) {
         : undefined,
     });
   });
+
+  function previousPressedHandler() {
+    onPrevious(reminder);
+  }
 
   return (
     <VStack space="lg" className="justify-between flex-1">
@@ -185,14 +190,25 @@ export default function AdvancedSettings5({ onNext, reminder }: Props) {
           </VStack>
         </VStack>
         <Text size="2xl" className="leading-normal mt-6">
-          Track your streak 🔥, customize when you want the reminder to begin or end. Its your reminder so make it yours! 🫵
-          
+          Track your streak 🔥, customize when you want the reminder to begin or
+          end. Its your reminder so make it yours! 🫵
         </Text>
       </ScrollView>
-      <Button size="xl" onPress={nextPressedHandler}>
-        <ButtonText>Next</ButtonText>
-        <ButtonIcon as={ChevronRightIcon} />
-      </Button>
+      <HStack space="sm">
+        <Button
+          className="flex-1"
+          size="xl"
+          variant="outline"
+          onPress={previousPressedHandler}
+        >
+          <ButtonIcon as={ChevronLeftIcon} />
+          <ButtonText>Previous</ButtonText>
+        </Button>
+        <Button className="flex-1" size="xl" onPress={nextPressedHandler}>
+          <ButtonText>Complete</ButtonText>
+          <ButtonIcon as={ChevronRightIcon} />
+        </Button>
+      </HStack>
     </VStack>
   );
 }

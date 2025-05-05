@@ -19,7 +19,7 @@ export function GluestackUIProvider({
 
   async function setUserTheme() {
     const settings = await getSettings();
-    setColorScheme(settings.theme);
+    setColorScheme(settings?.theme || 'system');
   }
 
   useEffect(() => {

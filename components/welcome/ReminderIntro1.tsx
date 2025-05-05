@@ -5,7 +5,14 @@ import { ScrollView, TouchableOpacity } from "react-native";
 import { Card } from "../ui/card";
 import { Text } from "../ui/text";
 import Fade from "../Fade";
-import { InsertReminder, InsertReminderModel } from "@/lib/reminders/reminders.types";
+import {
+  InsertReminder,
+  InsertReminderModel,
+} from "@/lib/reminders/reminders.types";
+import { ButtonIcon, ButtonText, Button } from "../ui/button";
+import { CloseIcon } from "../ui/icon";
+import { useRouter } from "expo-router";
+import { useSettings } from "@/hooks/useSettings";
 
 const HABITS = [
   "💧 Drink a glass of water",
@@ -45,6 +52,8 @@ type Props = {
 };
 
 export default function ReminderIntro1({ onNext }: Props) {
+  const router = useRouter();
+  const { settings } = useSettings();
   return (
     <VStack className="justify-between flex-1">
       <Box>
@@ -65,6 +74,16 @@ export default function ReminderIntro1({ onNext }: Props) {
         <Box className="h-24" />
       </ScrollView>
       <Fade />
+      {settings?.has_completed_tutorial && (
+        <Button
+          size="xl"
+          variant="outline"
+          onPress={() => router.dismissTo("/settings")}
+        >
+          <ButtonIcon as={CloseIcon} />
+          <ButtonText>Close Tutorial</ButtonText>
+        </Button>
+      )}
     </VStack>
   );
 }

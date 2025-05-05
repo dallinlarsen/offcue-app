@@ -1,9 +1,6 @@
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import {
-
-  PencilIcon,
-} from "@/components/ui/icon";
+import { PencilIcon } from "@/components/ui/icon";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
@@ -38,9 +35,13 @@ export default function ReminderDetailsPage() {
   );
 
   function goBackHandler() {
-    if (router.canGoBack()) {
-      router.back();
-    } else router.replace("/");
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else router.dismissTo("/");
+    } catch (e) {
+      router.dismissTo("/");
+    }
   }
 
   return reminder ? (

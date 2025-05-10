@@ -156,7 +156,7 @@ export async function getReminderOrGetReminders(
   ${wherePositive.length > 0 ? "AND " + wherePositive.join(" AND ") : ""}
   ${
     whereNegative.length > 0 ? "AND NOT " + whereNegative.join(" AND NOT ") : ""
-  }
+    }
   GROUP BY r.id
   ORDER BY due_scheduled_at DESC, fn.scheduled_at ${orderByScheduledAt}
   ${limit ? "LIMIT = ?" : ""} ${limit && offset ? "OFFSET = ?" : ""};
@@ -173,6 +173,47 @@ export async function getReminderOrGetReminders(
     is_archived: r.is_archived === (1 as unknown as boolean),
     schedules: JSON.parse(r.schedules as unknown as string),
     current_streak: r.current_streak ?? 0,
+  }));
+}
+
+/**
+ * Fetch active reminders: not muted, not archived, and either recurring
+ * or (if non-recurring) have no 'done' notification (i.e., still active).
+ */
+export async function getActiveReminders() {
+  const reminders = await db.getAllAsync<ReminderBase>(
+    `
+    SELECT
+      r.*,
+      n.id IS NOT NULL AS is_completed,
+      n.response_at AS completed_at
+    FROM reminders r
+    LEFT JOIN notifications n
+      ON n.reminder_id = r.id
+      AND NOT r.is_recurring
+      AND n.response_status = 'done'
+    WHERE
+      r.is_muted = 0
+      AND r.is_archived = 0
+      AND (
+        r.is_recurring = 1
+        OR NOT EXISTS (
+          SELECT 1
+          FROM notifications nx
+          WHERE nx.reminder_id = r.id
+            AND nx.response_status = 'done'
+        )
+      );
+    `
+  );
+
+  return reminders.map((r) => ({
+    ...r,
+    track_streak: r.track_streak === (1 as unknown as boolean),
+    is_muted: r.is_muted === (1 as unknown as boolean),
+    is_recurring: r.is_recurring === (1 as unknown as boolean),
+    is_completed: r.is_completed === (1 as unknown as boolean),
+    is_archived: r.is_archived === (1 as unknown as boolean),
   }));
 }
 

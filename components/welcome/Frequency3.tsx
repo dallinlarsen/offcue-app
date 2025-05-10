@@ -1,7 +1,7 @@
 import { ScrollView } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
-import { ChevronDownIcon, ChevronRightIcon } from "../ui/icon";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "../ui/icon";
 import {
   FormControl,
   FormControlError,
@@ -35,11 +35,12 @@ import { HStack } from "../ui/hstack";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
+  onPrevious: (reminder: Partial<InsertReminderModel>) => void;
   reminder: Partial<InsertReminderModel>;
 };
 
 const ZodSchema = z.object({
-  interval_type: z.string().nullish(),
+  interval_type: z.string().min(1, "Required"),
   interval_num: z
     .string()
     .min(1, "Required")
@@ -52,13 +53,18 @@ const ZodSchema = z.object({
     .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
 });
 
-export default function Frequency3({ onNext, reminder }: Props) {
+export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(ZodSchema),
+    defaultValues: {
+      times: reminder.times?.toString(),
+      interval_num: reminder.interval_num?.toString(),
+      interval_type: reminder.interval_type
+    }
   });
 
   const nextPressedHandler = handleSubmit(async (model) => {
@@ -68,6 +74,10 @@ export default function Frequency3({ onNext, reminder }: Props) {
       times: parseInt(model.times),
     });
   });
+
+  function previousPressedHandler() {
+    onPrevious(reminder);
+  }
 
   return (
     <VStack space="lg" className="justify-between flex-1">
@@ -199,10 +209,21 @@ export default function Frequency3({ onNext, reminder }: Props) {
           </Heading>{" "}
         </Text>
       </ScrollView>
-      <Button size="xl" onPress={nextPressedHandler}>
-        <ButtonText>Next</ButtonText>
-        <ButtonIcon as={ChevronRightIcon} />
-      </Button>
+      <HStack space="sm">
+        <Button
+          className="flex-1"
+          size="xl"
+          variant="outline"
+          onPress={previousPressedHandler}
+        >
+          <ButtonIcon as={ChevronLeftIcon} />
+          <ButtonText>Previous</ButtonText>
+        </Button>
+        <Button className="flex-1" size="xl" onPress={nextPressedHandler}>
+          <ButtonText>Next</ButtonText>
+          <ButtonIcon as={ChevronRightIcon} />
+        </Button>
+      </HStack>
     </VStack>
   );
 }

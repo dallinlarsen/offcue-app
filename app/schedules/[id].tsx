@@ -81,12 +81,12 @@ export default function () {
 
   async function inactivateScheduleHandler() {
     setInactivateOpen(false);
-    await updateSchedule(schedule?.id!, { is_active: false });
+    await updateSchedule(schedule?.id!, { is_active: false }, false);
     fetchData();
   }
 
   async function restoreScheduleHandler() {
-    await updateSchedule(schedule?.id!, { is_active: true });
+    await updateSchedule(schedule?.id!, { is_active: true }, false);
     fetchData();
   }
 

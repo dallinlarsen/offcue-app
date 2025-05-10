@@ -12,8 +12,9 @@ import { ConfettiProvider } from "@/hooks/useConfetti";
 import Navigation from "@/components/navigation/Navigation";
 import { NotificationProvider } from "@/hooks/useNotifications";
 import { initDatabase } from "@/lib/init/init.service";
-import { getSettings } from "@/lib/settings/settings.source";
+import { getSettings } from "@/lib/settings/settings.service";
 import { useRouteInfo } from "expo-router/build/hooks";
+import { SettingsProvider } from "@/hooks/useSettings";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -54,22 +55,24 @@ export default function RootLayout() {
   }
 
   return (
-    <GluestackUIProvider>
-      <ConfettiProvider>
-        <NotificationProvider>
-          <SafeAreaProvider>
-            <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
-              <Stack
-                screenOptions={{
-                  animation: "none",
-                  headerShown: false,
-                }}
-              />
-              {!route.pathname.startsWith("/welcome") && <Navigation />}
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </NotificationProvider>
-      </ConfettiProvider>
-    </GluestackUIProvider>
+    <SettingsProvider>
+      <GluestackUIProvider>
+        <ConfettiProvider>
+          <NotificationProvider>
+            <SafeAreaProvider>
+              <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+                <Stack
+                  screenOptions={{
+                    animation: "none",
+                    headerShown: false,
+                  }}
+                />
+                {!route.pathname.startsWith("/welcome") && <Navigation />}
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </NotificationProvider>
+        </ConfettiProvider>
+      </GluestackUIProvider>
+    </SettingsProvider>
   );
 }

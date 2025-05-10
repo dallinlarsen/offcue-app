@@ -59,12 +59,12 @@ const buttonStyle = tva({
     },
 
     size: {
-      xs: 'px-3.5 h-8',
-      sm: 'px-4 h-9',
-      md: 'px-5 h-10',
-      lg: 'px-6 h-11',
-      xl: 'px-7 h-12',
-      '2xl': 'px-8 h-13',
+      xs: 'h-8',
+      sm: 'h-9',
+      md: 'h-10',
+      lg: 'h-11',
+      xl: 'h-12',
+      '2xl': 'h-13',
     },
   },
   compoundVariants: [

@@ -17,7 +17,7 @@ import {
 } from "../ui/select";
 import { ChevronDownIcon } from "../ui/icon";
 import { useColorScheme } from "nativewind";
-import { updateSettings } from "@/lib/settings/settings.service";
+import { useSettings } from "@/hooks/useSettings";
 
 type Props = {
   theme: "light" | "dark" | "system";
@@ -37,6 +37,7 @@ const SELECT_OPTIONS = [
 
 export default function ({ open, setOpen, theme }: Props) {
   const { setColorScheme } = useColorScheme();
+  const { updateSettings } = useSettings();
 
   const { watch, control } = useForm({
     resolver: zodResolver(ZodSchema),

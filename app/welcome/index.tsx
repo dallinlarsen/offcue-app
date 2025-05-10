@@ -5,8 +5,10 @@ import Frequency3 from "@/components/welcome/Frequency3";
 import Notes2 from "@/components/welcome/Notes2";
 import ReminderIntro1 from "@/components/welcome/ReminderIntro1";
 import Schedules4 from "@/components/welcome/Schedules4";
+import SchedulesSelect7 from "@/components/welcome/SchedulesSelect7";
 import Welcome0 from "@/components/welcome/Welcome0";
 import { useConfetti } from "@/hooks/useConfetti";
+import { useSettings } from "@/hooks/useSettings";
 import useWatch from "@/hooks/useWatch";
 import { createReminder } from "@/lib/reminders/reminders.service";
 import {
@@ -15,14 +17,12 @@ import {
 } from "@/lib/reminders/reminders.types";
 import { createSchedule } from "@/lib/schedules/schedules.service";
 import { Schedule } from "@/lib/schedules/schedules.types";
-import { updateSettings } from "@/lib/settings/settings.source";
-import { useRouter } from "expo-router";
 import omit from "lodash/omit";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function () {
-  const router = useRouter();
   const confetti = useConfetti();
+  const { updateSettings, settings } = useSettings();
 
   const [pageState, setPageState] = useState(0);
   const [builtReminder, setBuiltReminder] = useState<
@@ -32,16 +32,27 @@ export default function () {
     null
   );
 
-  useWatch(pageState, (value) => {
-    if (value >= 7) {
-      updateSettings({ has_completed_tutorial: true });
-      router.replace("/");
-    }
-  });
+//   useEffect(() => {
+//     if (settings?.has_completed_tutorial) setPageState(1);
+//     else setPageState(0);
+//   }, []);
+
+  function onPreviousHandler(
+    page: number,
+    reminder: Partial<InsertReminderModel>
+  ) {
+    setBuiltReminder(reminder);
+    setPageState(page);
+  }
 
   function onNextHandler(page: number, reminder: Partial<InsertReminderModel>) {
     setBuiltReminder({ ...builtReminder, ...reminder });
     setPageState(page);
+  }
+
+  function onStartOverHandler() {
+    setBuiltReminder({});
+    setPageState(1);
   }
 
   function sendConfetti() {
@@ -72,6 +83,7 @@ export default function () {
     });
 
     setCreatedReminderId(reminderId);
+    updateSettings({ has_completed_tutorial: true });
     setPageState(6);
     sendConfetti();
   }
@@ -88,6 +100,7 @@ export default function () {
         return (
           <Notes2
             onNext={(reminder) => onNextHandler(3, reminder)}
+            onPrevious={(reminder) => onPreviousHandler(1, reminder)}
             reminder={builtReminder}
           />
         );
@@ -95,6 +108,7 @@ export default function () {
         return (
           <Frequency3
             onNext={(reminder) => onNextHandler(4, reminder)}
+            onPrevious={(reminder) => onPreviousHandler(2, reminder)}
             reminder={builtReminder}
           />
         );
@@ -102,6 +116,7 @@ export default function () {
         return (
           <Schedules4
             onNext={(reminder) => onNextHandler(5, reminder)}
+            onPrevious={(reminder) => onPreviousHandler(3, reminder)}
             reminder={builtReminder}
           />
         );
@@ -111,6 +126,7 @@ export default function () {
             onNext={(reminder) =>
               completeReminder({ ...builtReminder, ...reminder })
             }
+            onPrevious={(reminder) => onPreviousHandler(4, reminder)}
             reminder={builtReminder}
           />
         );
@@ -118,9 +134,12 @@ export default function () {
         return (
           <Confirm6
             onNext={() => setPageState(7)}
+            onStartOver={onStartOverHandler}
             reminderId={createdReminderId}
           />
         );
+      case 7:
+        return <SchedulesSelect7 />;
 
       default:
         return null;

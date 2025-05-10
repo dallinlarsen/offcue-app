@@ -4,16 +4,28 @@ import NavigationItem from "./NavigationItem";
 import { VStack } from "../ui/vstack";
 import { BoxIcon, CalendarDaysIcon, Icon, SettingsIcon } from "../ui/icon";
 import { useRouteInfo } from "expo-router/build/hooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useWatch from "@/hooks/useWatch";
+import { useHasHomeButton } from "@/hooks/useHasHomeButton";
 
 export default function () {
   const router = useRouter();
   const route = useRouteInfo();
+  const hasHomeButton = useHasHomeButton();
 
   const [activeItem, setActiveItem] = useState<
     "reminders" | "schedules" | "settings"
   >("reminders");
+
+  useEffect(() => {
+    if (route.pathname.startsWith("/schedules")) {
+      setActiveItem("schedules");
+    } else if (route.pathname.startsWith("/settings")) {
+      setActiveItem("settings");
+    } else {
+      setActiveItem("reminders");
+    }
+  }, []);
 
   useWatch(route.pathname, (val) => {
     if (val.startsWith("/schedules")) {
@@ -26,7 +38,7 @@ export default function () {
   });
 
   return (
-    <HStack className="w-full pt-6 pb-2">
+    <HStack className={`w-full pt-6 ${hasHomeButton ? "pb-2" : ""}`}>
       <NavigationItem
         label="Reminders"
         onPress={() => router.dismissTo("/")}

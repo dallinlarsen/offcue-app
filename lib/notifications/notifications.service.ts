@@ -8,7 +8,7 @@ dayjs.extend(weekOfYear);
 import * as source from "./notifications.source";
 
 import { dismissFromNotificationCenter, scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
-import { getReminder, getReminders, updateReminderArchived } from "../reminders/reminders.service";
+import { getActiveReminders, getReminder, updateReminderArchived } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
 
@@ -601,7 +601,7 @@ export async function undoOneTimeComplete(reminderId: number) {
  * 3. Schedule all upcoming notifications in the system.
  */
 export const runNotificationMaintenance = async () => {
-  const reminders = await getReminders();
+  const reminders = await getActiveReminders();
   const today = dayjs();
 
   // Archive expired and clean up

@@ -19,7 +19,7 @@ import {
 } from "./reminders.types";
 import omit from "lodash/omit";
 
-export { remindersInit } from "./reminders.source";
+export { remindersInit, getActiveReminders } from "./reminders.source";
 
 export async function getReminder(id: number) {
   return (await source.getReminderOrGetReminders(id))[0];

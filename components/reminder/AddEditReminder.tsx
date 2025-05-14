@@ -127,7 +127,7 @@ export default function AddEditReminder({
     setValue,
     clearErrors,
     watch,
-    formState: { errors },
+    formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
@@ -164,7 +164,7 @@ export default function AddEditReminder({
           start_date: model.start_date
             ? dayjs(model.start_date).format("YYYY-MM-DD")
             : undefined,
-          end_date: showEndDateOption
+          end_date: model.end_date
             ? dayjs(model.end_date).format("YYYY-MM-DD")
             : undefined,
         });
@@ -182,7 +182,7 @@ export default function AddEditReminder({
           start_date: model.start_date
             ? dayjs(model.start_date).format("YYYY-MM-DD")
             : dayjs().format("YYYY-MM-DD"),
-          end_date: showEndDateOption
+          end_date: model.end_date
             ? dayjs(model.end_date).format("YYYY-MM-DD")
             : null,
         });
@@ -211,13 +211,6 @@ export default function AddEditReminder({
     null
   );
 
-  const [showEndDateOption, setShowEndDateOption] = useState(!!end_date);
-  useWatch(showEndDateOption, (value) => {
-    if (!value) {
-      setValue("end_date", undefined);
-    }
-  });
-
   function addScheduleOnCloseHandler() {
     if (reopenSchedules) {
       setSchedulesOpen(true);
@@ -230,6 +223,14 @@ export default function AddEditReminder({
       setSchedulesOpen(false);
       setReopenSchedules(true);
     }
+  });
+
+  useWatch(start_date, () => {
+    clearErrors();
+  });
+
+  useWatch(end_date, () => {
+    clearErrors();
   });
 
   return (
@@ -515,21 +516,6 @@ export default function AddEditReminder({
                       ios_backgroundColor={colors.gray[300]}
                     />
                   </HStack>
-                  {/* <HStack space="xl" className="items-center">
-                    <Text size="xl" className="font-quicksand-semibold">
-                      Track Notes
-                    </Text>
-                    <Switch
-                      value={track_streak}
-                      onValueChange={(track) => setValue("track_notes", track)}
-                      trackColor={{
-                        false: colors.gray[300],
-                        true: colors.gray[500],
-                      }}
-                      thumbColor={colors.gray[50]}
-                      ios_backgroundColor={colors.gray[300]}
-                    />
-                  </HStack> */}
                 </>
               )}
               <Heading size="lg" className="-mb-4">
@@ -544,7 +530,12 @@ export default function AddEditReminder({
               >
                 <InputField
                   placeholder="Start Date"
-                  value={dayjs(start_date).format("MMMM D, YYYY")}
+                  value={
+                    dayjs(start_date).format("YYYY-MM-DD") ===
+                    dayjs().format("YYYY-MM-DD")
+                      ? "Today"
+                      : dayjs(start_date).format("MMMM D, YYYY")
+                  }
                 />
               </Input>
 
@@ -559,43 +550,38 @@ export default function AddEditReminder({
                 onCancel={() => setShowDatePicker(null)}
               />
               {recurring && (
-                <HStack space="xl" className="items-center mb-1">
-                  <Text size="xl" className="font-quicksand-semibold">
-                    Set End Date
-                  </Text>
-                  <Switch
-                    value={showEndDateOption}
-                    onValueChange={(show) => setShowEndDateOption(show)}
-                    trackColor={{
-                      false: colors.gray[300],
-                      true: colors.gray[500],
-                    }}
-                    thumbColor={colors.gray[50]}
-                    ios_backgroundColor={colors.gray[300]}
-                  />
-                </HStack>
-              )}
-              {recurring && showEndDateOption && (
                 <>
                   <FormControl isInvalid={!!errors.start_date}>
-                    <Input
-                      size="xl"
-                      isReadOnly
-                      className="-mt-4"
-                      onTouchEnd={() =>
-                        setShowDatePicker(
-                          showDatePicker === "end" ? null : "end"
-                        )
-                      }
-                    >
-                      <InputField
-                        value={
-                          end_date
-                            ? dayjs(end_date).format("MMMM D, YYYY")
-                            : dayjs(start_date).format("MMMM D, YYYY")
+                    <HStack>
+                      <Input
+                        size="xl"
+                        className="flex-1"
+                        isReadOnly
+                        onTouchEnd={() =>
+                          setShowDatePicker(
+                            showDatePicker === "end" ? null : "end"
+                          )
                         }
-                      />
-                    </Input>
+                      >
+                        <InputField
+                          value={
+                            end_date
+                              ? dayjs(end_date).format("MMMM D, YYYY")
+                              : "No End Date"
+                          }
+                        />
+                      </Input>
+                      {end_date && (
+                        <Button
+                          size="2xl"
+                          className="px-6"
+                          variant="link"
+                          onPress={() => setValue("end_date", null)}
+                        >
+                          <ButtonIcon as={CloseIcon} />
+                        </Button>
+                      )}
+                    </HStack>
                     <FormControlError>
                       <FormControlErrorText>
                         {errors?.start_date?.message || ""}
@@ -642,7 +628,7 @@ export default function AddEditReminder({
             <ButtonText>Cancel</ButtonText>
           </Button>
         ) : null}
-        <Button size="xl" onPress={onSubmit} className="flex-1">
+        <Button size="xl" onPress={onSubmit} className="flex-1" isDisabled={!isValid && isSubmitted}>
           <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
         </Button>
       </HStack>

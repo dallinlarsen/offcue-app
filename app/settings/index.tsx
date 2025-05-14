@@ -51,14 +51,14 @@ export default function SettingsScreen() {
           open={accordiansOpen.includes("welcome-tutorial")}
           setOpen={(open) => setOpenHandler(open, "welcome-tutorial")}
         />
-        <Button
+        {/* <Button
           size="xl"
           className="mt-8"
           onPress={() => router.push("/settings/notifications-test")}
         >
           <ButtonText>Notifications Testing</ButtonText>
           <ButtonIcon as={ChevronRightIcon} />
-        </Button>
+        </Button> */}
       </VStack>
     </ThemedContainer>
   ) : (

@@ -39,19 +39,8 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
       <VStack space="md">
         <Heading size="2xl">You Created A Reminder!</Heading>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {reminder && (
-            <Box
-              className="my-6"
-              style={{ marginLeft: "25%", marginRight: "-25%" }}
-            >
-              <Box className="flex flex-row gap-4 mb-4">
-                <ReminderSelectCard reminder={reminder} displayOnly />
-                <Box className="p-3 flex-1 aspect-square opacity-0" />
-              </Box>
-            </Box>
-          )}
           <Heading size="xl" className="font-quicksand-bold">
-            Contratulations! 🥳
+            Contratulations 🥳
           </Heading>
           <Text size="xl" className="leading-normal mb-4">
             If you would like to go through this tutorial again it is always
@@ -62,10 +51,10 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
             text="☝️ Create another reminder"
             onPress={() => router.replace("/new-reminder")}
           />
-          <MenuOption
+          {/* <MenuOption
             text="🗓️ Add more schedules"
             onPress={onNext}
-          />
+          /> */}
           <MenuOption
             text="🎓 Do this tutorial again"
             onPress={onStartOver}

@@ -110,7 +110,7 @@ export default function ({
     clearErrors,
     trigger,
     watch,
-    formState: { errors },
+    formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: getInitialFormState(),
@@ -342,7 +342,7 @@ export default function ({
             </FormControl>
           </VStack>
         </ActionsheetScrollView>
-        <Button className="w-full mt-4" size="xl" onPress={onSubmit}>
+        <Button className="w-full mt-4" size="xl" onPress={onSubmit} isDisabled={!isValid && isSubmitted}>
           <ButtonText>{schedule ? "Update" : "Create"} Schedule</ButtonText>
         </Button>
       </ActionsheetContent>

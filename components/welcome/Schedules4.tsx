@@ -31,14 +31,28 @@ export default function Schedules4({ onNext, onPrevious, reminder }: Props) {
   return (
     <VStack className="justify-between flex-1">
       <ReminderSummaryBox reminder={reminder} />
-      <Heading size="2xl" className="mt-3">
+      <Heading size="2xl" className="mt-3 mb-2">
         When do you want to be reminded?
       </Heading>
-      <Heading size="xl" className="font-quicksand-bold my-3">
-        Choose an optimized schedule 👌
-      </Heading>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <VStack>
+        <VStack space="md" className="mt-2">
+          <Text size="2xl" className="leading-normal">
+            You may not want to be reminded to do 5 pushups at 2am or to go for
+            a walk outside when you are on your commute to work.{" "}
+          </Text>
+          <Text size="2xl" className="leading-normal">
+            Schedules help you choose{" "}
+            <Heading size="xl" className="font-quicksand-bold">
+              when reminders should come{" "}
+            </Heading>
+            so that you can do them when you are
+            <Heading size="xl" className="font-quicksand-bold">
+              {" "}
+              most likely to be successful and effective.
+            </Heading>{" "}
+          </Text>
+        </VStack>
+        <VStack className="mt-4">
           {EXAMPLE_SCHEDULES.map((schedule, idx) => (
             <Card key={idx} variant="filled" className="mb-2">
               <HStack className="justify-between items-center flex-wrap">

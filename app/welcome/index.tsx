@@ -1,5 +1,5 @@
 import { ThemedContainer } from "@/components/ThemedContainer";
-import AdvancedSettings5 from "@/components/welcome/AdvancedSettings5";
+import AdditionalSettings5 from "@/components/welcome/AdditionalSettings5";
 import Confirm6 from "@/components/welcome/Confirm6";
 import Frequency3 from "@/components/welcome/Frequency3";
 import Notes2 from "@/components/welcome/Notes2";
@@ -122,7 +122,7 @@ export default function () {
         );
       case 5:
         return (
-          <AdvancedSettings5
+          <AdditionalSettings5
             onNext={(reminder) =>
               completeReminder({ ...builtReminder, ...reminder })
             }

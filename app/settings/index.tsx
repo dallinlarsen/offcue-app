@@ -1,4 +1,5 @@
 import DarkMode from "@/components/settings/DarkMode";
+import GetHelp from "@/components/settings/GetHelp";
 import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>([
     "dark-mode",
     "welcome-tutorial",
+    "help",
   ]);
   const [settings, setSettings] = useState<Settings | null>(null);
 
@@ -50,6 +52,10 @@ export default function SettingsScreen() {
         <WelcomeTutorial
           open={accordiansOpen.includes("welcome-tutorial")}
           setOpen={(open) => setOpenHandler(open, "welcome-tutorial")}
+        />
+        <GetHelp
+          open={accordiansOpen.includes("help")}
+          setOpen={(open) => setOpenHandler(open, "help")}
         />
         {/* <Button
           size="xl"

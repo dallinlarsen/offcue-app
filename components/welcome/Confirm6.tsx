@@ -15,6 +15,7 @@ import MenuOption from "./MenuOption";
 import { useRouter } from "expo-router";
 import Fade from "../Fade";
 import { useHasHomeButton } from "@/hooks/useHasHomeButton";
+import * as WebBrowser from "expo-web-browser";
 
 type Props = {
   onNext: () => void;
@@ -33,6 +34,10 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
     }
     fetchReminder();
   }, [reminderId]);
+
+  async function openWebPage() {
+    await WebBrowser.openBrowserAsync("https://offcue.app/#documents");
+  }
 
   return (
     <VStack className="justify-between flex-1">
@@ -55,14 +60,8 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
             text="🗓️ Add more schedules"
             onPress={onNext}
           /> */}
-          <MenuOption
-            text="🎓 Do this tutorial again"
-            onPress={onStartOver}
-          />
-          <MenuOption
-            text="🤔 Learn more about offcue"
-            onPress={() => router.dismissTo("/")}
-          />
+          <MenuOption text="🎓 Do this tutorial again" onPress={onStartOver} />
+          <MenuOption text="🤔 Learn more about offcue" onPress={openWebPage} />
           <MenuOption
             text="✌️ Close this tutorial"
             onPress={() => router.dismissTo("/")}

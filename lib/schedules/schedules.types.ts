@@ -18,3 +18,7 @@ export type Schedule = InsertSchedule & {
   updated_at: string;
   created_at: string;
 };
+
+export type ScheduleWithCount = Schedule & {
+  reminder_count: number;
+};

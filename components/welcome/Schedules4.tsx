@@ -8,12 +8,14 @@ import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { formatScheduleString } from "@/lib/utils/format";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
 import { InsertReminderModel } from "@/lib/reminders/reminders.types";
 import Fade from "../Fade";
 import { Box } from "../ui/box";
-import { EXAMPLE_SCHEDULES } from '@/constants';
+import { Schedule } from "@/lib/schedules/schedules.types";
+import { getAllSchedules } from "@/lib/schedules/schedules.service";
+import { shuffleArray } from "@/lib/utils";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
@@ -23,23 +25,46 @@ type Props = {
 
 export default function Schedules4({ onNext, onPrevious, reminder }: Props) {
   const [newScheduleOpen, setNewScheduleOpen] = useState(false);
+  const [allSchedules, setAllSchedules] = useState<Schedule[]>([]);
 
   function previousPressedHandler() {
     onPrevious(reminder);
   }
 
+  useEffect(() => {
+    async function getSchedules() {
+      const schedules = await getAllSchedules();
+      setAllSchedules(shuffleArray(schedules));
+    }
+    getSchedules();
+  }, []);
+
   return (
     <VStack className="justify-between flex-1">
       <ReminderSummaryBox reminder={reminder} />
-      <Heading size="2xl" className="mt-3">
+      <Heading size="2xl" className="mt-3 mb-2">
         When do you want to be reminded?
       </Heading>
-      <Heading size="xl" className="font-quicksand-bold my-3">
-        Choose an optimized schedule 👌
-      </Heading>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <VStack>
-          {EXAMPLE_SCHEDULES.map((schedule, idx) => (
+        <VStack space="md" className="mt-2">
+          <Text size="2xl" className="leading-normal">
+            You may not want to be reminded to do 5 pushups at 2am or to go for
+            a walk outside when you are on your commute to work.{" "}
+          </Text>
+          <Text size="2xl" className="leading-normal">
+            Schedules help you choose{" "}
+            <Heading size="xl" className="font-quicksand-bold">
+              when reminders should come{" "}
+            </Heading>
+            so that you can do them when you are
+            <Heading size="xl" className="font-quicksand-bold">
+              {" "}
+              most likely to be successful and effective.
+            </Heading>{" "}
+          </Text>
+        </VStack>
+        <VStack className="mt-4">
+          {allSchedules.map((schedule, idx) => (
             <Card key={idx} variant="filled" className="mb-2">
               <HStack className="justify-between items-center flex-wrap">
                 <TouchableOpacity

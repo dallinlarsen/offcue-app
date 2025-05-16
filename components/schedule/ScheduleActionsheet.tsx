@@ -16,7 +16,7 @@ import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { TouchableOpacity } from "react-native";
 import { Schedule } from "@/lib/schedules/schedules.types";
-import { getAllSchedules } from "@/lib/schedules/schedules.service";
+import { getAllSchedulesAlphabetical } from "@/lib/schedules/schedules.service";
 import Fade from "../Fade";
 import { Box } from "../ui/box";
 
@@ -39,7 +39,7 @@ export function ScheduleActionsheet({
 
   const loadSchedules = async () => {
     try {
-      const data = await getAllSchedules();
+      const data = await getAllSchedulesAlphabetical();
       setSchedules(
         data.filter((s) => s.is_active && !filterIds.includes(s.id))
       );

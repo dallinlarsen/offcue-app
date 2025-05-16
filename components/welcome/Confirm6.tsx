@@ -15,6 +15,7 @@ import MenuOption from "./MenuOption";
 import { useRouter } from "expo-router";
 import Fade from "../Fade";
 import { useHasHomeButton } from "@/hooks/useHasHomeButton";
+import * as WebBrowser from "expo-web-browser";
 
 type Props = {
   onNext: () => void;
@@ -34,24 +35,17 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
     fetchReminder();
   }, [reminderId]);
 
+  async function openWebPage() {
+    await WebBrowser.openBrowserAsync("https://offcue.app/#documents");
+  }
+
   return (
     <VStack className="justify-between flex-1">
       <VStack space="md">
         <Heading size="2xl">You Created A Reminder!</Heading>
         <ScrollView showsVerticalScrollIndicator={false}>
-          {reminder && (
-            <Box
-              className="my-6"
-              style={{ marginLeft: "25%", marginRight: "-25%" }}
-            >
-              <Box className="flex flex-row gap-4 mb-4">
-                <ReminderSelectCard reminder={reminder} displayOnly />
-                <Box className="p-3 flex-1 aspect-square opacity-0" />
-              </Box>
-            </Box>
-          )}
           <Heading size="xl" className="font-quicksand-bold">
-            Contratulations! 🥳
+            Contratulations 🥳
           </Heading>
           <Text size="xl" className="leading-normal mb-4">
             If you would like to go through this tutorial again it is always
@@ -62,18 +56,12 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
             text="☝️ Create another reminder"
             onPress={() => router.replace("/new-reminder")}
           />
-          <MenuOption
+          {/* <MenuOption
             text="🗓️ Add more schedules"
             onPress={onNext}
-          />
-          <MenuOption
-            text="🎓 Do this tutorial again"
-            onPress={onStartOver}
-          />
-          <MenuOption
-            text="🤔 Learn more about offcue"
-            onPress={() => router.dismissTo("/")}
-          />
+          /> */}
+          <MenuOption text="🎓 Do this tutorial again" onPress={onStartOver} />
+          <MenuOption text="🤔 Learn more about offcue" onPress={openWebPage} />
           <MenuOption
             text="✌️ Close this tutorial"
             onPress={() => router.dismissTo("/")}

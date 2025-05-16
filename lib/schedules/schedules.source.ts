@@ -5,7 +5,7 @@ import {
   insertIntoTable,
   updateTable,
 } from "../utils/db-helpers";
-import { InsertSchedule, Schedule } from "./schedules.types";
+import { InsertSchedule, Schedule, ScheduleWithCount } from "./schedules.types";
 
 export async function schedulesInit() {
   await db.execAsync(`CREATE TABLE IF NOT EXISTS schedules (
@@ -41,8 +41,36 @@ export async function schedulesInit() {
 
 // Get
 export async function getAllSchedules() {
-  const schedules = await db.getAllAsync<Schedule>(
-    `SELECT * FROM schedules ORDER BY label;`,
+  const schedules = await db.getAllAsync<ScheduleWithCount>(
+    `SELECT s.*, COUNT(rs.id) AS reminder_count 
+     FROM schedules s
+     LEFT JOIN reminder_schedule rs ON rs.schedule_id = s.id
+     GROUP BY s.id
+     ORDER BY COUNT(rs.id) DESC, label;`,
+    []
+  );
+
+  return schedules.map((s) =>
+    convertIntegerValuesToBoolean(s, [
+      "is_active",
+      "is_sunday",
+      "is_monday",
+      "is_tuesday",
+      "is_wednesday",
+      "is_thursday",
+      "is_friday",
+      "is_saturday",
+    ])
+  );
+}
+
+export async function getAllSchedulesAlphabetical() {
+  const schedules = await db.getAllAsync<ScheduleWithCount>(
+    `SELECT s.*, COUNT(rs.id) AS reminder_count 
+     FROM schedules s
+     LEFT JOIN reminder_schedule rs ON rs.schedule_id = s.id
+     GROUP BY s.id
+     ORDER BY label;`,
     []
   );
 
@@ -61,8 +89,12 @@ export async function getAllSchedules() {
 }
 
 export async function getSchedule(id: number) {
-  const schedule = await db.getFirstAsync<Schedule>(
-    `SELECT * FROM schedules WHERE id = ?;`,
+  const schedule = await db.getFirstAsync<ScheduleWithCount>(
+    `SELECT s.*, COUNT(rs.id) AS reminder_count 
+     FROM schedules s
+     LEFT JOIN reminder_schedule rs ON rs.schedule_id = s.id
+     WHERE s.id = ?
+     GROUP BY s.id;`,
     [id]
   );
   if (!schedule) return null;
@@ -197,6 +229,136 @@ export async function createInitialSchedules() {
         is_active: true,
         start_time: "10:00",
         end_time: "18:00",
+      },
+      {
+        label: "Work",
+        is_sunday: false,
+        is_monday: true,
+        is_tuesday: true,
+        is_wednesday: true,
+        is_thursday: true,
+        is_friday: true,
+        is_saturday: false,
+        is_active: true,
+        start_time: "08:00",
+        end_time: "17:00",
+      },
+      {
+        label: "Evening Routine",
+        is_sunday: true,
+        is_monday: true,
+        is_tuesday: true,
+        is_wednesday: true,
+        is_thursday: true,
+        is_friday: true,
+        is_saturday: true,
+        is_active: true,
+        start_time: "18:00",
+        end_time: "21:00",
+      },
+      {
+        label: "Weekend Recharge",
+        is_sunday: true,
+        is_monday: false,
+        is_tuesday: false,
+        is_wednesday: false,
+        is_thursday: false,
+        is_friday: false,
+        is_saturday: true,
+        is_active: true,
+        start_time: "10:00",
+        end_time: "16:00",
+      },
+      {
+        label: "Early Morning Focus",
+        is_sunday: false,
+        is_monday: true,
+        is_tuesday: true,
+        is_wednesday: true,
+        is_thursday: true,
+        is_friday: true,
+        is_saturday: false,
+        is_active: true,
+        start_time: "05:30",
+        end_time: "08:00",
+      },
+      {
+        label: "Afternoon Deep Work",
+        is_sunday: false,
+        is_monday: true,
+        is_tuesday: false,
+        is_wednesday: true,
+        is_thursday: false,
+        is_friday: true,
+        is_saturday: false,
+        is_active: true,
+        start_time: "13:00",
+        end_time: "16:00",
+      },
+      {
+        label: "Creative Block",
+        is_sunday: false,
+        is_monday: false,
+        is_tuesday: true,
+        is_wednesday: false,
+        is_thursday: true,
+        is_friday: false,
+        is_saturday: false,
+        is_active: true,
+        start_time: "19:00",
+        end_time: "22:00",
+      },
+      {
+        label: "Sunday Reset",
+        is_sunday: true,
+        is_monday: false,
+        is_tuesday: false,
+        is_wednesday: false,
+        is_thursday: false,
+        is_friday: false,
+        is_saturday: false,
+        is_active: true,
+        start_time: "15:00",
+        end_time: "18:00",
+      },
+      {
+        label: "Saturday Adventure",
+        is_sunday: false,
+        is_monday: false,
+        is_tuesday: false,
+        is_wednesday: false,
+        is_thursday: false,
+        is_friday: false,
+        is_saturday: true,
+        is_active: true,
+        start_time: "08:00",
+        end_time: "14:00",
+      },
+      {
+        label: "Evening Exercise",
+        is_sunday: false,
+        is_monday: true,
+        is_tuesday: false,
+        is_wednesday: true,
+        is_thursday: false,
+        is_friday: true,
+        is_saturday: false,
+        is_active: true,
+        start_time: "17:00",
+        end_time: "19:00",
+      },
+      {
+        label: "Wind Down",
+        is_sunday: true,
+        is_monday: true,
+        is_tuesday: true,
+        is_wednesday: true,
+        is_thursday: true,
+        is_friday: true,
+        is_saturday: true,
+        is_active: true,
+        start_time: "21:00",
+        end_time: "23:30",
       },
     ];
     for (const schedule of exampleSchedules) {

@@ -1,7 +1,7 @@
 import { ScrollView } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
-import { ChevronLeftIcon, ChevronRightIcon } from "../ui/icon";
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "../ui/icon";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { Switch } from "../ui/switch";
@@ -21,6 +21,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InsertReminderModel } from "@/lib/reminders/reminders.types";
 import { useState } from "react";
 import ReminderSummaryBox from "./ReminderSummaryBox";
+import useWatch from "@/hooks/useWatch";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
@@ -47,12 +48,13 @@ const ZodSchema = z
     }
   );
 
-export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Props) {
+export default function AdditionalSettings5({ onNext, onPrevious, reminder }: Props) {
   const {
     handleSubmit,
     setValue,
+    clearErrors,
     watch,
-    formState: { errors },
+    formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
@@ -70,13 +72,11 @@ export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Prop
     null
   );
 
-  const [showEndDateOption, setShowEndDateOption] = useState(!!end_date);
-
   const nextPressedHandler = handleSubmit(async (model) => {
     onNext({
       track_streak: model.track_streak,
       start_date: dayjs(model.start_date).format("YYYY-MM-DD"),
-      end_date: showEndDateOption
+      end_date: model.end_date
         ? dayjs(model.end_date).format("YYYY-MM-DD")
         : undefined,
     });
@@ -86,10 +86,22 @@ export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Prop
     onPrevious(reminder);
   }
 
+  useWatch(start_date, () => {
+    clearErrors();
+  });
+
+  useWatch(end_date, () => {
+    clearErrors();
+  });
+
   return (
     <VStack space="lg" className="justify-between flex-1">
       <ReminderSummaryBox reminder={reminder} />
-      <Heading size="2xl">Other Advanced Options</Heading>
+      <Heading size="2xl">Additional Options</Heading>
+      <Text size="2xl" className="leading-normal">
+        Track your streak 🔥, customize when you want the reminder to begin or
+        end. Its your reminder so make it yours! 🫵
+      </Text>
       <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         <VStack space="lg">
           <HStack space="xl" className="items-center">
@@ -119,7 +131,12 @@ export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Prop
             >
               <InputField
                 placeholder="Start Date"
-                value={dayjs(start_date).format("MMMM D, YYYY")}
+                value={
+                  dayjs(start_date).format("YYYY-MM-DD") ===
+                  dayjs().format("YYYY-MM-DD")
+                    ? "Today"
+                    : dayjs(start_date).format("MMMM D, YYYY")
+                }
               />
             </Input>
           </VStack>
@@ -136,63 +153,54 @@ export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Prop
           />
 
           <VStack>
-            <HStack space="xl" className="items-center mb-1">
-              <Text size="xl" className="font-quicksand-semibold">
-                Set End Date
-              </Text>
-              <Switch
-                value={showEndDateOption}
-                onValueChange={(show) => setShowEndDateOption(show)}
-                trackColor={{
-                  false: colors.gray[300],
-                  true: colors.gray[500],
-                }}
-                thumbColor={colors.gray[50]}
-                ios_backgroundColor={colors.gray[300]}
-              />
-            </HStack>
-            {showEndDateOption && (
-              <>
-                <FormControl isInvalid={!!errors.start_date}>
-                  <Input
-                    size="xl"
-                    isReadOnly
-                    onTouchEnd={() =>
-                      setShowDatePicker(showDatePicker === "end" ? null : "end")
+            <Heading size="lg">End Date</Heading>
+            <FormControl isInvalid={!!errors.start_date}>
+              <HStack>
+                <Input
+                  size="xl"
+                  className="flex-1"
+                  isReadOnly
+                  onTouchEnd={() =>
+                    setShowDatePicker(showDatePicker === "end" ? null : "end")
+                  }
+                >
+                  <InputField
+                    value={
+                      end_date
+                        ? dayjs(end_date).format("MMMM D, YYYY")
+                        : "No End Date"
                     }
+                  />
+                </Input>
+                {end_date && (
+                  <Button
+                    size="2xl"
+                    className="px-6"
+                    variant="link"
+                    onPress={() => setValue("end_date", null)}
                   >
-                    <InputField
-                      value={
-                        end_date
-                          ? dayjs(end_date).format("MMMM D, YYYY")
-                          : dayjs(start_date).format("MMMM D, YYYY")
-                      }
-                    />
-                  </Input>
-                  <FormControlError>
-                    <FormControlErrorText>
-                      {errors?.start_date?.message || ""}
-                    </FormControlErrorText>
-                  </FormControlError>
-                </FormControl>
-                <DatePicker
-                  modal
-                  open={showDatePicker === "end"}
-                  mode="date"
-                  minimumDate={start_date || dayjs().utc().toDate()}
-                  title="End Date"
-                  date={dayjs().utc().toDate()}
-                  onConfirm={(value) => setValue("end_date", value)}
-                  onCancel={() => setShowDatePicker(null)}
-                />
-              </>
-            )}
+                    <ButtonIcon as={CloseIcon} />
+                  </Button>
+                )}
+              </HStack>
+              <FormControlError>
+                <FormControlErrorText>
+                  {errors?.start_date?.message || ""}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
+            <DatePicker
+              modal
+              open={showDatePicker === "end"}
+              mode="date"
+              minimumDate={start_date || dayjs().utc().toDate()}
+              title="End Date"
+              date={dayjs().utc().toDate()}
+              onConfirm={(value) => setValue("end_date", value)}
+              onCancel={() => setShowDatePicker(null)}
+            />
           </VStack>
         </VStack>
-        <Text size="2xl" className="leading-normal mt-6">
-          Track your streak 🔥, customize when you want the reminder to begin or
-          end. Its your reminder so make it yours! 🫵
-        </Text>
       </ScrollView>
       <HStack space="sm">
         <Button
@@ -204,9 +212,14 @@ export default function AdvancedSettings5({ onNext, onPrevious, reminder }: Prop
           <ButtonIcon as={ChevronLeftIcon} />
           <ButtonText>Previous</ButtonText>
         </Button>
-        <Button className="flex-1" size="xl" onPress={nextPressedHandler}>
+        <Button
+          className="flex-1"
+          size="xl"
+          onPress={nextPressedHandler}
+          isDisabled={errors.start_date && isSubmitted}
+        >
+          <ButtonIcon as={CheckIcon} />
           <ButtonText>Complete</ButtonText>
-          <ButtonIcon as={ChevronRightIcon} />
         </Button>
       </HStack>
     </VStack>

@@ -82,14 +82,14 @@ export default function Welcome0({ onNext }: Props) {
           <Text size="2xl" className="leading-relaxed">
             <Heading size="2xl">2{"\t"}</Heading> Click{" "}
             <Heading size="xl" className="font-quicksand-bold">
-              "Next"
+              "Begin Tutorial"
             </Heading>{" "}
-            below to build your first offcue reminder. 💪
+            below to get started! 🎉
           </Text>
         </VStack>
       </ScrollView>
       <Button size="xl" onPress={nextPressedHandler}>
-        <ButtonText>Next</ButtonText>
+        <ButtonText>Begin Tutorial</ButtonText>
         <ButtonIcon as={ChevronRightIcon} />
       </Button>
     </VStack>

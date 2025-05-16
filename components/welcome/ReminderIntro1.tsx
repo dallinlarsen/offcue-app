@@ -58,7 +58,7 @@ export default function ReminderIntro1({ onNext }: Props) {
     <VStack className="justify-between flex-1">
       <Box>
         <Heading size="2xl" className="mb-2">
-          What habit do you want to build?
+          Pick your first habit
         </Heading>
       </Box>
       <ScrollView showsVerticalScrollIndicator={false}>

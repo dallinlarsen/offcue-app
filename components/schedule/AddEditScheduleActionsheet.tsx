@@ -37,14 +37,14 @@ import {
   getSchedule,
   updateSchedule,
 } from "@/lib/schedules/schedules.service";
-import { Schedule } from "@/lib/schedules/schedules.types";
+import { Schedule, ScheduleWithCount } from "@/lib/schedules/schedules.types";
 import { Alert, AlertIcon, AlertText } from "../ui/alert";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  schedule?: Schedule;
-  onSave?: (schedule: Schedule) => void;
+  schedule?: ScheduleWithCount;
+  onSave?: (schedule: ScheduleWithCount) => void;
   onClose?: () => void;
 };
 
@@ -196,21 +196,17 @@ export default function ({
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
         <Heading size="xl" className="mb-2">
-          {schedule ? "Edit" : "New"} Schedule
+          {schedule ? "Update" : "New"} Schedule
         </Heading>
         <ActionsheetScrollView>
           {schedule && (
-            <Alert className="mb-2 bg-orange-100 dark:bg-orange-950 items-start">
-              <AlertIcon
-                as={RepeatIcon}
-                className="text-orange-800 dark:text-orange-100 mr-1"
-              />
+            <Alert className="mb-2 bg-background-100 items-start">
               <AlertText
                 size="lg"
-                className="text-orange-800 dark:text-orange-100"
+                className="text-typography-800"
               >
-                Editing will recreate all reminder times for current reminders
-                on this schedule.
+                Updating the schedule will regenerate reminder times for all
+                current reminders.
               </AlertText>
             </Alert>
           )}
@@ -342,7 +338,12 @@ export default function ({
             </FormControl>
           </VStack>
         </ActionsheetScrollView>
-        <Button className="w-full mt-4" size="xl" onPress={onSubmit} isDisabled={!isValid && isSubmitted}>
+        <Button
+          className="w-full mt-4"
+          size="xl"
+          onPress={onSubmit}
+          isDisabled={!isValid && isSubmitted}
+        >
           <ButtonText>{schedule ? "Update" : "Create"} Schedule</ButtonText>
         </Button>
       </ActionsheetContent>

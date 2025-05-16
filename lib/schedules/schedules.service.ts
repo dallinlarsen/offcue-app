@@ -13,6 +13,7 @@ export {
   getSchedule,
   deleteSchedule,
   getAllSchedules,
+  getAllSchedulesAlphabetical,
 } from "./schedules.source";
 
 export async function updateSchedule(

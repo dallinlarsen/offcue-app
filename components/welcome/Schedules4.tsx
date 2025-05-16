@@ -8,12 +8,14 @@ import { Card } from "../ui/card";
 import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 import { formatScheduleString } from "@/lib/utils/format";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
 import { InsertReminderModel } from "@/lib/reminders/reminders.types";
 import Fade from "../Fade";
 import { Box } from "../ui/box";
-import { EXAMPLE_SCHEDULES } from '@/constants';
+import { Schedule } from "@/lib/schedules/schedules.types";
+import { getAllSchedules } from "@/lib/schedules/schedules.service";
+import { shuffleArray } from "@/lib/utils";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
@@ -23,10 +25,19 @@ type Props = {
 
 export default function Schedules4({ onNext, onPrevious, reminder }: Props) {
   const [newScheduleOpen, setNewScheduleOpen] = useState(false);
+  const [allSchedules, setAllSchedules] = useState<Schedule[]>([]);
 
   function previousPressedHandler() {
     onPrevious(reminder);
   }
+
+  useEffect(() => {
+    async function getSchedules() {
+      const schedules = await getAllSchedules();
+      setAllSchedules(shuffleArray(schedules));
+    }
+    getSchedules();
+  }, []);
 
   return (
     <VStack className="justify-between flex-1">
@@ -53,7 +64,7 @@ export default function Schedules4({ onNext, onPrevious, reminder }: Props) {
           </Text>
         </VStack>
         <VStack className="mt-4">
-          {EXAMPLE_SCHEDULES.map((schedule, idx) => (
+          {allSchedules.map((schedule, idx) => (
             <Card key={idx} variant="filled" className="mb-2">
               <HStack className="justify-between items-center flex-wrap">
                 <TouchableOpacity

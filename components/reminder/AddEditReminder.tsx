@@ -291,7 +291,7 @@ export default function AddEditReminder({
                 onPress={() => setValue("recurring", true)}
               >
                 <ButtonIcon as={RepeatIcon} />
-                <ButtonText>Habit</ButtonText>
+                <ButtonText>Recurring</ButtonText>
               </Button>
               <Button
                 size="xl"

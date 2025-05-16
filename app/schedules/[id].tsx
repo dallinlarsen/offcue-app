@@ -1,6 +1,6 @@
 import Fade from "@/components/Fade";
 import AddEditScheduleActionsheet from "@/components/schedule/AddEditScheduleActionsheet";
-import InactivateScheduleDialog from "@/components/schedule/InactivateScheduleDialog";
+import HideScheduleDialog from "@/components/schedule/HideScheduleDialog";
 import DeleteScheduleDialog from "@/components/schedule/DeleteScheduleDialog";
 import ScheduleReminderGroupDropDown from "@/components/schedule/ScheduleReminderGroupDropDown";
 import ScheduleReminderOption from "@/components/schedule/ScheduleReminderOption";
@@ -30,7 +30,7 @@ import {
   getSchedule,
   updateSchedule,
 } from "@/lib/schedules/schedules.service";
-import { Schedule } from "@/lib/schedules/schedules.types";
+import { Schedule, ScheduleWithCount } from "@/lib/schedules/schedules.types";
 import { formatScheduleString } from "@/lib/utils/format";
 import dayjs from "dayjs";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -42,7 +42,7 @@ export default function () {
   const { id } = useLocalSearchParams();
   const router = useRouter();
 
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleWithCount | null>(null);
   const [reminders, setReminders] = useState<ReminderBase[]>([]);
   const [currentReminders, setCurrentReminders] = useState<ReminderBase[]>([]);
   const [mutedReminders, setMutedReminders] = useState<ReminderBase[]>([]);
@@ -53,7 +53,7 @@ export default function () {
     []
   );
   const [editOpen, setEditOpen] = useState(false);
-  const [inactivateOpen, setInactivateOpen] = useState(false);
+  const [hideOpen, setHideOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [reminderGroupsToShow, setReminderGroupsToShow] = useState<string[]>(
     []
@@ -79,8 +79,8 @@ export default function () {
     }, [])
   );
 
-  async function inactivateScheduleHandler() {
-    setInactivateOpen(false);
+  async function hideScheduleHandler() {
+    setHideOpen(false);
     await updateSchedule(schedule?.id!, { is_active: false }, false);
     fetchData();
   }
@@ -127,53 +127,56 @@ export default function () {
         <HStack className="items-start">
           <Heading size="xl">{formatScheduleString(schedule)}</Heading>
         </HStack>
-        {!schedule.is_active ? (
-          <>
-            <Alert className="bg-orange-100 dark:bg-orange-950">
-              <AlertIcon
-                as={EyeOffIcon}
-                className="text-orange-800 dark:text-orange-100"
-              />
-              <AlertText
-                size="lg"
-                className="text-orange-800 dark:text-orange-100"
-              >
-                Inactivated on{" "}
-                {dayjs(schedule.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-                {dayjs(schedule.updated_at + "+00:00").format("h:mm a")}
-              </AlertText>
-            </Alert>
-            <HStack space="md">
-              <Button
-                className="flex-1"
-                variant="outline"
-                size="xl"
-                onPress={restoreScheduleHandler}
-              >
-                <ButtonIcon as={EyeIcon} />
-                <ButtonText>Activate</ButtonText>
-              </Button>
-              <Button
-                className="flex-1"
-                variant="outline"
-                size="xl"
-                onPress={() => setDeleteOpen(true)}
-              >
-                <ButtonIcon as={TrashIcon} className="fill-typography-950" />
-                <ButtonText>Delete</ButtonText>
-              </Button>
-            </HStack>
-          </>
-        ) : (
-          <Button
-            variant="outline"
-            size="xl"
-            onPress={() => setInactivateOpen(true)}
-          >
-            <ButtonIcon as={EyeOffIcon} />
-            <ButtonText>Inactivate</ButtonText>
-          </Button>
+        {!schedule.is_active && (
+          <Alert className="bg-orange-100 dark:bg-orange-950">
+            <AlertIcon
+              as={EyeOffIcon}
+              className="text-orange-800 dark:text-orange-100"
+            />
+            <AlertText
+              size="lg"
+              className="text-orange-800 dark:text-orange-100"
+            >
+              Hidden on{" "}
+              {dayjs(schedule.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
+              {dayjs(schedule.updated_at + "+00:00").format("h:mm a")}
+            </AlertText>
+          </Alert>
         )}
+        <HStack space="md">
+          {schedule.is_active ? (
+            <Button
+              className="flex-1"
+              variant="outline"
+              size="xl"
+              onPress={() => setHideOpen(true)}
+            >
+              <ButtonIcon as={EyeOffIcon} />
+              <ButtonText>Hide</ButtonText>
+            </Button>
+          ) : (
+            <Button
+              className="flex-1"
+              variant="outline"
+              size="xl"
+              onPress={restoreScheduleHandler}
+            >
+              <ButtonIcon as={EyeIcon} />
+              <ButtonText>Show</ButtonText>
+            </Button>
+          )}
+          {schedule.reminder_count === 0 && (
+            <Button
+              className="flex-1"
+              variant="outline"
+              size="xl"
+              onPress={() => setDeleteOpen(true)}
+            >
+              <ButtonIcon as={TrashIcon} className="fill-typography-950" />
+              <ButtonText>Delete</ButtonText>
+            </Button>
+          )}
+        </HStack>
         <Heading size="xl" className="mt-3">
           Reminders
         </Heading>
@@ -281,11 +284,11 @@ export default function () {
         setIsOpen={setEditOpen}
         onSave={(schedule) => setSchedule(schedule)}
       />
-      <InactivateScheduleDialog
-        isOpen={inactivateOpen}
+      <HideScheduleDialog
+        isOpen={hideOpen}
         schedule={schedule}
-        onCancel={() => setInactivateOpen(false)}
-        onInactivate={inactivateScheduleHandler}
+        onCancel={() => setHideOpen(false)}
+        onHide={hideScheduleHandler}
       />
       <DeleteScheduleDialog
         isOpen={deleteOpen}

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { getAllSchedules } from "@/lib/schedules/schedules.service";
-import { Schedule } from "@/lib/schedules/schedules.types";
+import { ScheduleWithCount } from "@/lib/schedules/schedules.types";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { SectionList, TouchableOpacity } from "react-native";
@@ -22,11 +22,18 @@ import { SectionList, TouchableOpacity } from "react-native";
 export default function SchedulesScreen() {
   const router = useRouter();
 
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleWithCount[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [showAddSchedule, setShowAddSchedule] = useState(false);
-  const [activeSchedules, setActiveSchedules] = useState<Schedule[]>([]);
-  const [inactiveSchedules, setInactiveSchedules] = useState<Schedule[]>([]);
+  const [reminderSchedules, setReminderSchedules] = useState<
+    ScheduleWithCount[]
+  >([]);
+  const [noReminderSchedules, setNoReminderSchedules] = useState<
+    ScheduleWithCount[]
+  >([]);
+  const [hiddenSchedules, setHiddenSchedules] = useState<ScheduleWithCount[]>(
+    []
+  );
 
   const loadSchedules = async () => {
     const data = await getAllSchedules();
@@ -41,29 +48,37 @@ export default function SchedulesScreen() {
   );
 
   useEffect(() => {
-    setActiveSchedules(schedules.filter((s) => s.is_active));
-    setInactiveSchedules(schedules.filter((s) => !s.is_active));
+    setReminderSchedules(
+      schedules.filter((s) => s.is_active && s.reminder_count > 0)
+    );
+    setNoReminderSchedules(
+      schedules.filter((s) => s.is_active && s.reminder_count === 0)
+    );
+    setHiddenSchedules(schedules.filter((s) => !s.is_active));
   }, [schedules]);
 
   return (
     <ThemedContainer>
-      <Box className="flex flex-row items-center pb-1">
+      <Box className="flex flex-row items-center pb-1 -mb-2">
         <Heading size="2xl">Schedules</Heading>
       </Box>
       <SectionList
         sections={[
           {
-            title: "Active",
-            data:
-              inactiveSchedules.length > 0
-                ? activeSchedules
-                : [...activeSchedules, null, null],
+            title: "With Reminders",
+            data: reminderSchedules,
           },
           {
-            title: "Inactive",
-            data: showArchived
-              ? [...inactiveSchedules, null, null]
-              : [null, null],
+            title: "Without Reminders",
+            data: noReminderSchedules,
+          },
+          {
+            title: "Hidden",
+            data: showArchived ? hiddenSchedules : [],
+          },
+          {
+            title: "",
+            data: [null, null],
           },
         ]}
         renderItem={({ item }) =>
@@ -71,50 +86,55 @@ export default function SchedulesScreen() {
         }
         //@ts-ignore
         renderSectionHeader={({ section: { title } }) =>
-          title === "Inactive" ? (
-            inactiveSchedules.length > 0 && (
+          title === "Hidden" ? (
+            hiddenSchedules.length > 0 && (
               <TouchableOpacity onPress={() => setShowArchived(!showArchived)}>
                 <HStack
-                  className="items-center mb-2 bg-background-light dark:bg-background-dark"
+                  className="items-center bg-background-light dark:bg-background-dark pt-2"
                   space="sm"
                 >
-                  <Heading size="xl">Inactive</Heading>
+                  <Heading size="xl">Hidden</Heading>
                   <Icon
                     as={showArchived ? ChevronDownIcon : ChevronRightIcon}
                   />
                 </HStack>
-                <Box>
-                  <Fade
-                    heightClassDark="dark:h-2"
-                    heightClassLight="h-2"
-                    reverse
-                  />
-                </Box>
               </TouchableOpacity>
             )
-          ) : (
+          ) : title === "With Reminders" ? (
             <>
               <Heading
                 size="xl"
-                className="bg-background-light dark:bg-background-dark mb-2"
+                className="bg-background-light dark:bg-background-dark pt-2"
               >
                 {title}
               </Heading>
-              {activeSchedules.length === 0 && (
-                <Text className="pb-4 -mt-2">No Active Schedules.</Text>
+              {reminderSchedules.length === 0 && (
+                <Text className="pb-4 -mt-2">
+                  No Schedules With Reminders Assigned
+                </Text>
               )}
-              <Box>
-                <Fade
-                  heightClassDark="dark:h-2"
-                  heightClassLight="h-2"
-                  reverse
-                />
-              </Box>
             </>
+          ) : (
+            noReminderSchedules.length > 0 && (
+              <>
+                <Heading
+                  size="xl"
+                  className="bg-background-light dark:bg-background-dark pt-2"
+                >
+                  {title}
+                </Heading>
+                {noReminderSchedules.length === 0 && (
+                  <Text className="pb-4 -mt-2">
+                    No Schedules With Reminders Assigned
+                  </Text>
+                )}
+              </>
+            )
           )
         }
         showsVerticalScrollIndicator={false}
         keyExtractor={(item, index) => JSON.stringify(item) + index}
+        SectionSeparatorComponent={() => <Box className="h-3" />}
       />
       <Fab
         size="lg"

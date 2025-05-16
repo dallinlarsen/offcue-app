@@ -5,7 +5,7 @@ import Frequency3 from "@/components/welcome/Frequency3";
 import Notes2 from "@/components/welcome/Notes2";
 import ReminderIntro1 from "@/components/welcome/ReminderIntro1";
 import Schedules4 from "@/components/welcome/Schedules4";
-import SchedulesSelect7 from "@/components/welcome/SchedulesSelect7";
+// import SchedulesSelect7 from "@/components/welcome/SchedulesSelect7";
 import Welcome0 from "@/components/welcome/Welcome0";
 import { useConfetti } from "@/hooks/useConfetti";
 import { useSettings } from "@/hooks/useSettings";
@@ -138,8 +138,8 @@ export default function () {
             reminderId={createdReminderId}
           />
         );
-      case 7:
-        return <SchedulesSelect7 />;
+      // case 7:
+      //   return <SchedulesSelect7 />;
 
       default:
         return null;

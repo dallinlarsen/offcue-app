@@ -147,7 +147,7 @@ export default function SchedulesScreen() {
       <AddEditScheduleActionsheet
         isOpen={showAddSchedule}
         setIsOpen={setShowAddSchedule}
-        onSave={(schedule) => router.push(`/schedules/${schedule.id}`)}
+        onSave={() => loadSchedules()}
       />
     </ThemedContainer>
   );

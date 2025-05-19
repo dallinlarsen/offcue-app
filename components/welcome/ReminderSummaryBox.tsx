@@ -1,5 +1,4 @@
 import {
-  InsertReminder,
   InsertReminderModel,
 } from "@/lib/reminders/reminders.types";
 import { Card } from "../ui/card";
@@ -19,31 +18,49 @@ export default function ReminderSummaryBox({ reminder }: Props) {
   return (
     <Card variant="filled">
       <VStack space="sm">
-        <Heading size="lg" numberOfLines={1}>
-          {reminder.title}
-        </Heading>
         <VStack>
-          {reminder.description && (
-            <Text size="lg" numberOfLines={2}>
-              {reminder.description}
-            </Text>
-          )}
-          {reminder.interval_type &&
-            reminder.interval_num &&
-            reminder.times && (
-              <Text size="lg">
-                {formatFrequencyString(
-                  reminder.times,
-                  reminder.interval_num,
-                  reminder.interval_type
-                )}
+          <Text>
+            {reminder.interval_type &&
+              reminder.interval_num &&
+              reminder.times && (
+                <Text size="xl">
+                  <Text className="font-bold" size="xl">
+                    Randomly
+                  </Text>{" "}
+                  remind me{" "}
+                  <Text size="xl" className="font-bold">
+                    {formatFrequencyString(
+                      reminder.times,
+                      reminder.interval_num,
+                      reminder.interval_type
+                    )}
+                  </Text>
+                </Text>
+              )}
+            {reminder.schedules && reminder.schedules.length > 0 && (
+              <Text size="xl">
+                {" "}
+                but only when{" "}
+                <Text className="font-bold" size="xl">
+                  {reminder.schedules[0].label}
+                </Text>{" "}
+                ({formatScheduleString(reminder.schedules[0])})
               </Text>
             )}
-          {reminder.schedules && reminder.schedules.length > 0 && (
-            <Text size="lg">
-              {reminder.schedules[0].label} (
-              {formatScheduleString(reminder.schedules[0])})
+            <Text size="xl">
+              {reminder.interval_type || reminder.schedules ? " to" : ""}{" "}
+              <Text size="xl" className="font-bold">{reminder.title}</Text>
             </Text>
+          </Text>
+          {reminder.description && (
+            <>
+              <Heading size="sm" className="mt-2">
+                Description
+              </Heading>
+              <Text size="lg" numberOfLines={2}>
+                {reminder.description}
+              </Text>
+            </>
           )}
         </VStack>
       </VStack>

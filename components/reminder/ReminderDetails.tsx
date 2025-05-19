@@ -209,45 +209,56 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           <Heading size="lg">{reminder.description}</Heading>
         ) : null}
         <Box>
-          <HStack className="justify-between items-start">
-            <VStack>
-              <Text size="xl">
-                {formatFrequencyString(
-                  reminder.times,
-                  reminder.interval_num,
-                  reminder.interval_type
+          <VStack>
+            <Text>
+              {reminder.interval_type &&
+                reminder.interval_num &&
+                reminder.times && (
+                  <Text size="xl">
+                    <Text className="font-bold" size="xl">
+                      Randomly
+                    </Text>{" "}
+                    remind me{" "}
+                    <Text size="xl" className="font-bold">
+                      {formatFrequencyString(
+                        reminder.times,
+                        reminder.interval_num,
+                        reminder.interval_type
+                      )}
+                    </Text>
+                  </Text>
                 )}
-              </Text>
-              <Box>
-                <Text size="xl">When</Text>
-              </Box>
-            </VStack>
-            {reminder.is_recurring && !reminder.is_archived && (
-              <HStack space="xl" className="items-center ">
-                <Text size="xl" className="font-quicksand-semibold">
-                  Mute
-                </Text>
-                <Switch
-                  isDisabled={!!reminder.due_scheduled_at}
-                  value={is_muted}
-                  onValueChange={(value) => setValue("is_muted", value)}
-                  trackColor={{
-                    false: colors.gray[300],
-                    true: colors.gray[500],
-                  }}
-                  thumbColor={colors.gray[50]}
-                  ios_backgroundColor={colors.gray[300]}
-                />
-              </HStack>
-            )}
-          </HStack>
-          <Box className="mb-1">
-            {reminder.schedules.map((s) => (
-              <Text numberOfLines={1} key={s.id}>
-                {s.label} ({formatScheduleString(s)})
-              </Text>
-            ))}
-          </Box>
+              {reminder.schedules &&
+                (reminder.schedules.length > 1 ? (
+                  <Text size="xl">
+                    {" "}
+                    but only when:{" "}
+                    {reminder.schedules.map((s, idx) => (
+                      <>
+                        <Text size="xl">{"\n"}</Text>
+                        <Text className="font-bold" size="xl">
+                          {s.label}
+                        </Text>{" "}
+                        ({formatScheduleString(s)})
+                      </>
+                    ))}
+                  </Text>
+                ) : (
+                  <Text size="xl">
+                    {" "}
+                    but only when{" "}
+                    {reminder.schedules.map((s) => (
+                      <>
+                        <Text className="font-bold" size="xl">
+                          {s.label}
+                        </Text>{" "}
+                        ({formatScheduleString(s)})
+                      </>
+                    ))}
+                  </Text>
+                ))}
+            </Text>
+          </VStack>
           <Box>
             {showStartDate.current && !showEndDate.current ? (
               <Text size="xl">

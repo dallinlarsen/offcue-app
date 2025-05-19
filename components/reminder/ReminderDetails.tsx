@@ -44,7 +44,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { Badge, BadgeText } from "../ui/badge";
-import { ScrollView, TouchableOpacity } from "react-native";
+import { Animated, ScrollView, TouchableOpacity } from "react-native";
 import { STATUS_COLOR_MAP } from "@/constants";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
 import { useConfetti } from "@/hooks/useConfetti";
@@ -69,6 +69,17 @@ import {
   updateReminderMuted,
 } from "@/lib/reminders/reminders.service";
 import { Menu, MenuItem, MenuItemLabel, MenuSeparator } from "../ui/menu";
+import {
+  Actionsheet,
+  ActionsheetBackdrop,
+  ActionsheetContent,
+  ActionsheetDragIndicator,
+  ActionsheetDragIndicatorWrapper,
+  ActionsheetIcon,
+  ActionsheetItem,
+  ActionsheetItemText,
+} from "../ui/actionsheet";
+import { Divider } from "../ui/divider";
 
 type Props = {
   reminder: Reminder;
@@ -125,6 +136,33 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     showEndDate.current = !!reminder.end_date;
   }, [reminder]);
 
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  function pulseNextReminderAlert() {
+    const pulse = Animated.sequence([
+      Animated.timing(opacity, {
+        toValue: 0.3,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]);
+
+    Animated.sequence([
+      pulse,
+      pulse,
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }
+
   const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
@@ -175,7 +213,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   async function recalcFutureNotificationsHandler() {
     await recalcFutureNotifications(reminder.id!);
-    fetchData();
+    await fetchData();
+    pulseNextReminderAlert();
   }
 
   async function notificationEditUpdateHandler() {
@@ -210,6 +249,11 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   const showEndDate = useRef(!!reminder.end_date);
 
+  async function closeActionMenuOnComplete(c: () => void) {
+    await c();
+    setActionMenuOpen(false);
+  }
+
   return (
     <>
       <VStack space="md" className="flex-1">
@@ -223,8 +267,9 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 reminder.interval_num &&
                 reminder.times && (
                   <Text size="xl">
+                    {!reminder.is_recurring ? "Until this is complete, " : ""}
                     <Text className="font-bold" size="xl">
-                      Randomly
+                      {reminder.is_recurring ? "Randomly" : "randomly"}
                     </Text>{" "}
                     remind me{" "}
                     <Text size="xl" className="font-bold">
@@ -289,78 +334,80 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             )}
           </Box>
         </Box>
-        {!reminder.due_scheduled_at && (
-          <>
-            {nextNotification && !is_muted ? (
-              <Alert className="relative">
-                <AlertText size="lg">Next Reminder on</AlertText>
-                <Box
-                  onTouchEnd={() =>
-                    setHideNextNotification(!hideNextNotification)
-                  }
-                >
-                  {hideNextNotification ? (
-                    <Box className="relative w-[200px] h-10 -ml-1 -my-2">
-                      <Box className="absolute inset-0 flex items-center justify-center">
-                        <AlertText size="lg">
-                          {nextNotification.date} at
-                          {nextNotification.time}
-                        </AlertText>
-                      </Box>
+        {!reminder.due_scheduled_at &&
+          ((nextNotification && !is_muted && !reminder.is_archived) ||
+            (!reminder.is_completed && !reminder.is_archived && !is_muted)) && (
+            <Animated.View style={{ opacity }}>
+              {nextNotification && !is_muted ? (
+                <Alert className="relative">
+                  <AlertText size="lg">Next Reminder on</AlertText>
+                  <Box
+                    onTouchEnd={() =>
+                      setHideNextNotification(!hideNextNotification)
+                    }
+                  >
+                    {hideNextNotification ? (
+                      <Box className="relative w-[200px] h-10 -ml-1 -my-2">
+                        <Box className="absolute inset-0 flex items-center justify-center">
+                          <AlertText size="lg">
+                            {nextNotification.date} at
+                            {nextNotification.time}
+                          </AlertText>
+                        </Box>
 
-                      <BlurView
-                        intensity={20}
-                        className="absolute top-0 bottom-0 right-0 left-0 flex items-center justify-center"
-                      >
-                        <HStack space="md">
-                          <Text className="flex-1 text-center">
-                            Tap to show
-                          </Text>
-                        </HStack>
-                      </BlurView>
-                    </Box>
-                  ) : (
-                    <AlertText size="lg">
-                      {nextNotification.date} at {nextNotification.time}
-                    </AlertText>
-                  )}
-                </Box>
-                <Box
-                  className="absolute right-3 py-2"
-                  onTouchEnd={() =>
-                    setHideNextNotification(!hideNextNotification)
-                  }
-                >
-                  <Icon
-                    className="text-typography-700"
-                    as={hideNextNotification ? EyeIcon : EyeOffIcon}
-                  />
-                </Box>
-              </Alert>
-            ) : !reminder.is_completed && !reminder.is_archived && !is_muted ? (
-              <Alert className="relative">
-                <AlertText size="lg">Next Reminder on</AlertText>
-              </Alert>
-            ) : null}
-          </>
-        )}
+                        <BlurView
+                          intensity={20}
+                          className="absolute top-0 bottom-0 right-0 left-0 flex items-center justify-center"
+                        >
+                          <HStack space="md">
+                            <Text className="flex-1 text-center">
+                              Tap to show
+                            </Text>
+                          </HStack>
+                        </BlurView>
+                      </Box>
+                    ) : (
+                      <AlertText size="lg">
+                        {nextNotification.date} at {nextNotification.time}
+                      </AlertText>
+                    )}
+                  </Box>
+                  <Box
+                    className="absolute right-3 py-2"
+                    onTouchEnd={() =>
+                      setHideNextNotification(!hideNextNotification)
+                    }
+                  >
+                    <Icon
+                      className="text-typography-700"
+                      as={hideNextNotification ? EyeIcon : EyeOffIcon}
+                    />
+                  </Box>
+                </Alert>
+              ) : !reminder.is_completed &&
+                !reminder.is_archived &&
+                !is_muted ? (
+                <Alert className="relative">
+                  <AlertText size="lg">Next Reminder on</AlertText>
+                </Alert>
+              ) : null}
+            </Animated.View>
+          )}
         {reminder.is_archived && (
-          <>
-            <Alert className="bg-orange-100 dark:bg-orange-950">
-              <AlertIcon
-                as={ArchiveOutlineIcon}
-                className="fill-orange-800 dark:fill-orange-100"
-              />
-              <AlertText
-                size="lg"
-                className="text-orange-800 dark:text-orange-100"
-              >
-                Archived on{" "}
-                {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-                {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
-              </AlertText>
-            </Alert>
-          </>
+          <Alert className="bg-orange-100 dark:bg-orange-950">
+            <AlertIcon
+              as={ArchiveOutlineIcon}
+              className="fill-orange-800 dark:fill-orange-100"
+            />
+            <AlertText
+              size="lg"
+              className="text-orange-800 dark:text-orange-100"
+            >
+              Archived on{" "}
+              {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+            </AlertText>
+          </Alert>
         )}
         {is_muted && !reminder.is_archived && (
           <Alert>
@@ -380,147 +427,15 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             </AlertText>
           </Alert>
         )}
-        <Menu
-          placement="bottom start"
-          className="w-full"
-          onOpen={() => setActionMenuOpen(true)}
-          onClose={() => setActionMenuOpen(false)}
-          trigger={({ ...triggerProps }) => {
-            return (
-              // <TouchableOpacity {...triggerProps}>
-              //   <HStack className="items-center" space="sm">
-              //     <Heading>Actions</Heading>
-              //     <Icon
-              //       as={actionMenuOpen ? ChevronDownIcon : ChevronRightIcon}
-              //     />
-              //   </HStack>
-              // </TouchableOpacity>
-              <Button
-                {...triggerProps}
-                size="xl"
-                variant="outline"
-                className="px-4"
-              >
-                <ButtonText>Actions</ButtonText>
-                <ButtonIcon as={ChevronDownIcon} />
-              </Button>
-            );
-          }}
+        <Button
+          size="xl"
+          variant="outline"
+          className="px-4"
+          onPress={() => setActionMenuOpen(true)}
         >
-          {!reminder.is_completed && !reminder.is_archived && (
-            <MenuItem
-              textValue="Edit"
-              key="edit"
-              onPress={() => router.push(`/reminder/edit/${reminder.id}`)}
-            >
-              <Icon
-                as={PencilIcon}
-                size="md"
-                className="mr-2 fill-typography-900"
-              />
-              <MenuItemLabel size="lg">Edit</MenuItemLabel>
-            </MenuItem>
-          )}
-          {reminder.is_recurring && !reminder.is_archived && (
-            <MenuItem
-              textValue="Mute"
-              key="mute"
-              onPress={() => setValue("is_muted", !is_muted)}
-            >
-              <Icon
-                as={is_muted ? VolumeHighIcon : VolumeMuteIcon}
-                size="md"
-                className="mr-2 fill-typography-900"
-              />
-              <MenuItemLabel size="lg">
-                {is_muted ? "Unmute" : "Mute"}
-              </MenuItemLabel>
-            </MenuItem>
-          )}
-          {((nextNotification && !is_muted) ||
-            (!reminder.is_completed && !reminder.is_archived && !is_muted)) && (
-            <MenuItem
-              key="reschedule"
-              textValue="Reschedule Next Reminder"
-              onPress={recalcFutureNotificationsHandler}
-            >
-              <Icon as={RepeatIcon} size="md" className="mr-2" />
-              <MenuItemLabel size="lg">Reschedule Next Reminder</MenuItemLabel>
-            </MenuItem>
-          )}
-          {reminder.is_recurring && !reminder.is_archived && (
-            <>
-              <MenuSeparator />
-              <MenuItem
-                textValue="Archive"
-                key="archive"
-                onPress={() => setArchiveDialogOpen(true)}
-              >
-                <Icon
-                  as={ArchiveOutlineIcon}
-                  size="md"
-                  className="mr-2 fill-typography-900"
-                />
-                <MenuItemLabel size="lg">Archive</MenuItemLabel>
-              </MenuItem>
-            </>
-          )}
-          {reminder.is_archived && (
-            <MenuItem
-              textValue="Restore"
-              key="restore"
-              onPress={restoreClickedHandler}
-            >
-              <Icon
-                as={ArchiveArrowUp}
-                size="md"
-                className="mr-2 fill-typography-900"
-              />
-              <MenuItemLabel size="lg">Restore</MenuItemLabel>
-            </MenuItem>
-          )}
-          {!reminder.is_recurring && reminder.is_completed && (
-            <>
-              <MenuItem
-                textValue="Copy"
-                key="copy"
-                onPress={() => router.push(`/new-reminder?copy=${reminder.id}`)}
-              >
-                <Icon as={CopyIcon} size="md" className="mr-2" />
-                <MenuItemLabel size="lg">Copy</MenuItemLabel>
-              </MenuItem>
-              <MenuItem
-                textValue="Undo"
-                key="undo"
-                onPress={undoClickedHandler}
-              >
-                <Icon
-                  as={UndoIcon}
-                  size="md"
-                  className="mr-2 fill-typography-900"
-                />
-                <MenuItemLabel size="lg">Undo</MenuItemLabel>
-              </MenuItem>
-            </>
-          )}
-          {(reminder.is_archived || !reminder.is_recurring) && (
-            <>
-              <MenuSeparator />
-              <MenuItem
-                textValue="Delete"
-                key="delete"
-                onPress={() => setDeleteDialogOpen(true)}
-              >
-                <Icon
-                  as={TrashIcon}
-                  size="md"
-                  className="mr-2 fill-typography-900"
-                />
-                <MenuItemLabel size="lg">Delete</MenuItemLabel>
-              </MenuItem>
-            </>
-          )}
-        </Menu>
+          <ButtonText>Actions</ButtonText>
+          <ButtonIcon as={ChevronDownIcon} />
+        </Button>
         {!reminder.is_recurring &&
           !reminder.is_completed &&
           !reminder.due_scheduled_at && (
@@ -636,6 +551,147 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           </>
         )}
       </VStack>
+      <Actionsheet
+        isOpen={actionMenuOpen}
+        onClose={() => setActionMenuOpen(false)}
+      >
+        <ActionsheetBackdrop />
+        <ActionsheetContent className="items-start">
+          <ActionsheetDragIndicatorWrapper>
+            <ActionsheetDragIndicator />
+          </ActionsheetDragIndicatorWrapper>
+          {!reminder.is_completed && !reminder.is_archived && (
+            <ActionsheetItem
+              key="edit"
+              onPress={() =>
+                closeActionMenuOnComplete(() =>
+                  router.push(`/reminder/edit/${reminder.id}`)
+                )
+              }
+            >
+              <Icon
+                as={PencilIcon}
+                size="md"
+                className="mr-2 fill-typography-900"
+              />
+              <ActionsheetItemText size="xl">Edit</ActionsheetItemText>
+            </ActionsheetItem>
+          )}
+          {reminder.is_recurring &&
+            !reminder.is_archived &&
+            !reminder.due_scheduled_at && (
+              <ActionsheetItem
+                key="mute"
+                onPress={() =>
+                  closeActionMenuOnComplete(() =>
+                    setValue("is_muted", !is_muted)
+                  )
+                }
+              >
+                <Icon
+                  as={is_muted ? VolumeHighIcon : VolumeMuteIcon}
+                  size="md"
+                  className="mr-2 fill-typography-900"
+                />
+                <ActionsheetItemText size="xl">
+                  {is_muted ? "Unmute" : "Mute"}
+                </ActionsheetItemText>
+              </ActionsheetItem>
+            )}
+          {!reminder.due_scheduled_at &&
+            ((nextNotification && !is_muted) ||
+              (!reminder.is_completed &&
+                !reminder.is_archived &&
+                !is_muted)) && (
+              <ActionsheetItem
+                key="reschedule"
+                onPress={() =>
+                  closeActionMenuOnComplete(recalcFutureNotificationsHandler)
+                }
+              >
+                <Icon as={RepeatIcon} size="md" className="mr-2" />
+                <ActionsheetItemText size="xl">
+                  Reschedule Next Reminder
+                </ActionsheetItemText>
+              </ActionsheetItem>
+            )}
+          {reminder.is_recurring && !reminder.is_archived && (
+            <>
+              <Divider />
+              <ActionsheetItem
+                key="archive"
+                onPress={() =>
+                  closeActionMenuOnComplete(() => setArchiveDialogOpen(true))
+                }
+              >
+                <Icon
+                  as={ArchiveOutlineIcon}
+                  size="md"
+                  className="mr-2 fill-typography-900"
+                />
+                <ActionsheetItemText size="xl">Archive</ActionsheetItemText>
+              </ActionsheetItem>
+            </>
+          )}
+          {reminder.is_archived && (
+            <ActionsheetItem
+              key="restore"
+              onPress={() => closeActionMenuOnComplete(restoreClickedHandler)}
+            >
+              <Icon
+                as={ArchiveArrowUp}
+                size="md"
+                className="mr-2 fill-typography-900"
+              />
+              <ActionsheetItemText size="xl">Restore</ActionsheetItemText>
+            </ActionsheetItem>
+          )}
+          {!reminder.is_recurring && reminder.is_completed && (
+            <>
+              <ActionsheetItem
+                key="copy"
+                onPress={() =>
+                  closeActionMenuOnComplete(() =>
+                    router.push(`/new-reminder?copy=${reminder.id}`)
+                  )
+                }
+              >
+                <Icon as={CopyIcon} size="md" className="mr-2" />
+                <ActionsheetItemText size="xl">Copy</ActionsheetItemText>
+              </ActionsheetItem>
+              <ActionsheetItem
+                key="undo"
+                onPress={() => closeActionMenuOnComplete(undoClickedHandler)}
+              >
+                <Icon
+                  as={UndoIcon}
+                  size="md"
+                  className="mr-2 fill-typography-900"
+                />
+                <ActionsheetItemText size="xl">Undo</ActionsheetItemText>
+              </ActionsheetItem>
+            </>
+          )}
+          {(reminder.is_archived || !reminder.is_recurring) && (
+            <>
+              <Divider />
+              <ActionsheetItem
+                key="delete"
+                onPress={() =>
+                  closeActionMenuOnComplete(() => setDeleteDialogOpen(true))
+                }
+              >
+                <Icon
+                  as={TrashIcon}
+                  size="md"
+                  className="mr-2 fill-typography-900"
+                />
+                <ActionsheetItemText size="xl">Delete</ActionsheetItemText>
+              </ActionsheetItem>
+            </>
+          )}
+        </ActionsheetContent>
+      </Actionsheet>
       <EditNotificationStatusActionsheet
         isOpen={notificationStatusUpdateOpen}
         setIsOpen={setNotificationStatusUpdateOpen}

@@ -64,7 +64,6 @@ export default function ({ reminder, isOpen, onClose }: Props) {
               <ButtonText>Cancel</ButtonText>
             </Button>
             <Button
-              action="negative"
               className="flex-1"
               size="xl"
               onPress={() => deleteReminderHandler()}

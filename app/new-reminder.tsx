@@ -50,7 +50,13 @@ export default function NewReminder() {
   }, []);
 
   function goBackHandler() {
-    router.dismissTo("/");
+    try {
+      if (router.canGoBack()) {
+        router.back();
+      } else router.dismissTo("/");
+    } catch (e) {
+      router.dismissTo("/");
+    }
   }
 
   return (
@@ -64,7 +70,9 @@ export default function NewReminder() {
       {showForm && (
         <AddEditReminder
           data={reminder.current}
-          onSave={() => router.dismissTo("/")}
+          onSave={() =>
+            router.dismissAll()
+          }
         />
       )}
     </ThemedContainer>

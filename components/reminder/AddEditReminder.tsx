@@ -54,6 +54,7 @@ import {
   updateReminder,
 } from "@/lib/reminders/reminders.service";
 import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
+import { Alert, AlertText } from "../ui/alert";
 
 dayjs.extend(isSameOrBefore);
 
@@ -132,6 +133,7 @@ export default function AddEditReminder({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
       ...data,
+      track_streak: true,
       interval_num: data.interval_num.toString(),
       times: data.times.toString(),
       recurring: data.is_recurring,
@@ -205,7 +207,7 @@ export default function AddEditReminder({
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
   const [reopenSchedules, setReopenSchedules] = useState(false);
   const [additionalOptionsOpen, setAdditionalOptionsOpen] = useState(
-    !!start_date
+    true
   );
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null
@@ -283,33 +285,48 @@ export default function AddEditReminder({
             </FormControl>
           </VStack>
           {!data.id && (
-            <HStack className="rounded border border-background-900">
-              <Button
-                size="xl"
-                className="flex-1 rounded-none border-0"
-                variant={recurring ? "solid" : "outline"}
-                onPress={() => setValue("recurring", true)}
-              >
-                <ButtonIcon as={RepeatIcon} />
-                <ButtonText>Recurring</ButtonText>
-              </Button>
-              <Button
-                size="xl"
-                className="flex-1 rounded-none border-0"
-                variant={recurring ? "outline" : "solid"}
-                onPress={() => setValue("recurring", false)}
-              >
-                {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
-                <ButtonIcon
-                  as={PushPinIcon}
-                  size="2xl"
-                  className={
-                    recurring ? "fill-typography-600" : "fill-typography-0"
-                  }
-                />
-                <ButtonText>Task</ButtonText>
-              </Button>
-            </HStack>
+            <>
+              <HStack className="rounded border border-background-900">
+                <Button
+                  size="xl"
+                  className="flex-1 rounded-none border-0"
+                  variant={recurring ? "solid" : "outline"}
+                  onPress={() => setValue("recurring", true)}
+                >
+                  <ButtonIcon as={RepeatIcon} />
+                  <ButtonText>Recurring</ButtonText>
+                </Button>
+                <Button
+                  size="xl"
+                  className="flex-1 rounded-none border-0"
+                  variant={recurring ? "outline" : "solid"}
+                  onPress={() => setValue("recurring", false)}
+                >
+                  {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
+                  <ButtonIcon
+                    as={PushPinIcon}
+                    size="2xl"
+                    className={
+                      recurring ? "fill-typography-600" : "fill-typography-0"
+                    }
+                  />
+                  <ButtonText>Task</ButtonText>
+                </Button>
+              </HStack>
+              <Alert className="flex flex-row items-start">
+                {recurring ? (
+                  <AlertText size="lg" className="flex-1">
+                    Recurring reminders nudge you randomly and track your
+                    follow-through.
+                  </AlertText>
+                ) : (
+                  <AlertText size="lg" className="flex-1">
+                    Task reminders nudge you randomly until you finish the task.
+                  </AlertText>
+                )}
+                {/* <Icon as={CloseIcon} /> */}
+              </Alert>
+            </>
           )}
           <Box>
             <Heading size="xl">Remind Me</Heading>
@@ -628,7 +645,12 @@ export default function AddEditReminder({
             <ButtonText>Cancel</ButtonText>
           </Button>
         ) : null}
-        <Button size="xl" onPress={onSubmit} className="flex-1" isDisabled={!isValid && isSubmitted}>
+        <Button
+          size="xl"
+          onPress={onSubmit}
+          className="flex-1"
+          isDisabled={!isValid && isSubmitted}
+        >
           <ButtonText>{data.id ? "Update" : "Save"}</ButtonText>
         </Button>
       </HStack>

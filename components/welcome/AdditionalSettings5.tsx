@@ -58,7 +58,7 @@ export default function AdditionalSettings5({ onNext, onPrevious, reminder }: Pr
   } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
-      track_streak: false,
+      track_streak: true,
     },
   });
 

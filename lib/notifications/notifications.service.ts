@@ -74,7 +74,7 @@ async function generateFutureNotifications(
     }
 
     intervalIndex++;
-    if (++iterations > 100) {
+    if (++iterations > 10000) {
       throw new Error('generateFutureNotifications exceeded iteration limit');
     }
   }

@@ -443,7 +443,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               <ButtonText>Done</ButtonText>
             </Button>
           )}
-        {reminder.is_recurring && reminder.due_scheduled_at && (
+        {reminder.due_scheduled_at && (
           <>
             <HStack space="md">
               <Button
@@ -617,7 +617,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             )}
           {reminder.is_recurring && !reminder.is_archived && (
             <>
-              <Divider />
+              <Divider className="my-2" />
               <ActionsheetItem
                 key="archive"
                 onPress={() =>
@@ -674,7 +674,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           )}
           {(reminder.is_archived || !reminder.is_recurring) && (
             <>
-              <Divider />
+              <Divider className="my-2" />
               <ActionsheetItem
                 key="delete"
                 onPress={() =>

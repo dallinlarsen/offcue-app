@@ -133,7 +133,7 @@ const buttonTextStyle = tva({
         "text-error-600 data-[hover=true]:text-error-600 data-[active=true]:text-error-700",
     },
     variant: {
-      link: "data-[hover=true]:underline data-[active=true]:underline",
+      link: "",
       outline: "",
       solid:
         "text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0",

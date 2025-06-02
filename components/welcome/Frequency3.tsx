@@ -84,6 +84,8 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ flexGrow: 1 }}
+      extraScrollHeight={20}
+      extraHeight={20}
     >
       <VStack space="lg" className="justify-between flex-1">
         <VStack space="md">

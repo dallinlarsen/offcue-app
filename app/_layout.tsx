@@ -15,6 +15,7 @@ import { initDatabase } from "@/lib/init/init.service";
 import { getSettings } from "@/lib/settings/settings.service";
 import { useRouteInfo } from "expo-router/build/hooks";
 import { SettingsProvider } from "@/hooks/useSettings";
+import KeyboardDoneButton from "@/components/KeyboardDoneButton";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -68,6 +69,7 @@ export default function RootLayout() {
                   }}
                 />
                 {!route.pathname.startsWith("/welcome") && <Navigation />}
+                <KeyboardDoneButton />
               </SafeAreaView>
             </SafeAreaProvider>
           </NotificationProvider>

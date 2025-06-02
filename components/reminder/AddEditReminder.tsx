@@ -54,6 +54,8 @@ import {
   updateReminder,
 } from "@/lib/reminders/reminders.service";
 import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
+import { Alert, AlertText } from "../ui/alert";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 dayjs.extend(isSameOrBefore);
 
@@ -235,7 +237,12 @@ export default function AddEditReminder({
 
   return (
     <>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        extraScrollHeight={-90}
+      >
         <VStack space="xl" className="mb-16">
           <VStack space="sm">
             <FormControl isInvalid={!!errors.title}>
@@ -615,7 +622,7 @@ export default function AddEditReminder({
             </Button>
           )}
         </VStack>
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <Fade />
       <HStack space="md">
         {onCancel ? (

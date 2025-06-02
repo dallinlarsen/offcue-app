@@ -68,6 +68,8 @@ export default function Notes2({ onNext, onPrevious, reminder }: Props) {
       ref={scrollViewRef}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      extraScrollHeight={20}
+      extraHeight={20}
       contentContainerStyle={{ flexGrow: 1 }}
     >
       <VStack className="justify-between flex-1">
@@ -153,7 +155,12 @@ export default function Notes2({ onNext, onPrevious, reminder }: Props) {
             <ButtonIcon as={ChevronLeftIcon} />
             <ButtonText>Previous</ButtonText>
           </Button>
-          <Button className="flex-1" size="xl" onPress={nextPressedHandler} isDisabled={!isValid && isSubmitted}>
+          <Button
+            className="flex-1"
+            size="xl"
+            onPress={nextPressedHandler}
+            isDisabled={!isValid && isSubmitted}
+          >
             <ButtonText>Next</ButtonText>
             <ButtonIcon as={ChevronRightIcon} />
           </Button>

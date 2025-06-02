@@ -206,7 +206,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     <>
       <VStack space="md" className="flex-1">
         {reminder.description ? (
-          <Heading size="lg">{reminder.description}</Heading>
+          <Heading size="lg">{reminder.description?.trim()}</Heading>
         ) : null}
         <Box>
           <HStack className="justify-between items-start">

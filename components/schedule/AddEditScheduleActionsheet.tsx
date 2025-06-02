@@ -196,16 +196,13 @@ export default function ({
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
         <Heading size="xl" className="mb-2">
-          {schedule ? "Update" : "New"} Schedule
+          {schedule ? "Edit" : "New"} Schedule
         </Heading>
         <ActionsheetScrollView>
           {schedule && (
             <Alert className="mb-2 bg-background-100 items-start">
-              <AlertText
-                size="lg"
-                className="text-typography-800"
-              >
-                Updating the schedule will regenerate reminder times for all
+              <AlertText size="lg" className="text-typography-800">
+                Editing the schedule will regenerate reminder times for all
                 current reminders.
               </AlertText>
             </Alert>
@@ -344,7 +341,7 @@ export default function ({
           onPress={onSubmit}
           isDisabled={!isValid && isSubmitted}
         >
-          <ButtonText>{schedule ? "Update" : "Create"} Schedule</ButtonText>
+          <ButtonText>{schedule ? "Save" : "Create Schedule"}</ButtonText>
         </Button>
       </ActionsheetContent>
     </Actionsheet>

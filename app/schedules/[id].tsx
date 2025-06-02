@@ -37,6 +37,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, SectionList, TouchableOpacity } from "react-native";
 import ScrollingHeader from "@/components/ScrollingHeader";
+import { Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper, ActionsheetItem, ActionsheetItemText } from "@/components/ui/actionsheet";
+import { Divider } from "@/components/ui/divider";
 
 export default function () {
   const { id } = useLocalSearchParams();
@@ -120,6 +122,12 @@ export default function () {
     }
   }
 
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  async function closeActionMenuOnComplete(c: () => void) {
+    await c();
+    setActionMenuOpen(false);
+  }
+
   return schedule ? (
     <ThemedContainer>
       <ScrollingHeader text={schedule.label} goBack={() => router.back()} />
@@ -143,40 +151,76 @@ export default function () {
             </AlertText>
           </Alert>
         )}
-        <HStack space="md">
-          {schedule.is_active ? (
-            <Button
-              className="flex-1"
-              variant="outline"
-              size="xl"
-              onPress={() => setHideOpen(true)}
+        <Button
+          size="xl"
+          variant="outline"
+          className="px-4"
+          onPress={() => setActionMenuOpen(true)}
+        >
+          <ButtonText>Actions</ButtonText>
+          <ButtonIcon as={ChevronDownIcon} />
+        </Button>
+        <Actionsheet
+          isOpen={actionMenuOpen}
+          onClose={() => setActionMenuOpen(false)}
+        >
+          <ActionsheetBackdrop />
+          <ActionsheetContent className="items-start">
+            <ActionsheetDragIndicatorWrapper>
+              <ActionsheetDragIndicator />
+            </ActionsheetDragIndicatorWrapper>
+            <ActionsheetItem
+              key="edit"
+              onPress={() => closeActionMenuOnComplete(() => setEditOpen(true))}
             >
-              <ButtonIcon as={EyeOffIcon} />
-              <ButtonText>Hide</ButtonText>
-            </Button>
-          ) : (
-            <Button
-              className="flex-1"
-              variant="outline"
-              size="xl"
-              onPress={restoreScheduleHandler}
-            >
-              <ButtonIcon as={EyeIcon} />
-              <ButtonText>Show</ButtonText>
-            </Button>
-          )}
-          {schedule.reminder_count === 0 && (
-            <Button
-              className="flex-1"
-              variant="outline"
-              size="xl"
-              onPress={() => setDeleteOpen(true)}
-            >
-              <ButtonIcon as={TrashIcon} className="fill-typography-950" />
-              <ButtonText>Delete</ButtonText>
-            </Button>
-          )}
-        </HStack>
+              <Icon
+                as={PencilIcon}
+                size="md"
+                className="mr-2 fill-typography-900"
+              />
+              <ActionsheetItemText size="xl">Edit</ActionsheetItemText>
+            </ActionsheetItem>
+            {schedule.is_active ? (
+              <ActionsheetItem
+                key="hide"
+                onPress={() =>
+                  closeActionMenuOnComplete(() => setHideOpen(true))
+                }
+              >
+                <Icon as={EyeOffIcon} size="md" className="mr-2" />
+                <ActionsheetItemText size="xl">Hide</ActionsheetItemText>
+              </ActionsheetItem>
+            ) : (
+              <ActionsheetItem
+                key="show"
+                onPress={() =>
+                  closeActionMenuOnComplete(restoreScheduleHandler)
+                }
+              >
+                <Icon as={EyeIcon} size="md" className="mr-2" />
+                <ActionsheetItemText size="xl">Show</ActionsheetItemText>
+              </ActionsheetItem>
+            )}
+            {schedule.reminder_count === 0 && (
+              <>
+                <Divider className="my-2" />
+                <ActionsheetItem
+                  key="delete"
+                  onPress={() =>
+                    closeActionMenuOnComplete(() => setDeleteOpen(true))
+                  }
+                >
+                  <Icon
+                    as={TrashIcon}
+                    size="md"
+                    className="mr-2 fill-typography-900"
+                  />
+                  <ActionsheetItemText size="xl">Delete</ActionsheetItemText>
+                </ActionsheetItem>
+              </>
+            )}
+          </ActionsheetContent>
+        </Actionsheet>
         <Heading size="xl" className="mt-3">
           Reminders
         </Heading>
@@ -297,11 +341,6 @@ export default function () {
         onCancel={() => setDeleteOpen(false)}
         onDelete={deleteScheduleHandler}
       />
-      {schedule.is_active && (
-        <Fab size="lg" onPress={() => setEditOpen(true)}>
-          <FabIcon as={PencilIcon} size="xl" className="fill-typography-50" />
-        </Fab>
-      )}
     </ThemedContainer>
   ) : (
     <ThemedContainer />

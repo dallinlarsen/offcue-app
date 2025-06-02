@@ -70,8 +70,8 @@ export default function NewReminder() {
       {showForm && (
         <AddEditReminder
           data={reminder.current}
-          onSave={(reminderId: number) =>
-            router.dismissTo(`/reminder/${reminderId}`)
+          onSave={() =>
+            router.dismissAll()
           }
         />
       )}

@@ -16,6 +16,7 @@ import { useSettings } from "@/hooks/useSettings";
 
 const HABITS = [
   "💧 Drink a glass of water",
+  "☎️ Reach out to an old friend",
   "🧘 Take 3 deep breaths",
   "📚 Read one paragraph of a book",
   "🧹 Tidy up one item or surface",
@@ -58,8 +59,16 @@ export default function ReminderIntro1({ onNext }: Props) {
     <VStack className="justify-between flex-1">
       <Box>
         <Heading size="2xl" className="mb-2">
-          Pick your first habit
+          Pick your first habit 🤔
         </Heading>
+        <Text size="2xl" className="leading-normal mt-2 mb-2">
+          offcue will help you build habits or remember to do things{" "}
+          <Heading size="xl" className="font-quicksand-bold">
+            with random nudges. 📣{" "}
+          </Heading>
+          It will help you track your follow-through and motivate you along the
+          way! ✅
+        </Text>
       </Box>
       <ScrollView showsVerticalScrollIndicator={false}>
         <VStack space="lg">

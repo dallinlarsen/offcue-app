@@ -38,7 +38,6 @@ export const getSettings = async () => {
   if (!result) return null;
   return convertIntegerValuesToBoolean(result, [
     "has_completed_tutorial",
-    "notification_sound",
     "notification_vibration",
   ]);
 };

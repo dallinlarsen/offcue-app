@@ -89,9 +89,9 @@ export function convertIntegerValuesToBoolean<T extends { [key: string]: any }>(
   model: T,
   keys: (keyof T)[]
 ) {
-    for (const key of keys) {
-        (model[key] as boolean) = model[key] === 1
-    }
+  for (const key of keys) {
+    (model as any)[key] = model[key] === 1;
+  }
 
-    return model;
+  return model;
 }

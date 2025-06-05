@@ -45,10 +45,10 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
         <Heading size="2xl">You Created A Reminder!</Heading>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Heading size="xl" className="font-quicksand-bold">
-            Contratulations 🥳
+            Congratulations 🥳
           </Heading>
           <Text size="xl" className="leading-normal mb-4">
-            If you would like to go through this tutorial again it is always
+            If you would like to go through this tutorial again, it is always
             available in the settings menu. Choose what to do next! 👇
           </Text>
 

@@ -1,11 +1,12 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Switch as RNSwitch } from 'react-native';
 import { createSwitch } from '@gluestack-ui/switch';
 import { tva } from '@gluestack-ui/nativewind-utils/tva';
 import { withStyleContext } from '@gluestack-ui/nativewind-utils/withStyleContext';
 import type { VariantProps } from '@gluestack-ui/nativewind-utils';
 import { Icon, CheckIcon, CloseIcon } from '../icon';
+import { Box } from '../box';
 
 const UISwitch = createSwitch({
   Root: withStyleContext(RNSwitch),
@@ -30,24 +31,37 @@ const Switch = React.forwardRef<
   ISwitchProps
 >(function Switch({ className, size = 'md', ...props }, ref) {
   const { value } = props as { value?: boolean };
+  const [iconPlacement, setIconPlacement] = useState('');
+
+  useEffect(() => {
+    switch (size) {
+      case "sm":
+        setIconPlacement(value ? "right-3" : "left-3");
+        break;
+      default:
+        setIconPlacement(value ? "right-2" : "left-2");
+        break;
+    }
+  }, [value]);
+
   return (
-    <View className="relative justify-center">
+    <Box className="relative justify-center">
       <UISwitch
         ref={ref}
         {...props}
         className={switchStyle({ size, class: className })}
       />
-      <View
+      <Box
         pointerEvents="none"
-        className="absolute inset-0 flex items-center justify-center"
+        className={`absolute flex items-center justify-center ${iconPlacement}`}
       >
         {value ? (
-          <Icon as={CheckIcon} size="xs" className="text-typography-50" />
+          <Icon as={CheckIcon} size={size} className="text-typography-100" />
         ) : (
-          <Icon as={CloseIcon} size="xs" className="text-typography-50" />
+          <Icon as={CloseIcon} size={size} className="text-typography-500" />
         )}
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 });
 

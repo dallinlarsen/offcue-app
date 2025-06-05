@@ -1,10 +1,11 @@
 'use client';
 import React from 'react';
-import { Switch as RNSwitch } from 'react-native';
+import { View, Switch as RNSwitch } from 'react-native';
 import { createSwitch } from '@gluestack-ui/switch';
 import { tva } from '@gluestack-ui/nativewind-utils/tva';
 import { withStyleContext } from '@gluestack-ui/nativewind-utils/withStyleContext';
 import type { VariantProps } from '@gluestack-ui/nativewind-utils';
+import { Icon, CheckIcon, CloseIcon } from '../icon';
 
 const UISwitch = createSwitch({
   Root: withStyleContext(RNSwitch),
@@ -28,12 +29,25 @@ const Switch = React.forwardRef<
   React.ComponentRef<typeof UISwitch>,
   ISwitchProps
 >(function Switch({ className, size = 'md', ...props }, ref) {
+  const { value } = props as { value?: boolean };
   return (
-    <UISwitch
-      ref={ref}
-      {...props}
-      className={switchStyle({ size, class: className })}
-    />
+    <View className="relative justify-center">
+      <UISwitch
+        ref={ref}
+        {...props}
+        className={switchStyle({ size, class: className })}
+      />
+      <View
+        pointerEvents="none"
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        {value ? (
+          <Icon as={CheckIcon} size="xs" className="text-typography-50" />
+        ) : (
+          <Icon as={CloseIcon} size="xs" className="text-typography-50" />
+        )}
+      </View>
+    </View>
   );
 });
 

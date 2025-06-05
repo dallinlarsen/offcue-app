@@ -1,4 +1,5 @@
-import { ScrollView, Switch, TouchableOpacity } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
+import { Switch } from "../ui/switch";
 import { VStack } from "../ui/vstack";
 import { Input, InputField } from "../ui/input";
 import { Textarea, TextareaInput } from "../ui/textarea";

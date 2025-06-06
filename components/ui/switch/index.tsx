@@ -56,9 +56,9 @@ const Switch = React.forwardRef<
         className={`absolute flex items-center justify-center ${iconPlacement}`}
       >
         {value ? (
-          <Icon as={CheckIcon} size={size} className="text-typography-100" />
+          <Icon as={CheckIcon} size={size} className="text-gray-950" />
         ) : (
-          <Icon as={CloseIcon} size={size} className="text-typography-500" />
+          <Icon as={CloseIcon} size={size} className="text-gray-500" />
         )}
       </Box>
     </Box>

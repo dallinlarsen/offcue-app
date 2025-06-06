@@ -1,5 +1,5 @@
 import { Settings } from "./settings.types";
-import db from "../db";
+import { db } from "../db";
 import {
   convertIntegerValuesToBoolean,
   updateTable,

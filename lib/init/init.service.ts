@@ -1,4 +1,4 @@
-import db from "../db";
+import { db } from "../db";
 import * as SQLite from "expo-sqlite";
 import { remindersInit } from "../reminders/reminders.service";
 import { notesInit } from "../notes/notes.service";

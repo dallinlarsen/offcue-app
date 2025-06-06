@@ -1,4 +1,5 @@
-import db from "../db";
+import { db } from "../db";
+import { syncDatabaseToCloud } from "../cloud/cloud.service";
 type GenericObject = { [key: string]: any };
 
 function formatBoolean(value: any) {
@@ -30,6 +31,9 @@ export async function insertIntoTable<T extends GenericObject>(
     `,
     modelKeys.map((k) => formatBoolean(model[k]))
   );
+
+  // Trigger cloud sync but don't block
+  syncDatabaseToCloud().catch(() => {});
 
   return result.lastInsertRowId;
 }
@@ -68,6 +72,8 @@ export async function updateTable<
       ...whereKeys.map((k) => formatBoolean(where[k])),
     ]
   );
+
+  syncDatabaseToCloud().catch(() => {});
 }
 
 export async function deleteFromTable<T extends GenericObject>(
@@ -83,6 +89,8 @@ export async function deleteFromTable<T extends GenericObject>(
     `,
     whereKeys.map((k) => formatBoolean(where[k]))
   );
+
+  syncDatabaseToCloud().catch(() => {});
 }
 
 export function convertIntegerValuesToBoolean<T extends { [key: string]: any }>(

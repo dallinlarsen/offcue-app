@@ -1,4 +1,4 @@
-import db from "../db";
+import { db } from "../db";
 import { deleteFromTable } from "../utils/db-helpers";
 
 export async function notesInit() {

@@ -1,4 +1,4 @@
-import db from "../db";
+import { db } from "../db";
 import { NReminder } from "../reminders/reminders.types";
 import {
   deleteFromTable,

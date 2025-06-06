@@ -1,4 +1,4 @@
-import db from '../db';
+import { db } from '../db';
 import { TABLES } from './cloud.tables';
 
 export async function getTableData(table: string): Promise<any[]> {

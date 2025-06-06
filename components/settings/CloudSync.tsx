@@ -1,10 +1,10 @@
 import { Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, ButtonText } from '../ui/button';
 import { Text } from '../ui/text';
 import SettingDropDown from './SettingDropDown';
 import { syncDatabaseToCloud } from '@/lib/cloud/cloud.service';
-import { useIsCloudAvailable } from 'react-native-cloud-storage';
+import { CloudStorage } from 'react-native-cloud-storage';
 
 interface Props {
   open?: boolean;
@@ -13,7 +13,13 @@ interface Props {
 
 export default function CloudSync({ open, setOpen }: Props) {
   const [status, setStatus] = useState<string>('');
-  const cloudAvailable = useIsCloudAvailable();
+  const [cloudAvailable, setCloudAvailable] = useState(false);
+
+  useEffect(() => {
+    CloudStorage.isCloudAvailable()
+      .then(setCloudAvailable)
+      .catch(() => setCloudAvailable(false));
+  }, []);
 
   const sync = async () => {
     if (!cloudAvailable) {

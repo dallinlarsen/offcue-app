@@ -1,6 +1,7 @@
 import DarkMode from "@/components/settings/DarkMode";
 import GetHelp from "@/components/settings/GetHelp";
 import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
+import CloudSync from "@/components/settings/CloudSync";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function SettingsScreen() {
     "dark-mode",
     "welcome-tutorial",
     "help",
+    "cloud-sync",
   ]);
   const [settings, setSettings] = useState<Settings | null>(null);
 
@@ -56,6 +58,10 @@ export default function SettingsScreen() {
         <GetHelp
           open={accordiansOpen.includes("help")}
           setOpen={(open) => setOpenHandler(open, "help")}
+        />
+        <CloudSync
+          open={accordiansOpen.includes("cloud-sync")}
+          setOpen={(open) => setOpenHandler(open, "cloud-sync")}
         />
         {/* <Button
           size="xl"

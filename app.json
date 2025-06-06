@@ -47,7 +47,8 @@
         {
           "assets": ["./assets/images/splash-icon.png"]
         }
-      ]
+      ],
+      "react-native-cloud-storage"
     ],
     "experiments": {
       "typedRoutes": true

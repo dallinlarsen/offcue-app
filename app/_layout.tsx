@@ -16,6 +16,7 @@ import { getSettings } from "@/lib/settings/settings.service";
 import { useRouteInfo } from "expo-router/build/hooks";
 import { SettingsProvider } from "@/hooks/useSettings";
 import KeyboardDoneButton from "@/components/KeyboardDoneButton";
+import { restoreDatabaseFromCloud } from "@/lib/cloud/cloud.service";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -37,7 +38,9 @@ export default function RootLayout() {
   });
 
   async function setupState() {
-    await initDatabase();
+    if (!(await restoreDatabaseFromCloud())) {
+      await initDatabase();
+    }
     const settings = await getSettings();
     if (!settings?.has_completed_tutorial) {
       router.replace("/welcome");

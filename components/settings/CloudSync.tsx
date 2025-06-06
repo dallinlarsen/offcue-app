@@ -36,7 +36,7 @@ export default function CloudSync({ open, setOpen }: Props) {
         <ButtonText>Sync with iCloud</ButtonText>
       </Button>
       <Text className="text-center" size="sm">
-        {cloudAvailable ? status || 'Idle' : 'iCloud not available'}
+        {cloudAvailable ? status || "Idle" : "iCloud not available, please sign in."}
       </Text>
     </SettingDropDown>
   );

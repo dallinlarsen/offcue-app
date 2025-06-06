@@ -1,20 +1,20 @@
-import * as FileSystem from 'expo-file-system';
-import { CloudStorage } from 'react-native-cloud-storage';
-import {
-  getDatabaseDumpString,
-  restoreDatabaseFromDump,
-} from './cloud.source';
+import * as FileSystem from "expo-file-system";
+import { CloudStorage, CloudStorageScope } from "react-native-cloud-storage";
+import { getDatabaseDumpString, restoreDatabaseFromDump } from "./cloud.source";
+
+const BACKUP_PATH = `/database_dump.json`;
+const provider = new CloudStorage(CloudStorage.getDefaultProvider());
+provider.setProviderOptions({ scope: CloudStorageScope.Documents });
 
 export async function dumpDatabaseToFile(): Promise<string> {
   const json = await getDatabaseDumpString();
-  const path = `${FileSystem.documentDirectory}database_dump.json`;
-  await FileSystem.writeAsStringAsync(path, json);
-  return path;
+  await FileSystem.writeAsStringAsync(BACKUP_PATH, json);
+  return BACKUP_PATH;
 }
 
 export async function getCloudDatabaseDump(): Promise<string | null> {
   try {
-    return await CloudStorage.readFile('/database_dump.json');
+    return await provider.readFile(BACKUP_PATH);
   } catch {
     return null;
   }
@@ -32,7 +32,9 @@ export async function syncDatabaseToCloud(): Promise<boolean> {
   if (remote === local) {
     return false;
   }
-  await CloudStorage.writeFile('/database_dump.json', local);
+
+  await provider.writeFile(BACKUP_PATH, local);
+
   return true;
 }
 

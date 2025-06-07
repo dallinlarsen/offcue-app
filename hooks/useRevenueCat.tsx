@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import Purchases, { CustomerInfo } from "react-native-purchases";
+import RevenueCatUI from "react-native-purchases-ui";
 
-export function useCustomerInfo() {
+export function useRevenueCat() {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+
   const fetchCustomerInfo = async () => {
     try {
       const info = await Purchases.getCustomerInfo();
@@ -17,10 +19,17 @@ export function useCustomerInfo() {
   };
 
   useEffect(() => {
-    
-
     fetchCustomerInfo();
   }, []);
 
-  return { customerInfo, loading, error, refetch: fetchCustomerInfo };
+  return {
+    customerInfo,
+    loading,
+    error,
+    refetch: fetchCustomerInfo,
+    presentPaywallIfNeeded: (identifier: string, callback = () => {}) =>
+      presentPaywallIfNeeded(identifier, () =>
+        callback ? callback() : fetchCustomerInfo()
+      ),
+  };
 }

@@ -5,6 +5,7 @@ import {
   updateTable,
 } from "../utils/db-helpers";
 import {
+  ActiveReminderCounts,
   InsertReminder,
   Reminder,
   ReminderBase,
@@ -215,6 +216,43 @@ export async function getActiveReminders() {
     is_completed: r.is_completed === (1 as unknown as boolean),
     is_archived: r.is_archived === (1 as unknown as boolean),
   }));
+}
+
+/**
+ * Return counts of active reminders split by recurrence.
+ * Active reminders are not archived. The returned object contains
+ * `recurring` for reminders where `is_recurring` is true and `task`
+ * for one-off reminders where `is_recurring` is false.
+ */
+export async function getActiveReminderCounts() {
+  const counts = await db.getFirstAsync<ActiveReminderCounts>(
+    `SELECT
+       SUM(CASE WHEN is_recurring = 1 THEN 1 ELSE 0 END) AS recurring,
+       SUM(CASE WHEN is_recurring = 0 THEN 1 ELSE 0 END) AS task
+     FROM reminders r
+    LEFT JOIN notifications n
+      ON n.reminder_id = r.id
+      AND NOT r.is_recurring
+      AND n.response_status = 'done'
+    WHERE
+      r.is_muted = 0
+      AND r.is_archived = 0
+      AND (
+        r.is_recurring = 1
+        OR NOT EXISTS (
+          SELECT 1
+          FROM notifications nx
+          WHERE nx.reminder_id = r.id
+            AND nx.response_status = 'done'
+        )
+      );`,
+    []
+  );
+
+  return {
+    recurring: counts?.recurring ?? 0,
+    task: counts?.task ?? 0,
+  };
 }
 
 export async function getRemindersByScheduleId(scheduleId: number) {

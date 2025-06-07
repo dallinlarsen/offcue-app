@@ -5,6 +5,7 @@ import {
   useRef,
   MutableRefObject,
   RefAttributes,
+  useMemo,
 } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import {
@@ -26,8 +27,11 @@ import EdgeFade from "@/components/EdgeFade";
 import ReminderGroup from "@/components/reminder/ReminderGroup";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Reminder } from "@/lib/reminders/reminders.types";
-import { getReminders } from "@/lib/reminders/reminders.service";
-import { NO_REMINDERS_DUE_TEXT } from "@/constants";
+import {
+  getActiveReminderCounts,
+  getReminders,
+} from "@/lib/reminders/reminders.service";
+import { NO_REMINDERS_DUE_TEXT, REMINDER_LIMIT } from "@/constants";
 import PagerView from "react-native-pager-view";
 import {
   DirectEventHandler,
@@ -36,11 +40,11 @@ import {
 import React from "react";
 import PurchaseUnlimited from "@/components/settings/PurchaseUnlimited";
 import { Alert, AlertText } from "@/components/ui/alert";
-import { presentPaywallIfNeeded } from "@/lib/utils/paywall";
 import { Button, ButtonText } from "@/components/ui/button";
 import { VStack } from "@/components/ui/vstack";
 import { Text } from "@/components/ui/text";
-import { useCustomerInfo } from "@/hooks/useCustomerInfo";
+import ReminderCountAlert from "@/components/reminder/ReminderCountAlert";
+import { useRevenueCat } from "@/hooks/useRevenueCat";
 
 type CurrentFilterOptions =
   | "current"
@@ -62,9 +66,19 @@ const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { lastNotification } = useNotifications();
-  const { loading, customerInfo } = useCustomerInfo();
+  const { loading, customerInfo, presentPaywallIfNeeded } = useRevenueCat();
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [recurringCount, setRecurringCount] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
+
+  const noMoreReminders = useMemo(
+    () =>
+      !customerInfo?.entitlements.active["Unlimited"] &&
+      recurringCount <= 0 &&
+      taskCount <= 0,
+    [recurringCount, taskCount, customerInfo]
+  );
 
   const [nothingDueIndex] = useState(
     Math.floor(Math.random() * NO_REMINDERS_DUE_TEXT.length)
@@ -85,8 +99,10 @@ export default function HomeScreen() {
 
   const loadReminders = async () => {
     const data = await getReminders();
+    const counts = await getActiveReminderCounts();
+    setRecurringCount(REMINDER_LIMIT.recurring - counts.recurring);
+    setTaskCount(REMINDER_LIMIT.task - counts.task);
     setReminders(data);
-    console.log(data);
   };
 
   // Refresh reminders whenever the screen comes into focus.
@@ -258,6 +274,15 @@ export default function HomeScreen() {
         </HStack>
       </Box>
 
+      {!customerInfo?.entitlements.active["Unlimited"] &&
+        !loading &&
+        recurringCount + taskCount <= 0 && (
+          <ReminderCountAlert
+            recurringCount={recurringCount}
+            taskCount={taskCount}
+          />
+        )}
+
       <Box className="relative mb-4 -mx-3">
         <ScrollView
           horizontal
@@ -291,32 +316,6 @@ export default function HomeScreen() {
         <EdgeFade left />
         <EdgeFade />
       </Box>
-      {!customerInfo?.entitlements.active["Unlimited"] && !loading && (
-        <Alert className="mb-4">
-          <VStack className="flex-1" space="xs">
-            <Heading size="xl" className="font-quicksand-bold">
-              ⚠️ 2 Active Reminders Left
-            </Heading>
-            <HStack space="md" className="items-center">
-              <Icon as={RepeatIcon} />
-              <Text>1 Recurring Reminder Remaining</Text>
-            </HStack>
-            <HStack space="md" className="items-center">
-              <Icon as={PushPinIcon} className="fill-typography-700" />
-              <Text>1 Task Reminder Remaining</Text>
-            </HStack>
-            <Button
-              size="lg"
-              className="mt-4"
-              onPress={async () => {
-                await presentPaywallIfNeeded("com.offcueapps.offcue.Unlimited");
-              }}
-            >
-              <ButtonText>Go Unlimited 🚀</ButtonText>
-            </Button>
-          </VStack>
-        </Alert>
-      )}
 
       <PagerView
         style={{ flex: 1 }}
@@ -333,7 +332,11 @@ export default function HomeScreen() {
       <Fab
         size="lg"
         placement="bottom right"
-        onPress={() => router.push("/new-reminder")}
+        onPress={() =>
+          noMoreReminders
+            ? presentPaywallIfNeeded("com.offcueapps.offuce.Unlimited")
+            : router.push("/new-reminder")
+        }
       >
         <FabIcon size="xl" as={AddIcon} />
       </Fab>

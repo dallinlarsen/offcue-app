@@ -46,3 +46,8 @@ export const NO_REMINDERS_DUE_TEXT = [
   "The day is yours. 🫵",
   "No loose ends. 👌",
 ] as const;
+
+export const REMINDER_LIMIT = {
+  task: 1,
+  recurring: 2
+} as const;

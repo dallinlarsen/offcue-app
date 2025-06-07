@@ -16,6 +16,8 @@ import { getSettings } from "@/lib/settings/settings.service";
 import { useRouteInfo } from "expo-router/build/hooks";
 import { SettingsProvider } from "@/hooks/useSettings";
 import KeyboardDoneButton from "@/components/KeyboardDoneButton";
+import Purchases, { LOG_LEVEL } from "react-native-purchases";
+import { Platform } from "react-native";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -44,6 +46,18 @@ export default function RootLayout() {
     }
     setTimeout(() => SplashScreen.hideAsync(), 1000);
   }
+
+  useEffect(() => {
+    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+
+    if (Platform.OS === "ios") {
+      Purchases.configure({
+        apiKey: process.env.EXPO_PUBLIC_REVENUE_CAT_APPLE_API_KEY || "",
+      });
+    } else if (Platform.OS === "android") {
+      //  Purchases.configure({apiKey: <revenuecat_project_google_api_key>});
+    }
+  }, []);
 
   useEffect(() => {
     if (loaded) {

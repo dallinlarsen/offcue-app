@@ -46,6 +46,7 @@ export default function SettingsScreen() {
         <Heading size="2xl">Settings</Heading>
       </Box>
       <VStack space="lg">
+        <PurchaseUnlimited />
         <DarkMode
           theme={settings.theme}
           open={accordiansOpen.includes("dark-mode")}
@@ -58,10 +59,6 @@ export default function SettingsScreen() {
         <GetHelp
           open={accordiansOpen.includes("help")}
           setOpen={(open) => setOpenHandler(open, "help")}
-        />
-        <PurchaseUnlimited
-          open={accordiansOpen.includes("unlimited")}
-          setOpen={(open) => setOpenHandler(open, "unlimited")}
         />
         {/* <Button
           size="xl"

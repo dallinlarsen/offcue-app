@@ -18,7 +18,7 @@ import {
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon, ChevronRightIcon, Icon } from "@/components/ui/icon";
+import { AddIcon, Icon, PushPinIcon, RepeatIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import Fade from "@/components/Fade";
@@ -34,6 +34,13 @@ import {
   Double,
 } from "react-native/Libraries/Types/CodegenTypes";
 import React from "react";
+import PurchaseUnlimited from "@/components/settings/PurchaseUnlimited";
+import { Alert, AlertText } from "@/components/ui/alert";
+import { presentPaywallIfNeeded } from "@/lib/utils/paywall";
+import { Button, ButtonText } from "@/components/ui/button";
+import { VStack } from "@/components/ui/vstack";
+import { Text } from "@/components/ui/text";
+import { useCustomerInfo } from "@/hooks/useCustomerInfo";
 
 type CurrentFilterOptions =
   | "current"
@@ -42,13 +49,6 @@ type CurrentFilterOptions =
   | "completed"
   | "muted"
   | "archived";
-
-type FilterOptionProps = {
-  onPress: () => void;
-  label: string;
-  active?: boolean;
-  ref?: MutableRefObject<TouchableOpacityProps & RefAttributes<View>>;
-};
 
 const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
   { key: "current", label: "Current" },
@@ -62,12 +62,9 @@ const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { lastNotification } = useNotifications();
+  const { loading, customerInfo } = useCustomerInfo();
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["upcoming"]);
-
-  const [showLeftFade, setShowLeftFade] = useState(false);
-  const [showRightFade, setShowRightFade] = useState(true);
 
   const [nothingDueIndex] = useState(
     Math.floor(Math.random() * NO_REMINDERS_DUE_TEXT.length)
@@ -84,9 +81,6 @@ export default function HomeScreen() {
     const scrollX = contentOffset.x;
     const totalContentWidth = contentSize.width;
     const visibleWidth = layoutMeasurement.width;
-
-    setShowLeftFade(scrollX > 0);
-    setShowRightFade(scrollX + visibleWidth < totalContentWidth - 0);
   };
 
   const loadReminders = async () => {
@@ -297,6 +291,32 @@ export default function HomeScreen() {
         <EdgeFade left />
         <EdgeFade />
       </Box>
+      {!customerInfo?.entitlements.active["Unlimited"] && !loading && (
+        <Alert className="mb-4">
+          <VStack className="flex-1" space="xs">
+            <Heading size="xl" className="font-quicksand-bold">
+              ⚠️ 2 Active Reminders Left
+            </Heading>
+            <HStack space="md" className="items-center">
+              <Icon as={RepeatIcon} />
+              <Text>1 Recurring Reminder Remaining</Text>
+            </HStack>
+            <HStack space="md" className="items-center">
+              <Icon as={PushPinIcon} className="fill-typography-700" />
+              <Text>1 Task Reminder Remaining</Text>
+            </HStack>
+            <Button
+              size="lg"
+              className="mt-4"
+              onPress={async () => {
+                await presentPaywallIfNeeded("com.offcueapps.offcue.Unlimited");
+              }}
+            >
+              <ButtonText>Go Unlimited 🚀</ButtonText>
+            </Button>
+          </VStack>
+        </Alert>
+      )}
 
       <PagerView
         style={{ flex: 1 }}

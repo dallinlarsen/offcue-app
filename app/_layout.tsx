@@ -48,7 +48,7 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+    Purchases.setLogLevel(LOG_LEVEL.ERROR);
 
     if (Platform.OS === "ios") {
       Purchases.configure({

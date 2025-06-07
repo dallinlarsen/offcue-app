@@ -1,35 +1,25 @@
-import { presentPaywallIfNeeded } from "@/lib/utils/paywall";
-import { useEffect, useState } from "react";
-import Purchases, { CustomerInfo } from "react-native-purchases";
+import { useEffect } from 'react';
+import { presentPaywall, fetchCustomerInfo } from '@/lib/store/revenuecatSlice';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 
 export function useRevenueCat() {
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<unknown>(null);
-
-  const fetchCustomerInfo = async () => {
-    try {
-      const info = await Purchases.getCustomerInfo();
-      setCustomerInfo(info);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const dispatch = useAppDispatch();
+  const customerInfo = useAppSelector((s) => s.revenueCat.customerInfo);
+  const loading = useAppSelector((s) => s.revenueCat.loading);
+  const error = useAppSelector((s) => s.revenueCat.error);
+  const hasUnlimited = useAppSelector((s) => s.revenueCat.hasUnlimited);
 
   useEffect(() => {
-    fetchCustomerInfo();
-  }, []);
+    dispatch(fetchCustomerInfo());
+  }, [dispatch]);
 
   return {
     customerInfo,
+    hasUnlimited,
     loading,
     error,
-    refetch: fetchCustomerInfo,
+    refetch: () => dispatch(fetchCustomerInfo()),
     presentPaywallIfNeeded: (identifier: string, callback = () => {}) =>
-      presentPaywallIfNeeded(identifier, () =>
-        callback ? callback() : fetchCustomerInfo()
-      ),
+      dispatch(presentPaywall({ identifier, callback })),
   };
 }

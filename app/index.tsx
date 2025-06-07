@@ -66,7 +66,7 @@ const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { lastNotification } = useNotifications();
-  const { loading, customerInfo, presentPaywallIfNeeded } = useRevenueCat();
+  const { loading, hasUnlimited, presentPaywallIfNeeded } = useRevenueCat();
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [recurringCount, setRecurringCount] = useState(0);
@@ -76,11 +76,9 @@ export default function HomeScreen() {
   useEffect(
     () =>
       setNoMoreReminders(
-        !customerInfo?.entitlements.active["Unlimited"] &&
-          recurringCount <= 0 &&
-          taskCount <= 0
+        !hasUnlimited && recurringCount <= 0 && taskCount <= 0
       ),
-    [recurringCount, taskCount, customerInfo]
+    [recurringCount, taskCount, hasUnlimited]
   );
 
   const [nothingDueIndex] = useState(
@@ -335,7 +333,7 @@ export default function HomeScreen() {
         placement="bottom right"
         onPress={() =>
           noMoreReminders
-            ? presentPaywallIfNeeded("com.offcueapps.offuce.Unlimited")
+            ? presentPaywallIfNeeded("com.offcueapps.offcue.Unlimited")
             : router.push("/new-reminder")
         }
       >

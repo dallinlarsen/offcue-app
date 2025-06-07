@@ -16,6 +16,8 @@ import { getSettings } from "@/lib/settings/settings.service";
 import { useRouteInfo } from "expo-router/build/hooks";
 import { SettingsProvider } from "@/hooks/useSettings";
 import KeyboardDoneButton from "@/components/KeyboardDoneButton";
+import { Provider } from "react-redux";
+import { store } from "@/lib/store/store";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
 
@@ -70,25 +72,27 @@ export default function RootLayout() {
   }
 
   return (
-    <SettingsProvider>
-      <GluestackUIProvider>
-        <ConfettiProvider>
-          <NotificationProvider>
-            <SafeAreaProvider>
-              <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
-                <Stack
-                  screenOptions={{
-                    animation: "none",
-                    headerShown: false,
-                  }}
-                />
-                {!route.pathname.startsWith("/welcome") && <Navigation />}
-                <KeyboardDoneButton />
-              </SafeAreaView>
-            </SafeAreaProvider>
-          </NotificationProvider>
-        </ConfettiProvider>
-      </GluestackUIProvider>
-    </SettingsProvider>
+    <Provider store={store}>
+      <SettingsProvider>
+        <GluestackUIProvider>
+          <ConfettiProvider>
+            <NotificationProvider>
+              <SafeAreaProvider>
+                <SafeAreaView className="flex-1 bg-background-light dark:bg-background-dark">
+                  <Stack
+                    screenOptions={{
+                      animation: "none",
+                      headerShown: false,
+                    }}
+                  />
+                  {!route.pathname.startsWith("/welcome") && <Navigation />}
+                  <KeyboardDoneButton />
+                </SafeAreaView>
+              </SafeAreaProvider>
+            </NotificationProvider>
+          </ConfettiProvider>
+        </GluestackUIProvider>
+      </SettingsProvider>
+    </Provider>
   );
 }

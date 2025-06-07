@@ -203,7 +203,7 @@ export default function AddEditReminder({
     }
   });
 
-  const { loading, customerInfo, refetch } = useRevenueCat();
+  const { loading, hasUnlimited, refetch } = useRevenueCat();
 
   const [schedules, track_streak, recurring, start_date, end_date] = watch([
     "schedules",
@@ -228,7 +228,7 @@ export default function AddEditReminder({
     setTaskCount(REMINDER_LIMIT.task - counts.task);
   };
 
-  const isUnlimited = useMemo(() => !!customerInfo?.entitlements.active['Unlimited'] || loading, [customerInfo]);
+  const isUnlimited = useMemo(() => hasUnlimited || loading, [hasUnlimited, loading]);
 
   useEffect(() => {
     loadReminders();

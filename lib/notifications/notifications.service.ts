@@ -20,9 +20,7 @@ import {
 } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
-import Purchases from "react-native-purchases";
-import { REMINDER_LIMIT } from "@/constants";
-import { presentPaywallIfNeeded } from "../utils/paywall";
+// removed unused RevenueCat utilities after Redux integration
 
 export {
   notificationsInit,

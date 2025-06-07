@@ -13,11 +13,11 @@ export default function PurchaseUnlimited({
 }: {
   className?: string;
 }) {
-  const { customerInfo, loading, presentPaywallIfNeeded } = useRevenueCat();
+  const { hasUnlimited, loading, presentPaywallIfNeeded } = useRevenueCat();
 
   return (
     <>
-      {customerInfo?.entitlements?.active?.Unlimited || loading ? (
+      {hasUnlimited || loading ? (
         <></>
       ) : (
         <Card

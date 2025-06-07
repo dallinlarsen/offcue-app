@@ -22,6 +22,8 @@ import {
 import omit from "lodash/omit";
 import { REMINDER_LIMIT } from "@/constants";
 import { presentPaywallIfNeeded } from "../utils/paywall";
+import { store } from "../store/store";
+import { fetchCustomerInfo, selectHasUnlimited } from "../store/revenuecatSlice";
 
 export {
   remindersInit,
@@ -64,14 +66,30 @@ export async function createReminder(
   return reminderId;
 }
 
-export async function isUnlimitedCheck(type: 'task' | 'recurring' = 'recurring') {
-  const info = await Purchases.getCustomerInfo();
+export async function isUnlimitedCheck(
+  type: 'task' | 'recurring' = 'recurring'
+) {
+  let state = store.getState();
+  if (state.revenueCat.customerInfo === null) {
+    try {
+      await store.dispatch(fetchCustomerInfo()).unwrap();
+      state = store.getState();
+    } catch {
+      /* ignore */
+    }
+  }
 
-  if (!info.entitlements.active['Unlimited']) {
+  if (!selectHasUnlimited(state)) {
     const reminderCounts = await source.getActiveReminderCounts();
 
     if (REMINDER_LIMIT[type] - reminderCounts[type] <= 0) {
-      return await presentPaywallIfNeeded('com.offcueapps.offcue.Unlimited');
+      const purchased = await presentPaywallIfNeeded(
+        'com.offcueapps.offcue.Unlimited'
+      );
+      if (purchased) {
+        await store.dispatch(fetchCustomerInfo());
+      }
+      return purchased;
     }
   }
 

@@ -71,12 +71,15 @@ export default function HomeScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [recurringCount, setRecurringCount] = useState(0);
   const [taskCount, setTaskCount] = useState(0);
+  const [noMoreReminders, setNoMoreReminders] = useState(false);
 
-  const noMoreReminders = useMemo(
+  useEffect(
     () =>
-      !customerInfo?.entitlements.active["Unlimited"] &&
-      recurringCount <= 0 &&
-      taskCount <= 0,
+      setNoMoreReminders(
+        !customerInfo?.entitlements.active["Unlimited"] &&
+          recurringCount <= 0 &&
+          taskCount <= 0
+      ),
     [recurringCount, taskCount, customerInfo]
   );
 
@@ -274,14 +277,12 @@ export default function HomeScreen() {
         </HStack>
       </Box>
 
-      {!customerInfo?.entitlements.active["Unlimited"] &&
-        !loading &&
-        recurringCount + taskCount <= 0 && (
-          <ReminderCountAlert
-            recurringCount={recurringCount}
-            taskCount={taskCount}
-          />
-        )}
+      {noMoreReminders && !loading && (
+        <ReminderCountAlert
+          recurringCount={recurringCount}
+          taskCount={taskCount}
+        />
+      )}
 
       <Box className="relative mb-4 -mx-3">
         <ScrollView

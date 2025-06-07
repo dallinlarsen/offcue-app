@@ -1,6 +1,6 @@
+import { presentPaywallIfNeeded } from "@/lib/utils/paywall";
 import { useEffect, useState } from "react";
 import Purchases, { CustomerInfo } from "react-native-purchases";
-import RevenueCatUI from "react-native-purchases-ui";
 
 export function useRevenueCat() {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);

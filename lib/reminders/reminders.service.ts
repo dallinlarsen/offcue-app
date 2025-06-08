@@ -21,7 +21,7 @@ import {
 } from "./reminders.types";
 import omit from "lodash/omit";
 import { REMINDER_LIMIT } from "@/constants";
-import { presentPaywallIfNeeded } from "../utils/paywall";
+import { presentUnlimitedPaywall } from "../utils/paywall";
 
 export {
   remindersInit,
@@ -53,7 +53,7 @@ export async function getReminders(
 export async function createReminder(
   model: InsertReminder & { scheduleIds: number[] }
 ) {
-  if (!(await isUnlimitedCheck('task'))) return;
+  if (!(await isUnlimitedCheck(model.is_recurring ? 'recurring' : 'task'))) return;
 
   const insertModel = omit(model, ["scheduleIds"]);
   const reminderId = await source.createReminder(insertModel);
@@ -71,7 +71,7 @@ export async function isUnlimitedCheck(type: 'task' | 'recurring' = 'recurring')
     const reminderCounts = await source.getActiveReminderCounts();
 
     if (REMINDER_LIMIT[type] - reminderCounts[type] <= 0) {
-      return await presentPaywallIfNeeded('com.offcueapps.offcue.Unlimited');
+      return await presentUnlimitedPaywall();
     }
   }
 

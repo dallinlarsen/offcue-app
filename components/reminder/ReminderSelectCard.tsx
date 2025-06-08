@@ -23,7 +23,6 @@ import {
   updateNotificationResponse,
   updateNotificationResponseOneTime,
 } from "@/lib/notifications/notifications.service";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
 
 type Props = {
   reminder: Reminder;
@@ -44,7 +43,6 @@ export default function ({
 }: Props) {
   const router = useRouter();
   const confetti = useConfetti();
-  const { refetch } = useRevenueCat();
 
   const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -57,7 +55,6 @@ export default function ({
 
   useWatch(is_muted, async (newVal) => {
     await updateReminderMuted(reminder.id!, newVal);
-    await refetch();
     onMuted && onMuted();
   });
 

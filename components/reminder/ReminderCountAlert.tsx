@@ -1,17 +1,9 @@
+import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
 import { Alert } from "../ui/alert";
 import { Button, ButtonText } from "../ui/button";
 import { Heading } from "../ui/heading";
-import { HStack } from "../ui/hstack";
-import { Icon, PushPinIcon, RepeatIcon } from "../ui/icon";
-import { Text } from "../ui/text";
 import { VStack } from "../ui/vstack";
-import { useCallback, useEffect, useState } from "react";
-import { ActiveReminderCounts } from "@/lib/reminders/reminders.types";
-import { getActiveReminderCounts } from "@/lib/reminders/reminders.source";
-import { REMINDER_LIMIT } from "@/constants";
-import { useFocusEffect } from "expo-router";
 import WiggleAnimate from "../WiggleAnimate";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
 
 type Props = {
   recurringCount: number;
@@ -19,7 +11,6 @@ type Props = {
 };
 
 export default function ({ recurringCount, taskCount }: Props) {
-  const { presentPaywallIfNeeded } = useRevenueCat();
 
   return (
     <Alert className="mb-4 bg-background-100">
@@ -48,9 +39,7 @@ export default function ({ recurringCount, taskCount }: Props) {
           <Button
             size="lg"
             className="mt-4"
-            onPress={async () => {
-              await presentPaywallIfNeeded("com.offcueapps.offcue.Unlimited");
-            }}
+            onPress={presentUnlimitedPaywall}
           >
             <ButtonText>Go Unlimited 🚀</ButtonText>
           </Button>

@@ -1,24 +1,23 @@
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import { $hasUnlimited } from "../stores/revenueCat";
 
-export async function presentPaywallIfNeeded(
-  identifier: string,
-  callback = () => {}
-) {
+export async function presentUnlimitedPaywall() {
   const paywallResult: PAYWALL_RESULT = await RevenueCatUI.presentPaywallIfNeeded({
-    requiredEntitlementIdentifier: identifier,
+    requiredEntitlementIdentifier: 'com.offcueapps.offcue.Unlimited',
   });
-
-  callback();
 
   switch (paywallResult) {
     case PAYWALL_RESULT.NOT_PRESENTED:
     case PAYWALL_RESULT.ERROR:
     case PAYWALL_RESULT.CANCELLED:
+      $hasUnlimited.set(false);
       return false;
     case PAYWALL_RESULT.PURCHASED:
     case PAYWALL_RESULT.RESTORED:
-      return true;
+        $hasUnlimited.set(true);
+        return true;
     default:
-      return false;
+        $hasUnlimited.set(false);
+        return false;
   }
 }

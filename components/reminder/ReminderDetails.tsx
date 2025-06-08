@@ -68,19 +68,16 @@ import {
   updateReminderArchived,
   updateReminderMuted,
 } from "@/lib/reminders/reminders.service";
-import { Menu, MenuItem, MenuItemLabel, MenuSeparator } from "../ui/menu";
 import {
   Actionsheet,
   ActionsheetBackdrop,
   ActionsheetContent,
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
-  ActionsheetIcon,
   ActionsheetItem,
   ActionsheetItemText,
 } from "../ui/actionsheet";
 import { Divider } from "../ui/divider";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
 
 type Props = {
   reminder: Reminder;
@@ -94,7 +91,6 @@ const ZodSchema = z.object({
 export default function ({ reminder, onNotificationResponse }: Props) {
   const confetti = useConfetti();
   const router = useRouter();
-  const { refetch } = useRevenueCat();
 
   const [pastNotifications, setPastNotificatons] = useState<RNotification[]>(
     []
@@ -177,7 +173,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   useWatch(is_muted, async (newVal, oldVal) => {
     if (reminder && newVal !== oldVal) {
       await updateReminderMuted(reminder.id!, newVal);
-      refetch();
       reloadAllData();
     }
   });
@@ -227,7 +222,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   async function restoreClickedHandler() {
     await updateReminderArchived(reminder.id!, false);
-    await refetch();
     reloadAllData();
   }
 
@@ -238,7 +232,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
   async function undoClickedHandler() {
     await undoOneTimeComplete(reminder.id!);
-    await refetch();
     reloadAllData();
   }
 

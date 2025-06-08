@@ -8,7 +8,6 @@ import Schedules4 from "@/components/welcome/Schedules4";
 // import SchedulesSelect7 from "@/components/welcome/SchedulesSelect7";
 import Welcome0 from "@/components/welcome/Welcome0";
 import { useConfetti } from "@/hooks/useConfetti";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
 import { useSettings } from "@/hooks/useSettings";
 import useWatch from "@/hooks/useWatch";
 import { createReminder } from "@/lib/reminders/reminders.service";
@@ -24,7 +23,6 @@ import { useEffect, useState } from "react";
 export default function () {
   const confetti = useConfetti();
   const { updateSettings, settings } = useSettings();
-  const { refetch } = useRevenueCat();
 
   const [pageState, setPageState] = useState(0);
   const [builtReminder, setBuiltReminder] = useState<
@@ -85,7 +83,6 @@ export default function () {
     });
 
     if (!reminderId) return;
-    await refetch();
 
     setCreatedReminderId(reminderId);
     updateSettings({ has_completed_tutorial: true });

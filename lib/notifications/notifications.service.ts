@@ -15,14 +15,11 @@ import {
   getActiveReminders,
   getReminder,
   updateReminderArchived,
-  getActiveReminderCounts,
   isUnlimitedCheck,
 } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
-import Purchases from "react-native-purchases";
-import { REMINDER_LIMIT } from "@/constants";
-import { presentPaywallIfNeeded } from "../utils/paywall";
+
 
 export {
   notificationsInit,

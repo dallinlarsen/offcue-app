@@ -1,25 +1,15 @@
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  MutableRefObject,
-  RefAttributes,
-  useMemo,
-} from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
-  TouchableOpacityProps,
-  View,
 } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon, Icon, PushPinIcon, RepeatIcon } from "@/components/ui/icon";
+import { AddIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import Fade from "@/components/Fade";
@@ -38,13 +28,10 @@ import {
   Double,
 } from "react-native/Libraries/Types/CodegenTypes";
 import React from "react";
-import PurchaseUnlimited from "@/components/settings/PurchaseUnlimited";
-import { Alert, AlertText } from "@/components/ui/alert";
-import { Button, ButtonText } from "@/components/ui/button";
-import { VStack } from "@/components/ui/vstack";
-import { Text } from "@/components/ui/text";
+import { useStore } from "@nanostores/react";
 import ReminderCountAlert from "@/components/reminder/ReminderCountAlert";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
+import { $entitlementsLoading, $hasUnlimited } from "@/lib/stores/revenueCat";
+import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
 
 type CurrentFilterOptions =
   | "current"
@@ -66,7 +53,7 @@ const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { lastNotification } = useNotifications();
-  const { loading, customerInfo, presentPaywallIfNeeded } = useRevenueCat();
+  const hasUnlimited = useStore($hasUnlimited);
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [recurringCount, setRecurringCount] = useState(0);
@@ -75,12 +62,8 @@ export default function HomeScreen() {
 
   useEffect(
     () =>
-      setNoMoreReminders(
-        !customerInfo?.entitlements.active["Unlimited"] &&
-          recurringCount <= 0 &&
-          taskCount <= 0
-      ),
-    [recurringCount, taskCount, customerInfo]
+      setNoMoreReminders(!hasUnlimited && recurringCount <= 0 && taskCount <= 0),
+    [recurringCount, taskCount, hasUnlimited]
   );
 
   const [nothingDueIndex] = useState(
@@ -277,7 +260,7 @@ export default function HomeScreen() {
         </HStack>
       </Box>
 
-      {noMoreReminders && !loading && (
+      {noMoreReminders && (
         <ReminderCountAlert
           recurringCount={recurringCount}
           taskCount={taskCount}
@@ -335,7 +318,7 @@ export default function HomeScreen() {
         placement="bottom right"
         onPress={() =>
           noMoreReminders
-            ? presentPaywallIfNeeded("com.offcueapps.offuce.Unlimited")
+            ? presentUnlimitedPaywall()
             : router.push("/new-reminder")
         }
       >

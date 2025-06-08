@@ -6,18 +6,20 @@ import { VStack } from "../ui/vstack";
 import { Text } from "../ui/text";
 import { HStack } from "../ui/hstack";
 import WiggleAnimate from "../WiggleAnimate";
-import { useRevenueCat } from "@/hooks/useRevenueCat";
+import { useStore } from "@nanostores/react";
+import { $hasUnlimited } from "@/lib/stores/revenueCat";
+import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
 
 export default function PurchaseUnlimited({
   className,
 }: {
   className?: string;
 }) {
-  const { customerInfo, loading, presentPaywallIfNeeded } = useRevenueCat();
+  const hasUnlimited = useStore($hasUnlimited);
 
   return (
     <>
-      {customerInfo?.entitlements?.active?.Unlimited || loading ? (
+      {hasUnlimited ? (
         <></>
       ) : (
         <Card
@@ -56,9 +58,7 @@ export default function PurchaseUnlimited({
             <Button
               size="xl"
               className="mt-2"
-              onPress={() =>
-                presentPaywallIfNeeded("com.offcueapps.offcue.Unlimited")
-              }
+              onPress={presentUnlimitedPaywall}
             >
               <ButtonText>Get Unlimited</ButtonText>
             </Button>

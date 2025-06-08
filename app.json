@@ -47,6 +47,12 @@
         {
           "assets": ["./assets/images/splash-icon.png"]
         }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
       ]
     ],
     "experiments": {

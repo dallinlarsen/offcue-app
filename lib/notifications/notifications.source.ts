@@ -216,3 +216,7 @@ export async function deleteNotificationsInInterval(
     interval_index,
   });
 }
+
+export function getActiveReminderCounts() {
+  throw new Error("Function not implemented.");
+}

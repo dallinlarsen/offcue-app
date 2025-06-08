@@ -19,7 +19,10 @@ import { Icon, PushPinIcon, RepeatIcon } from "../ui/icon";
 import { Reminder } from "@/lib/reminders/reminders.types";
 import { updateReminderMuted } from "@/lib/reminders/reminders.service";
 import { NotificationResponseStatus } from "@/lib/notifications/notifications.types";
-import { updateNotificationResponse, updateNotificationResponseOneTime } from "@/lib/notifications/notifications.service";
+import {
+  updateNotificationResponse,
+  updateNotificationResponseOneTime,
+} from "@/lib/notifications/notifications.service";
 
 type Props = {
   reminder: Reminder;
@@ -32,7 +35,12 @@ const ZodSchema = z.object({
   is_muted: z.boolean(),
 });
 
-export default function ({ reminder, onNotificationResponse, onMuted, displayOnly }: Props) {
+export default function ({
+  reminder,
+  onNotificationResponse,
+  onMuted,
+  displayOnly,
+}: Props) {
   const router = useRouter();
   const confetti = useConfetti();
 
@@ -183,7 +191,8 @@ export default function ({ reminder, onNotificationResponse, onMuted, displayOnl
           <ButtonText>Completed</ButtonText>
         </Button>
       ) : (
-        !reminder.is_archived && !displayOnly && (
+        !reminder.is_archived &&
+        !displayOnly && (
           <Button size="xl" onPress={() => handleNotificationAction("done")}>
             <ButtonText>Done</ButtonText>
           </Button>

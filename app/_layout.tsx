@@ -18,6 +18,7 @@ import { SettingsProvider } from "@/hooks/useSettings";
 import KeyboardDoneButton from "@/components/KeyboardDoneButton";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
+import { $customerInfo } from "@/lib/stores/revenueCat";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -44,11 +45,8 @@ export default function RootLayout() {
     if (!settings?.has_completed_tutorial) {
       router.replace("/welcome");
     }
-    setTimeout(() => SplashScreen.hideAsync(), 1000);
-  }
 
-  useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+    Purchases.setLogLevel(LOG_LEVEL.ERROR);
 
     if (Platform.OS === "ios") {
       Purchases.configure({
@@ -57,13 +55,23 @@ export default function RootLayout() {
     } else if (Platform.OS === "android") {
       //  Purchases.configure({apiKey: <revenuecat_project_google_api_key>});
     }
-  }, []);
+
+    $customerInfo.set(await Purchases.getCustomerInfo());
+
+    setTimeout(() => SplashScreen.hideAsync(), 500);
+  }
 
   useEffect(() => {
     if (loaded) {
       setupState();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    Purchases.addCustomerInfoUpdateListener((info) => {
+      $customerInfo.set(info);
+    });
+  }, []);
 
   if (!loaded) {
     return null;

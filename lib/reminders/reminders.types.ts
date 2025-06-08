@@ -47,6 +47,11 @@ export type InsertReminderModel = InsertReminder & {
   schedules: (Schedule | InsertSchedule)[];
 };
 
+export type ActiveReminderCounts = {
+  task: number;
+  recurring: number;
+}
+
 export type IntervalType =
   | "minute"
   | "hour"

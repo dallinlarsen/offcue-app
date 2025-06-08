@@ -1,24 +1,15 @@
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-  MutableRefObject,
-  RefAttributes,
-} from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
-  TouchableOpacityProps,
-  View,
 } from "react-native";
 import { Heading } from "@/components/ui/heading";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Fab, FabIcon } from "@/components/ui/fab";
-import { AddIcon, ChevronRightIcon, Icon } from "@/components/ui/icon";
+import { AddIcon } from "@/components/ui/icon";
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
 import Fade from "@/components/Fade";
@@ -26,14 +17,21 @@ import EdgeFade from "@/components/EdgeFade";
 import ReminderGroup from "@/components/reminder/ReminderGroup";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Reminder } from "@/lib/reminders/reminders.types";
-import { getReminders } from "@/lib/reminders/reminders.service";
-import { NO_REMINDERS_DUE_TEXT } from "@/constants";
+import {
+  getActiveReminderCounts,
+  getReminders,
+} from "@/lib/reminders/reminders.service";
+import { NO_REMINDERS_DUE_TEXT, REMINDER_LIMIT } from "@/constants";
 import PagerView from "react-native-pager-view";
 import {
   DirectEventHandler,
   Double,
 } from "react-native/Libraries/Types/CodegenTypes";
 import React from "react";
+import { useStore } from "@nanostores/react";
+import ReminderCountAlert from "@/components/reminder/ReminderCountAlert";
+import { $entitlementsLoading, $hasUnlimited } from "@/lib/stores/revenueCat";
+import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
 
 type CurrentFilterOptions =
   | "current"
@@ -42,13 +40,6 @@ type CurrentFilterOptions =
   | "completed"
   | "muted"
   | "archived";
-
-type FilterOptionProps = {
-  onPress: () => void;
-  label: string;
-  active?: boolean;
-  ref?: MutableRefObject<TouchableOpacityProps & RefAttributes<View>>;
-};
 
 const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
   { key: "current", label: "Current" },
@@ -62,12 +53,20 @@ const FILTERS: { key: CurrentFilterOptions; label: string }[] = [
 export default function HomeScreen() {
   const router = useRouter();
   const { lastNotification } = useNotifications();
+  const hasUnlimited = useStore($hasUnlimited);
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [accordiansOpen, setAccordiansOpen] = useState<string[]>(["upcoming"]);
+  const [recurringCount, setRecurringCount] = useState(1);
+  const [taskCount, setTaskCount] = useState(1);
+  const [noMoreReminders, setNoMoreReminders] = useState(false);
 
-  const [showLeftFade, setShowLeftFade] = useState(false);
-  const [showRightFade, setShowRightFade] = useState(true);
+  useEffect(
+    () =>
+      setNoMoreReminders(
+        !hasUnlimited && recurringCount <= 0 && taskCount <= 0
+      ),
+    [recurringCount, taskCount, hasUnlimited]
+  );
 
   const [nothingDueIndex] = useState(
     Math.floor(Math.random() * NO_REMINDERS_DUE_TEXT.length)
@@ -79,20 +78,12 @@ export default function HomeScreen() {
   const filterScrollViewRef = useRef<ScrollView | null>(null);
   const filterRefs = useRef(FILTERS.map(() => React.createRef()));
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-    const scrollX = contentOffset.x;
-    const totalContentWidth = contentSize.width;
-    const visibleWidth = layoutMeasurement.width;
-
-    setShowLeftFade(scrollX > 0);
-    setShowRightFade(scrollX + visibleWidth < totalContentWidth - 0);
-  };
-
   const loadReminders = async () => {
     const data = await getReminders();
+    const counts = await getActiveReminderCounts();
+    setRecurringCount(REMINDER_LIMIT.recurring - counts.recurring);
+    setTaskCount(REMINDER_LIMIT.task - counts.task);
     setReminders(data);
-    console.log(data);
   };
 
   // Refresh reminders whenever the screen comes into focus.
@@ -264,12 +255,18 @@ export default function HomeScreen() {
         </HStack>
       </Box>
 
+      {noMoreReminders && (
+        <ReminderCountAlert
+          recurringCount={recurringCount}
+          taskCount={taskCount}
+        />
+      )}
+
       <Box className="relative mb-4 -mx-3">
         <ScrollView
           horizontal
           className="flex-grow-0"
           showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
           scrollEventThrottle={16}
           ref={filterScrollViewRef}
         >

@@ -15,12 +15,12 @@ export default function KeyboardDoneButton() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
+    const showSub = Keyboard.addListener("keyboardWillShow", (e) => {
       setKeyboardHeight(e.endCoordinates.height);
       setVisible(true);
       Animated.timing(slideAnim, {
         toValue: 1,
-        duration: 250,
+        duration: 400,
         useNativeDriver: true,
         easing: Easing.out(Easing.ease),
       }).start();
@@ -48,7 +48,7 @@ export default function KeyboardDoneButton() {
 
   const translateY = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [40, 0], // slides in from 40px below
+    outputRange: [400, 0], // slides in from 40px below
   });
 
   return (

@@ -82,6 +82,8 @@ export default function () {
       scheduleIds,
     });
 
+    if (!reminderId) return;
+
     setCreatedReminderId(reminderId);
     updateSettings({ has_completed_tutorial: true });
     setPageState(6);

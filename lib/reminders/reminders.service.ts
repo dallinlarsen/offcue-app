@@ -1,3 +1,4 @@
+import Purchases from "react-native-purchases";
 import { scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
 import { deleteNotesByReminderId } from "../notes/notes.source";
 import {
@@ -19,8 +20,14 @@ import {
   ReminderBooleanColumn,
 } from "./reminders.types";
 import omit from "lodash/omit";
+import { REMINDER_LIMIT } from "@/constants";
+import { presentUnlimitedPaywall } from "../utils/paywall";
 
-export { remindersInit, getActiveReminders } from "./reminders.source";
+export {
+  remindersInit,
+  getActiveReminders,
+  getActiveReminderCounts,
+} from "./reminders.source";
 
 export async function getReminder(id: number) {
   return (await source.getReminderOrGetReminders(id))[0];
@@ -46,6 +53,8 @@ export async function getReminders(
 export async function createReminder(
   model: InsertReminder & { scheduleIds: number[] }
 ) {
+  if (!(await isUnlimitedCheck(model.is_recurring ? 'recurring' : 'task'))) return;
+
   const insertModel = omit(model, ["scheduleIds"]);
   const reminderId = await source.createReminder(insertModel);
 
@@ -53,6 +62,20 @@ export async function createReminder(
   await createInitialNotifications(reminderId);
 
   return reminderId;
+}
+
+export async function isUnlimitedCheck(type: 'task' | 'recurring' = 'recurring') {
+  const info = await Purchases.getCustomerInfo();
+
+  if (!info.entitlements.active['Unlimited']) {
+    const reminderCounts = await source.getActiveReminderCounts();
+
+    if (REMINDER_LIMIT[type] - reminderCounts[type] <= 0) {
+      return await presentUnlimitedPaywall();
+    }
+  }
+
+  return true;
 }
 
 export async function updateReminder(
@@ -82,6 +105,8 @@ export async function updateReminder(
 }
 
 export const updateReminderMuted = async (id: number, isMuted: boolean) => {
+  if (!isMuted && !(await isUnlimitedCheck())) return;
+
   await source.updateReminder(id, { is_muted: isMuted });
   if (isMuted) {
     await deleteFutureNotificationsByReminderId(id);
@@ -96,6 +121,8 @@ export const updateReminderArchived = async (
   id: number,
   isArchived: boolean
 ) => {
+  if (!isArchived && !(await isUnlimitedCheck())) return;
+
   await source.updateReminder(id, {
     is_archived: isArchived,
     is_muted: isArchived,

@@ -7,10 +7,19 @@ dayjs.extend(weekOfYear);
 
 import * as source from "./notifications.source";
 
-import { dismissFromNotificationCenter, scheduleAllUpcomingNotifications } from "../device-notifications/device-notifications.service";
-import { getActiveReminders, getReminder, updateReminderArchived } from "../reminders/reminders.service";
+import {
+  dismissFromNotificationCenter,
+  scheduleAllUpcomingNotifications,
+} from "../device-notifications/device-notifications.service";
+import {
+  getActiveReminders,
+  getReminder,
+  updateReminderArchived,
+  isUnlimitedCheck,
+} from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
+
 
 export {
   notificationsInit,
@@ -41,7 +50,9 @@ export const recalcFutureNotifications = async (
   bias: number = 0.5
 ): Promise<void> => {
   await source.deleteFutureNotificationsByReminderId(reminderId);
-  console.log(`Deleted future notifications for ${reminderId}. Recalculating...`);
+  console.log(
+    `Deleted future notifications for ${reminderId}. Recalculating...`
+  );
   await ensureNotificationsForReminder(reminderId, desiredCount, bias);
   await runNotificationMaintenance();
 };
@@ -62,7 +73,12 @@ async function generateFutureNotifications(
   let iterations = 0;
 
   while (allNotifications.length < desiredCount) {
-    const notifications = generateNotificationTimes(reminder, schedules, intervalIndex, bias);
+    const notifications = generateNotificationTimes(
+      reminder,
+      schedules,
+      intervalIndex,
+      bias
+    );
     const futureNotifications = notifications.filter((n) =>
       dayjs(n.scheduled_at).isAfter(dayjs())
     );
@@ -75,7 +91,7 @@ async function generateFutureNotifications(
 
     intervalIndex++;
     if (++iterations > 10000) {
-      throw new Error('generateFutureNotifications exceeded iteration limit');
+      throw new Error("generateFutureNotifications exceeded iteration limit");
     }
   }
 
@@ -92,10 +108,14 @@ export const ensureNotificationsForReminder = async (
   bias: number = 0.5
 ): Promise<void> => {
   // Fetch existing unresponded future notifications
-  const existing = await source.getUnrespondedNotificationsByReminderId(reminderId);
+  const existing = await source.getUnrespondedNotificationsByReminderId(
+    reminderId
+  );
   const existingCount = existing.length;
   if (existingCount >= desiredCount) {
-    console.log(`Already have ${existingCount} future notifications for reminder ${reminderId}.`);
+    console.log(
+      `Already have ${existingCount} future notifications for reminder ${reminderId}.`
+    );
     return;
   }
 
@@ -128,7 +148,9 @@ export const ensureNotificationsForReminder = async (
   );
   if (notifications.length > 0) {
     await createNotifications(reminder, notifications);
-    console.log(`Created ${notifications.length} new notifications for reminder ${reminderId}.`);
+    console.log(
+      `Created ${notifications.length} new notifications for reminder ${reminderId}.`
+    );
   }
 };
 
@@ -280,7 +302,10 @@ export const getScheduleWindowsWithinInterval = (
     }
     if (applies) {
       // Determine start and end hours/minutes, treating identical times as all-day
-      let startHour: number, startMinute: number, endHour: number, endMinute: number;
+      let startHour: number,
+        startMinute: number,
+        endHour: number,
+        endMinute: number;
       if (schedule.start_time === schedule.end_time) {
         // All-day schedule: cover full day
         startHour = 0;
@@ -356,14 +381,14 @@ export const getBiasedRandomTime = (
     bias === 0.5
       ? 1
       : bias < 0.5
-        ? 1 + (0.5 - bias) * 2
-        : 1 / (1 + (bias - 0.5) * 2);
+      ? 1 + (0.5 - bias) * 2
+      : 1 / (1 + (bias - 0.5) * 2);
   const weight = Math.pow(u, exponent);
 
   // Calculate the scheduled time in local time.
   const localScheduledTime = new Date(
     segmentStart.getTime() +
-    weight * (segmentEnd.getTime() - segmentStart.getTime())
+      weight * (segmentEnd.getTime() - segmentStart.getTime())
   );
   // Convert back to UTC for storage.
   return convertToUTC(localScheduledTime);
@@ -439,8 +464,8 @@ export const generateNotificationTimes = (
       bias === 0.5
         ? 1
         : bias < 0.5
-          ? 1 + (0.5 - bias) * 2
-          : 1 / (1 + (bias - 0.5) * 2);
+        ? 1 + (0.5 - bias) * 2
+        : 1 / (1 + (bias - 0.5) * 2);
     const weight = Math.pow(u, exponent);
     const offsetInSegment = Math.floor(
       minOffset + weight * (maxOffset - minOffset)
@@ -535,7 +560,7 @@ export const deleteNotificationsInInterval = async (
 
 export async function updateNotificationResponse(
   id: number,
-  responseStatus: NotificationResponseStatus,
+  responseStatus: NotificationResponseStatus
 ) {
   await source.updateNotification(id, {
     response_status: responseStatus,
@@ -576,7 +601,9 @@ export async function updateNotificationResponseOneTime(
     await runNotificationMaintenance();
   }
 
-  const pastNotifications = await source.getPastNotificationsByReminderId(reminderId);
+  const pastNotifications = await source.getPastNotificationsByReminderId(
+    reminderId
+  );
 
   for (const pastNotification of pastNotifications) {
     dismissFromNotificationCenter(pastNotification.id);
@@ -584,6 +611,8 @@ export async function updateNotificationResponseOneTime(
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
+  if (!(await isUnlimitedCheck('task'))) return;
+
   const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
     reminderId
   );
@@ -608,9 +637,7 @@ export const runNotificationMaintenance = async () => {
   for (const rem of reminders) {
     if (rem.end_date && dayjs(rem.end_date).isBefore(today, "day")) {
       await updateReminderArchived(rem.id, true);
-      const cutoff = dayjs(rem.end_date)
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ssZ");
+      const cutoff = dayjs(rem.end_date).utc().format("YYYY-MM-DD HH:mm:ssZ");
       await source.deleteNotificationsAfterDate(rem.id, cutoff);
     }
   }
@@ -618,7 +645,7 @@ export const runNotificationMaintenance = async () => {
   for (const rem of reminders.filter((r) => !r.is_archived)) {
     try {
       await ensureNotificationsForReminder(rem.id);
-    } catch(e) {
+    } catch (e) {
       console.error(e);
     }
   }

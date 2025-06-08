@@ -1,6 +1,7 @@
 import DarkMode from "@/components/settings/DarkMode";
 import GetHelp from "@/components/settings/GetHelp";
 import PurchaseUnlimited from "@/components/settings/PurchaseUnlimited";
+import BackupRestore from "@/components/settings/BackupRestore";
 import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
@@ -12,6 +13,7 @@ import { getSettings } from "@/lib/settings/settings.source";
 import { Settings } from "@/lib/settings/settings.types";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { ScrollView } from "react-native";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -20,7 +22,6 @@ export default function SettingsScreen() {
     "dark-mode",
     "welcome-tutorial",
     "help",
-    "unlimited",
   ]);
   const [settings, setSettings] = useState<Settings | null>(null);
 
@@ -45,22 +46,27 @@ export default function SettingsScreen() {
       <Box className="flex flex-row items-center mb-1">
         <Heading size="2xl">Settings</Heading>
       </Box>
-      <VStack space="lg">
-        <PurchaseUnlimited />
-        <DarkMode
-          theme={settings.theme}
-          open={accordiansOpen.includes("dark-mode")}
-          setOpen={(open) => setOpenHandler(open, "dark-mode")}
-        />
-        <WelcomeTutorial
-          open={accordiansOpen.includes("welcome-tutorial")}
-          setOpen={(open) => setOpenHandler(open, "welcome-tutorial")}
-        />
-        <GetHelp
-          open={accordiansOpen.includes("help")}
-          setOpen={(open) => setOpenHandler(open, "help")}
-        />
-        {/* <Button
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <VStack space="lg" className="mb-24">
+          <PurchaseUnlimited />
+          <DarkMode
+            theme={settings.theme}
+            open={accordiansOpen.includes("dark-mode")}
+            setOpen={(open) => setOpenHandler(open, "dark-mode")}
+          />
+          <WelcomeTutorial
+            open={accordiansOpen.includes("welcome-tutorial")}
+            setOpen={(open) => setOpenHandler(open, "welcome-tutorial")}
+          />
+          <GetHelp
+            open={accordiansOpen.includes("help")}
+            setOpen={(open) => setOpenHandler(open, "help")}
+          />
+          <BackupRestore
+            open={accordiansOpen.includes("backup")}
+            setOpen={(open) => setOpenHandler(open, "backup")}
+          />
+          {/* <Button
           size="xl"
           className="mt-8"
           onPress={() => router.push("/settings/notifications-test")}
@@ -68,7 +74,8 @@ export default function SettingsScreen() {
           <ButtonText>Notifications Testing</ButtonText>
           <ButtonIcon as={ChevronRightIcon} />
         </Button> */}
-      </VStack>
+        </VStack>
+      </ScrollView>
     </ThemedContainer>
   ) : (
     <ThemedContainer />

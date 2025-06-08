@@ -59,7 +59,7 @@ import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
 import { Alert, AlertText } from "../ui/alert";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useStore } from "@nanostores/react";
-import { $entitlementsLoading, $hasUnlimited } from "@/lib/stores/revenueCat";
+import { $hasUnlimited } from "@/lib/stores/revenueCat";
 
 dayjs.extend(isSameOrBefore);
 
@@ -217,27 +217,6 @@ export default function AddEditReminder({
   const [showDatePicker, setShowDatePicker] = useState<"start" | "end" | null>(
     null
   );
-  const [recurringCount, setRecurringCount] = useState<number | null>(null);
-  const [taskCount, setTaskCount] = useState<number | null>(null);
-
-  const hasUnlimited = useStore($hasUnlimited);
-
-  const loadReminders = async () => {
-    const counts = await getActiveReminderCounts();
-    setRecurringCount(REMINDER_LIMIT.recurring - counts.recurring);
-    setTaskCount(REMINDER_LIMIT.task - counts.task);
-  };
-
-  useEffect(() => {
-    loadReminders();
-  }, []);
-
-  useEffect(() => {
-    if (hasUnlimited) return;
-    if (recurringCount === null || recurringCount > 0) {
-      setValue("recurring", true);
-    } else setValue("recurring", false);
-  }, [recurringCount, hasUnlimited]);
 
   function addScheduleOnCloseHandler() {
     if (reopenSchedules) {
@@ -323,11 +302,6 @@ export default function AddEditReminder({
                   className="flex-1 rounded-none border-0"
                   variant={recurring ? "solid" : "outline"}
                   onPress={() => setValue("recurring", true)}
-                  isDisabled={
-                    recurringCount !== null &&
-                    recurringCount <= 0 &&
-                    !hasUnlimited
-                  }
                 >
                   <ButtonIcon as={RepeatIcon} />
                   <ButtonText>Recurring</ButtonText>
@@ -337,9 +311,6 @@ export default function AddEditReminder({
                   className="flex-1 rounded-none border-0"
                   variant={recurring ? "outline" : "solid"}
                   onPress={() => setValue("recurring", false)}
-                  isDisabled={
-                    taskCount !== null && taskCount <= 0 && !hasUnlimited
-                  }
                 >
                   {/* <MaterialIcons name="push-pin" size={20} color='black' /> */}
                   <ButtonIcon

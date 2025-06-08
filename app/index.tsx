@@ -56,13 +56,15 @@ export default function HomeScreen() {
   const hasUnlimited = useStore($hasUnlimited);
 
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [recurringCount, setRecurringCount] = useState(0);
-  const [taskCount, setTaskCount] = useState(0);
+  const [recurringCount, setRecurringCount] = useState(1);
+  const [taskCount, setTaskCount] = useState(1);
   const [noMoreReminders, setNoMoreReminders] = useState(false);
 
   useEffect(
     () =>
-      setNoMoreReminders(!hasUnlimited && recurringCount <= 0 && taskCount <= 0),
+      setNoMoreReminders(
+        !hasUnlimited && recurringCount <= 0 && taskCount <= 0
+      ),
     [recurringCount, taskCount, hasUnlimited]
   );
 
@@ -75,13 +77,6 @@ export default function HomeScreen() {
   const pagerRef = useRef<PagerView | null>(null);
   const filterScrollViewRef = useRef<ScrollView | null>(null);
   const filterRefs = useRef(FILTERS.map(() => React.createRef()));
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-    const scrollX = contentOffset.x;
-    const totalContentWidth = contentSize.width;
-    const visibleWidth = layoutMeasurement.width;
-  };
 
   const loadReminders = async () => {
     const data = await getReminders();
@@ -272,7 +267,6 @@ export default function HomeScreen() {
           horizontal
           className="flex-grow-0"
           showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
           scrollEventThrottle={16}
           ref={filterScrollViewRef}
         >
@@ -316,11 +310,7 @@ export default function HomeScreen() {
       <Fab
         size="lg"
         placement="bottom right"
-        onPress={() =>
-          noMoreReminders
-            ? presentUnlimitedPaywall()
-            : router.push("/new-reminder")
-        }
+        onPress={() => router.push("/new-reminder")}
       >
         <FabIcon size="xl" as={AddIcon} />
       </Fab>

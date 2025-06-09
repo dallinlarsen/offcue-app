@@ -3,9 +3,11 @@ import * as Sharing from "expo-sharing";
 import * as DocumentPicker from "expo-document-picker";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
+import db from "../db";
+import { SplashScreen } from "expo-router";
 
 const DB_FILENAME = "reminders.db";
-const BACKUP_FILENAME = "offcue-backup.db";
+const BACKUP_FILENAME = "offcue-backup.json";
 const DB_DIR = FileSystem.documentDirectory + `SQLite`;
 const DB_PATH = `${DB_DIR}/${DB_FILENAME}`;
 const BACKUP_PATH = `${DB_DIR}/${BACKUP_FILENAME}`;
@@ -17,12 +19,33 @@ export const backupDatabase = async () => {
     return;
   }
 
-  await FileSystem.copyAsync({
-    from: DB_PATH,
-    to: BACKUP_PATH,
-  });
+  try {
+    const tables = await db.getAllAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+    );
 
-  await Sharing.shareAsync(BACKUP_PATH);
+    const data: Record<string, any[]> = {};
+    for (const { name } of tables) {
+      const rows = await db.getAllAsync<any>(`SELECT * FROM ${name};`);
+      data[name] = rows;
+    }
+
+    const backup = {
+      version: 1,
+      timestamp: new Date().toISOString(),
+      data,
+    };
+
+    await FileSystem.writeAsStringAsync(
+      BACKUP_PATH,
+      JSON.stringify(backup)
+    );
+
+    await Sharing.shareAsync(BACKUP_PATH);
+  } catch (e) {
+    console.error("Error creating backup:", e);
+    Alert.alert("Backup Failed", "Unable to create backup file.");
+  }
 };
 
 export const restoreDatabase = async () => {
@@ -57,12 +80,41 @@ export const restoreDatabase = async () => {
   }
 
   try {
-    await FileSystem.copyAsync({ from: selectedUri, to: DB_PATH });
+    const jsonString = await FileSystem.readAsStringAsync(selectedUri);
+    const backup = JSON.parse(jsonString);
+
+    if (
+      !backup ||
+      backup.version !== 1 ||
+      typeof backup.timestamp !== "string" ||
+      typeof backup.data !== "object"
+    ) {
+      throw new Error("Invalid format");
+    }
+
+    for (const table of Object.keys(backup.data)) {
+      const rows = backup.data[table];
+      if (!Array.isArray(rows)) continue;
+
+      // Clear existing data from the table to preserve the schema
+      await db.runAsync(`DELETE FROM ${table};`);
+
+      for (const row of rows) {
+        const columns = Object.keys(row);
+        const placeholders = columns.map(() => "?").join(", ");
+        const values = columns.map((c) => row[c]);
+        await db.runAsync(
+          `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders});`,
+          values
+        );
+      }
+    }
+
     Alert.alert("Success", "Backup restored. The app will now restart.", [
       {
         text: "OK",
         onPress: async () => {
-          await Updates.reloadAsync(); // Restart app
+          await Updates.reloadAsync();
         },
       },
     ]);

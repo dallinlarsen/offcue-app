@@ -37,18 +37,23 @@ export default function PurchaseUnlimited({
                   Set Unlimited Reminders
                 </Heading>
                 <Text className="max-w-[98%]">
-                  Get 1 task and 2 recurring reminders on us. Go unlimited when you are ready.
+                  Get 1 current task reminder and 2 current recurring reminders
+                  on us.
+                </Text>
+                <Text className="max-w-[98%] mt-2">
+                  Go Unlimited when you're ready!
                 </Text>
               </VStack>
             </HStack>
             <HStack space="sm">
-              <Text size="3xl">☁️</Text>
+              <Text size="3xl">😅</Text>
               <VStack className="w-fit">
                 <Heading size="lg" className="font-quicksand-bold">
-                  iCloud Backup
+                  Backup Your Data
                 </Heading>
                 <Text className="max-w-[98%]">
-                  Your reminders, always safe and synced with iCloud.
+                  Download your data so that you can restore it later or on a
+                  different device.
                 </Text>
               </VStack>
             </HStack>

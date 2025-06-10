@@ -18,7 +18,7 @@ export default function ({ recurringCount, taskCount }: Props) {
         <Heading size="xl" className="font-quicksand-bold">
           ⚠️{" "}
           {recurringCount + taskCount === 0 ? "No" : recurringCount + taskCount}{" "}
-          Active Reminder
+          Current Reminder
           {recurringCount + taskCount === 1 ? "" : "s"} Left
         </Heading>
         {/* <HStack space="md" className="items-center">

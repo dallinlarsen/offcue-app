@@ -2,7 +2,13 @@ import { useRouter } from "expo-router";
 import { HStack } from "../ui/hstack";
 import NavigationItem from "./NavigationItem";
 import { VStack } from "../ui/vstack";
-import { BoxIcon, CalendarDaysIcon, Icon, SettingsIcon } from "../ui/icon";
+import {
+  BoxIcon,
+  CalendarDaysIcon,
+  Icon,
+  SettingsIcon,
+  ChartBarIcon,
+} from "../ui/icon";
 import { useRouteInfo } from "expo-router/build/hooks";
 import { useEffect, useState } from "react";
 import useWatch from "@/hooks/useWatch";
@@ -14,12 +20,14 @@ export default function () {
   const hasHomeButton = useHasHomeButton();
 
   const [activeItem, setActiveItem] = useState<
-    "reminders" | "schedules" | "settings"
+    "reminders" | "schedules" | "analytics" | "settings"
   >("reminders");
 
   useEffect(() => {
     if (route.pathname.startsWith("/schedules")) {
       setActiveItem("schedules");
+    } else if (route.pathname.startsWith("/analytics")) {
+      setActiveItem("analytics");
     } else if (route.pathname.startsWith("/settings")) {
       setActiveItem("settings");
     } else {
@@ -30,6 +38,8 @@ export default function () {
   useWatch(route.pathname, (val) => {
     if (val.startsWith("/schedules")) {
       setActiveItem("schedules");
+    } else if (val.startsWith("/analytics")) {
+      setActiveItem("analytics");
     } else if (val.startsWith("/settings")) {
       setActiveItem("settings");
     } else {
@@ -93,6 +103,12 @@ export default function () {
         iconSvg={CalendarDaysIcon}
         onPress={() => router.dismissTo("/schedules")}
         active={activeItem === "schedules"}
+      />
+      <NavigationItem
+        label="Analytics"
+        iconSvg={ChartBarIcon}
+        onPress={() => router.dismissTo("/analytics")}
+        active={activeItem === "analytics"}
       />
       <NavigationItem
         label="Settings"

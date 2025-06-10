@@ -1750,3 +1750,23 @@ const VolumeHighIcon = createIcon({
 
 VolumeHighIcon.displayName = "VolumeHighIcon";
 export { VolumeHighIcon };
+const ChartBarIcon = createIcon({
+  Root: Svg,
+  viewBox: '0 0 24 24',
+  path: (
+    <>
+      <Path
+        d="M4 3v18M4 21h16"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M9 17V9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M15 17V5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M21 17V13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </>
+  ),
+});
+
+ChartBarIcon.displayName = 'ChartBarIcon';
+export { ChartBarIcon };

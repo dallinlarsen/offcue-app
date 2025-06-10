@@ -41,3 +41,27 @@ export function summarizeResponses(rows: ResponseRecord[]): ResponseCounts {
     { done: 0, skip: 0, no_response: 0 },
   );
 }
+
+export type DailyCounts = {
+  date: string;
+  done: number;
+  skip: number;
+  none: number;
+};
+
+export function groupResponsesByDate(rows: ResponseRecord[]): DailyCounts[] {
+  const map = new Map<string, DailyCounts>();
+  for (const r of rows) {
+    const date = dayjs(r.scheduled_at).format('YYYY-MM-DD');
+    if (!map.has(date)) {
+      map.set(date, { date, done: 0, skip: 0, none: 0 });
+    }
+    const entry = map.get(date)!;
+    if (r.response_status === 'done') entry.done += 1;
+    else if (r.response_status === 'skip') entry.skip += 1;
+    else entry.none += 1;
+  }
+  return Array.from(map.values()).sort((a, b) =>
+    dayjs(a.date).diff(dayjs(b.date)),
+  );
+}

@@ -1,5 +1,14 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import PagerView from 'react-native-pager-view';
+import { Alert } from 'react-native';
+import {
+  VictoryPie,
+  VictoryBar,
+  VictoryChart,
+  VictoryStack,
+  VictoryAxis,
+} from 'victory-native';
 import dayjs from 'dayjs';
 import { ThemedContainer } from '@/components/ThemedContainer';
 import { Heading } from '@/components/ui/heading';
@@ -20,12 +29,14 @@ import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Text } from '@/components/ui/text';
 import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
 import { ChevronDownIcon } from '@/components/ui/icon';
 import { getReminders } from '@/lib/reminders/reminders.service';
 import { Reminder } from '@/lib/reminders/reminders.types';
 import {
   getResponses,
   summarizeResponses,
+  groupResponsesByDate,
   ResponseRecord,
   ResponseCounts,
 } from '@/lib/analytics/analytics.service';
@@ -43,6 +54,7 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<string>('7');
   const [records, setRecords] = useState<ResponseRecord[]>([]);
   const [counts, setCounts] = useState<ResponseCounts | null>(null);
+  const [daily, setDaily] = useState<ReturnType<typeof groupResponsesByDate>>([]);
 
   useEffect(() => {
     async function load() {
@@ -64,6 +76,7 @@ export default function AnalyticsPage() {
       const res = await getResponses(ids, start, end);
       setRecords(res);
       setCounts(summarizeResponses(res));
+      setDaily(groupResponsesByDate(res));
     }
     loadResponses();
   }, [timeRange, selectedReminder]);
@@ -74,24 +87,33 @@ export default function AnalyticsPage() {
   }
 
   const renderTimeline = () => (
-    <HStack className="flex-wrap mt-4">
+    <HStack className="flex-wrap mt-4 justify-center">
       {records.map((r, idx) => (
-        <Box
+        <Pressable
           key={idx}
-          className={`w-4 h-4 m-0.5 rounded-full ${
-            r.response_status === 'done'
-              ? 'bg-green-500'
-              : r.response_status === 'skip'
-              ? 'bg-orange-500'
-              : 'bg-gray-400'
-          }`}
-        />
+          onPress={() =>
+            Alert.alert(
+              dayjs(r.scheduled_at).format('MMM D, YYYY h:mm a'),
+              r.response_status,
+            )
+          }
+        >
+          <Box
+            className={`w-4 h-4 m-0.5 rounded-full ${
+              r.response_status === 'done'
+                ? 'bg-green-500'
+                : r.response_status === 'skip'
+                ? 'bg-orange-500'
+                : 'bg-gray-400'
+            }`}
+          />
+        </Pressable>
       ))}
     </HStack>
   );
 
   return (
-    <ThemedContainer>
+    <ThemedContainer className="flex-1">
       <Heading size="2xl" className="mb-4">
         Analytics
       </Heading>
@@ -144,11 +166,43 @@ export default function AnalyticsPage() {
         </Button>
       </VStack>
       {counts && records.length > 0 ? (
-        <VStack className="mt-6" space="md">
+        <VStack className="mt-6 flex-1" space="md">
           <Text size="xl">Done: {counts.done}</Text>
           <Text size="xl">Skipped: {counts.skip}</Text>
           <Text size="xl">No Response: {counts.no_response}</Text>
-          {renderTimeline()}
+          <Text size="sm" className="text-center">
+            Swipe left or right to switch charts
+          </Text>
+          <PagerView style={{ flex: 1 }} initialPage={0}>
+            <VStack key="timeline" className="items-center">
+              {renderTimeline()}
+            </VStack>
+            <VStack key="pie" className="items-center">
+              <VictoryPie
+                width={320}
+                height={320}
+                data={[
+                  { x: 'Done', y: counts.done },
+                  { x: 'Skipped', y: counts.skip },
+                  { x: 'None', y: counts.no_response },
+                ]}
+                colorScale={['#22c55e', '#f97316', '#9ca3af']}
+              />
+            </VStack>
+            <VStack key="bar" className="items-center">
+              <VictoryChart width={350} height={300} domainPadding={{ x: 10 }}>
+                <VictoryAxis
+                  fixLabelOverlap
+                  tickFormat={(t) => dayjs(t).format('MM/DD')}
+                />
+                <VictoryStack colorScale={['#22c55e', '#f97316', '#9ca3af']}>
+                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.done }))} />
+                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.skip }))} />
+                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.none }))} />
+                </VictoryStack>
+              </VictoryChart>
+            </VStack>
+          </PagerView>
         </VStack>
       ) : (
         <Text className="mt-6">No data for selected filters.</Text>

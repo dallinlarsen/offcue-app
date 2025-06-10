@@ -11,6 +11,8 @@ export async function getResponses(
 ): Promise<ResponseRecord[]> {
   const where: string[] = [];
   const params: any[] = [];
+  // Only include notifications that have already occurred
+  where.push('scheduled_at <= CURRENT_TIMESTAMP');
   if (reminderIds && reminderIds.length > 0) {
     where.push(`reminder_id IN (${reminderIds.map(() => '?').join(',')})`);
     params.push(...reminderIds);

@@ -12,6 +12,7 @@ import {
   Icon,
   PencilIcon,
   RepeatIcon,
+  ChartBarIcon,
   TrashIcon,
   UndoIcon,
   VolumeHighIcon,
@@ -613,6 +614,19 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 </ActionsheetItemText>
               </ActionsheetItem>
             )}
+          {!reminder.due_scheduled_at && (
+            <ActionsheetItem
+              key="analytics"
+              onPress={() =>
+                closeActionMenuOnComplete(() =>
+                  router.push(`/analytics?reminderId=${reminder.id}`)
+                )
+              }
+            >
+              <Icon as={ChartBarIcon} size="md" className="mr-2 fill-typography-900" />
+              <ActionsheetItemText size="xl">Analytics</ActionsheetItemText>
+            </ActionsheetItem>
+          )}
           {reminder.is_recurring && !reminder.is_archived && (
             <>
               <Divider className="my-2" />

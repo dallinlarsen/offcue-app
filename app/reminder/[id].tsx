@@ -1,6 +1,4 @@
 import { ThemedContainer } from "@/components/ThemedContainer";
-import { Fab, FabIcon } from "@/components/ui/fab";
-import { PencilIcon, ChartBarIcon } from "@/components/ui/icon";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import ReminderDetails from "@/components/reminder/ReminderDetails";
@@ -51,13 +49,6 @@ export default function ReminderDetailsPage() {
         reminder={reminder}
         onNotificationResponse={() => fetchData()}
       />
-      <Fab
-        size="lg"
-        placement="bottom right"
-        onPress={() => router.push(`/analytics?reminderId=${reminder.id}`)}
-      >
-        <FabIcon size="xl" as={ChartBarIcon} />
-      </Fab>
       <Fade />
     </ThemedContainer>
   ) : (

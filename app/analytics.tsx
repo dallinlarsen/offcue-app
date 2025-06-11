@@ -4,7 +4,7 @@ import PagerView from 'react-native-pager-view';
 import { Alert } from 'react-native';
 import {
   PieChart,
-  StackBarChart,
+  StackedBarChart,
 } from 'react-native-gifted-charts';
 import dayjs from 'dayjs';
 import { ThemedContainer } from '@/components/ThemedContainer';
@@ -187,7 +187,7 @@ export default function AnalyticsPage() {
               />
             </VStack>
             <VStack key="bar" className="items-center">
-              <StackBarChart
+              <StackedBarChart
                 data={daily.map((d) => ({
                   label: dayjs(d.date).format('MM/DD'),
                   stacks: [

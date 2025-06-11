@@ -3,12 +3,9 @@ import { useEffect, useState } from 'react';
 import PagerView from 'react-native-pager-view';
 import { Alert } from 'react-native';
 import {
-  VictoryPie,
-  VictoryBar,
-  VictoryChart,
-  VictoryStack,
-  VictoryAxis,
-} from 'victory-native';
+  PieChart,
+  StackBarChart,
+} from 'react-native-gifted-charts';
 import dayjs from 'dayjs';
 import { ThemedContainer } from '@/components/ThemedContainer';
 import { Heading } from '@/components/ui/heading';
@@ -178,29 +175,30 @@ export default function AnalyticsPage() {
               {renderTimeline()}
             </VStack>
             <VStack key="pie" className="items-center">
-              <VictoryPie
-                width={320}
-                height={320}
+              <PieChart
                 data={[
-                  { x: 'Done', y: counts.done },
-                  { x: 'Skipped', y: counts.skip },
-                  { x: 'None', y: counts.no_response },
+                  { value: counts.done, color: '#22c55e' },
+                  { value: counts.skip, color: '#f97316' },
+                  { value: counts.no_response, color: '#9ca3af' },
                 ]}
-                colorScale={['#22c55e', '#f97316', '#9ca3af']}
+                focusOnPress
+                donut
+                radius={150}
               />
             </VStack>
             <VStack key="bar" className="items-center">
-              <VictoryChart width={350} height={300} domainPadding={{ x: 10 }}>
-                <VictoryAxis
-                  fixLabelOverlap
-                  tickFormat={(t) => dayjs(t).format('MM/DD')}
-                />
-                <VictoryStack colorScale={['#22c55e', '#f97316', '#9ca3af']}>
-                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.done }))} />
-                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.skip }))} />
-                  <VictoryBar data={daily.map((d) => ({ x: d.date, y: d.none }))} />
-                </VictoryStack>
-              </VictoryChart>
+              <StackBarChart
+                data={daily.map((d) => ({
+                  label: dayjs(d.date).format('MM/DD'),
+                  stacks: [
+                    { value: d.done, color: '#22c55e' },
+                    { value: d.skip, color: '#f97316' },
+                    { value: d.none, color: '#9ca3af' },
+                  ],
+                }))}
+                barWidth={16}
+                spacing={12}
+              />
             </VStack>
           </PagerView>
         </VStack>

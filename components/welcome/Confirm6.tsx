@@ -36,7 +36,7 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
   }, [reminderId]);
 
   async function openWebPage() {
-    await WebBrowser.openBrowserAsync("https://offcue.app/#documents");
+    await WebBrowser.openBrowserAsync("https://offcue.app/docs");
   }
 
   return (
@@ -54,7 +54,7 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
 
           <MenuOption
             text="☝️ Create another reminder"
-            onPress={() => router.replace("/new-reminder")}
+            onPress={() => router.replace("/reminder/new")}
           />
           {/* <MenuOption
             text="🗓️ Add more schedules"

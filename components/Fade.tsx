@@ -36,7 +36,7 @@ export default function ({ heightClassLight, heightClassDark, className, reverse
       >
         <LinearGradient
           pointerEvents="none"
-          //@ts-ignore
+          /* @ts-expect-error The colors expect a const array but that would require some unnessesary code and this works great */
           colors={reverse ? LIGHT_COLORS.reverse() : LIGHT_COLORS}
           style={styles.background}
         />
@@ -49,7 +49,7 @@ export default function ({ heightClassLight, heightClassDark, className, reverse
       >
         <LinearGradient
           pointerEvents="none"
-          //@ts-ignore
+          /* @ts-expect-error The colors expect a const array but that would require some unnessesary code and this works great */
           colors={reverse ? DARK_COLORS.reverse() : DARK_COLORS}
           style={styles.background}
         />

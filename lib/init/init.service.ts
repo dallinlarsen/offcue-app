@@ -1,4 +1,4 @@
-import db from "../db";
+import db, { DB_FILENAME } from "../db";
 import * as SQLite from "expo-sqlite";
 import { remindersInit } from "../reminders/reminders.service";
 import { notesInit } from "../notes/notes.service";
@@ -19,7 +19,7 @@ export const wipeDatabase = async (): Promise<void> => {
   try {
     db.closeAsync();
     // Delete the database file
-    await SQLite.deleteDatabaseAsync("reminders.db");
+    await SQLite.deleteDatabaseAsync(DB_FILENAME);
     console.log("✅ Database wiped successfully");
   } catch (error) {
     console.error("Error wiping database:", error);

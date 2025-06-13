@@ -6,7 +6,6 @@ import { Card } from "../ui/card";
 import { Text } from "../ui/text";
 import Fade from "../Fade";
 import {
-  InsertReminder,
   InsertReminderModel,
 } from "@/lib/reminders/reminders.types";
 import { ButtonIcon, ButtonText, Button } from "../ui/button";

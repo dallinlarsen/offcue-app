@@ -84,7 +84,7 @@ export default function SchedulesScreen() {
         renderItem={({ item }) =>
           item ? <ScheduleOption schedule={item} /> : <Box className="h-12" />
         }
-        //@ts-ignore
+        // @ts-expect-error TODO: Modify return types to match function return definition
         renderSectionHeader={({ section: { title } }) =>
           title === "Hidden" ? (
             hiddenSchedules.length > 0 && (

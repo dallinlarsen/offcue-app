@@ -7,7 +7,6 @@ import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { ChevronRightIcon } from "../ui/icon";
 import { ScrollView } from "react-native";
 import { requestNotificationsPermission } from "@/lib/device-notifications/device-notifications.service";
-import { HStack } from "../ui/hstack";
 import { Text } from "../ui/text";
 
 type Props = {

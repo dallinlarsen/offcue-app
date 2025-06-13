@@ -4,9 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "DARK_MODE=media expo run:android",
-    "ios": "DARK_MODE=media expo run:ios",
+    "android": "DARK_MODE=media expo run:android --device",
+    "ios": "DARK_MODE=media expo run:ios --device",
     "web": "DARK_MODE=media expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint"

@@ -18,7 +18,6 @@ import {
   SelectTrigger,
 } from "../ui/select";
 import { Text } from "@/components/ui/text";
-import { FREQUENCY_TYPES, REMINDER_LIMIT } from "@/constants";
 import { HStack } from "../ui/hstack";
 import { Card } from "../ui/card";
 import { formatScheduleString } from "@/lib/utils/format";
@@ -34,7 +33,7 @@ import {
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import colors from "tailwindcss/colors";
 import { ScheduleActionsheet } from "@/components/schedule/ScheduleActionsheet";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,14 +51,12 @@ import { InsertReminder, IntervalType } from "@/lib/reminders/reminders.types";
 import { Schedule } from "@/lib/schedules/schedules.types";
 import {
   createReminder,
-  getActiveReminderCounts,
   updateReminder,
 } from "@/lib/reminders/reminders.service";
 import AddEditScheduleActionsheet from "../schedule/AddEditScheduleActionsheet";
 import { Alert, AlertText } from "../ui/alert";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useStore } from "@nanostores/react";
-import { $hasUnlimited } from "@/lib/stores/revenueCat";
+import { FREQUENCY_TYPES } from "@/lib/schedules/schedules.constants";
 
 dayjs.extend(isSameOrBefore);
 

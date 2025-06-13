@@ -21,15 +21,18 @@ export default function ({ children }: { children: ReactNode }) {
       );
     };
 
+    let interval: NodeJS.Timeout;
+
     const timeout = setTimeout(() => {
       triggerWiggle();
-      const interval = setInterval(triggerWiggle, 10000); // every 10 sec
-      // clear interval on unmount
-      return () => clearInterval(interval);
+      interval = setInterval(triggerWiggle, 10000); // every 10 sec
     }, 5000); // wait 5 seconds on mount
 
-    // clear timeout on unmount
-    return () => clearTimeout(timeout);
+    // clear timeout and interval on unmount
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({

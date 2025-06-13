@@ -43,7 +43,6 @@ export function ScheduleActionsheet({
       setSchedules(
         data.filter((s) => s.is_active && !filterIds.includes(s.id))
       );
-      console.log(data);
     } catch (error) {
       console.error("Error loading schedules:", error);
     }

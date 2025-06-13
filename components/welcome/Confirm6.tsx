@@ -36,7 +36,7 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
   }, [reminderId]);
 
   async function openWebPage() {
-    await WebBrowser.openBrowserAsync("https://offcue.app/#documents");
+    await WebBrowser.openBrowserAsync("https://offcue.app/docs");
   }
 
   return (

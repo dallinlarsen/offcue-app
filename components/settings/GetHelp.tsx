@@ -9,7 +9,7 @@ type Props = {
 
 export default function GetHelp({ open, setOpen }: Props) {
   async function openWebPage() {
-    await WebBrowser.openBrowserAsync("https://offcue.app/#documents");
+    await WebBrowser.openBrowserAsync("https://offcue.app/docs");
   }
 
   return (

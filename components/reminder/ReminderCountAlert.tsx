@@ -1,4 +1,4 @@
-import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
+import { presentUnlimitedPaywall } from "@/lib/revenue-cat/revenue-cat.service";
 import { Alert } from "../ui/alert";
 import { Button, ButtonText } from "../ui/button";
 import { Heading } from "../ui/heading";
@@ -21,20 +21,6 @@ export default function ({ recurringCount, taskCount }: Props) {
           Current Reminder
           {recurringCount + taskCount === 1 ? "" : "s"} Left
         </Heading>
-        {/* <HStack space="md" className="items-center">
-          <Icon as={RepeatIcon} />
-          <Text>
-            {recurringCount === 0 ? "No" : recurringCount} Recurring Reminder
-            {recurringCount === 1 ? "" : "s"} Remaining
-          </Text>
-        </HStack>
-        <HStack space="md" className="items-center">
-          <Icon as={PushPinIcon} className="fill-typography-700" />
-          <Text>
-            {taskCount === 0 ? "No" : taskCount} Task Reminder
-            {taskCount === 1 ? "" : "s"} Remaining
-          </Text>
-        </HStack> */}
         <WiggleAnimate>
           <Button
             size="lg"

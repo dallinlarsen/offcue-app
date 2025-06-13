@@ -7,8 +7,8 @@ import { Text } from "../ui/text";
 import { HStack } from "../ui/hstack";
 import WiggleAnimate from "../WiggleAnimate";
 import { useStore } from "@nanostores/react";
-import { $hasUnlimited } from "@/lib/stores/revenueCat";
-import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
+import { $hasUnlimited } from "@/lib/revenue-cat/revenue-cat.store";
+import { presentUnlimitedPaywall } from "@/lib/revenue-cat/revenue-cat.service";
 
 export default function PurchaseUnlimited({
   className,

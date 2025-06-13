@@ -26,7 +26,6 @@ export default function ({ reminder, isOpen, onClose, onArchiveSuccess }: Props)
 
   async function archiveReminderHandler() {
     await updateReminderArchived(reminder.id!, true);
-    console.log('HERE')
     onArchiveSuccess();
   }
 

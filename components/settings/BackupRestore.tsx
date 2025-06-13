@@ -2,9 +2,9 @@ import { backupDatabase, restoreDatabase } from "@/lib/backup/backup.service";
 import { Button, ButtonText } from "../ui/button";
 import { HStack } from "../ui/hstack";
 import SettingDropDown from "./SettingDropDown";
-import { $hasUnlimited } from "@/lib/stores/revenueCat";
 import { useStore } from "@nanostores/react";
 import { Alert, AlertText } from "../ui/alert";
+import { $hasUnlimited } from "@/lib/revenue-cat/revenue-cat.store";
 
 type Props = {
   open?: boolean;

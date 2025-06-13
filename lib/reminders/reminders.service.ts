@@ -20,8 +20,8 @@ import {
   ReminderBooleanColumn,
 } from "./reminders.types";
 import omit from "lodash/omit";
-import { REMINDER_LIMIT } from "@/constants";
-import { presentUnlimitedPaywall } from "../utils/paywall";
+import { presentUnlimitedPaywall } from "../revenue-cat/revenue-cat.service";
+import { REMINDER_LIMIT } from "./reminders.constants";
 
 export {
   remindersInit,

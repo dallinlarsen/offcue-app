@@ -650,7 +650,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                 key="copy"
                 onPress={() =>
                   closeActionMenuOnComplete(() =>
-                    router.push(`/new-reminder?copy=${reminder.id}`)
+                    router.push(`/reminder/new?copy=${reminder.id}`)
                   )
                 }
               >

@@ -1,6 +1,6 @@
 import { atom, map } from "nanostores";
 import { CustomerInfo } from "react-native-purchases";
-import { UNLIMITED_ENTITLEMENT_NAME } from "./stores.constants";
+import { UNLIMITED_ENTITLEMENT_NAME } from "./revenue-cat.constants";
 
 export const $hasUnlimited = atom(false);
 export const $entitlementsLoading = atom(false);

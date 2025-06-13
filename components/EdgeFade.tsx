@@ -35,7 +35,7 @@ export default function EdgeFadeOverlay({ left, children, className }: Props) {
         pointerEvents="none"
       >
         <LinearGradient
-          /* @ts-ignore */
+          /* @ts-expect-error The colors expect a const array but that would require some unnessesary code and this works great */
           colors={left ? DARK_COLORS.reverse() : DARK_COLORS}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -51,7 +51,7 @@ export default function EdgeFadeOverlay({ left, children, className }: Props) {
         pointerEvents="none"
       >
         <LinearGradient
-          /* @ts-ignore */
+          /* @ts-expect-error The colors expect a const array but that would require some unnessesary code and this works great */
           colors={left ? LIGHT_COLORS.reverse() : LIGHT_COLORS}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

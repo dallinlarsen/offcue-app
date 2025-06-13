@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
@@ -21,7 +19,6 @@ import {
   getActiveReminderCounts,
   getReminders,
 } from "@/lib/reminders/reminders.service";
-import { NO_REMINDERS_DUE_TEXT, REMINDER_LIMIT } from "@/constants";
 import PagerView from "react-native-pager-view";
 import {
   DirectEventHandler,
@@ -30,8 +27,8 @@ import {
 import React from "react";
 import { useStore } from "@nanostores/react";
 import ReminderCountAlert from "@/components/reminder/ReminderCountAlert";
-import { $entitlementsLoading, $hasUnlimited } from "@/lib/stores/revenueCat";
-import { presentUnlimitedPaywall } from "@/lib/utils/paywall";
+import { $hasUnlimited } from "@/lib/revenue-cat/revenue-cat.store";
+import { NO_REMINDERS_DUE_TEXT, REMINDER_LIMIT } from "@/lib/reminders/reminders.constants";
 
 type CurrentFilterOptions =
   | "current"
@@ -100,7 +97,7 @@ export default function HomeScreen() {
   }, [lastNotification]);
 
   const scrollFilterIntoView = (index: number) => {
-    //@ts-ignore
+    //@ts-expect-error TODO: Add types to the filter refs
     filterRefs.current[index]?.current?.measureLayout(
       filterScrollViewRef.current,
       (x: number) => {
@@ -274,7 +271,7 @@ export default function HomeScreen() {
           {FILTERS.map((filter, idx) => (
             <TouchableOpacity
               onPress={() => handleTabPress(filter.key, idx)}
-              /* @ts-ignore */
+              /* @ts-expect-error See TODO above */
               ref={filterRefs.current[idx]}
               key={filter.key}
             >
@@ -310,7 +307,7 @@ export default function HomeScreen() {
       <Fab
         size="lg"
         placement="bottom right"
-        onPress={() => router.push("/new-reminder")}
+        onPress={() => router.push("/reminder/new")}
       >
         <FabIcon size="xl" as={AddIcon} />
       </Fab>

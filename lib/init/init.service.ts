@@ -1,6 +1,5 @@
-import db from "../db";
+import db, { DB_FILENAME } from "../db";
 import * as SQLite from "expo-sqlite";
-import { DB_FILENAME } from "../lib.constants";
 import { remindersInit } from "../reminders/reminders.service";
 import { notesInit } from "../notes/notes.service";
 import { notificationsInit } from "../notifications/notifications.service";

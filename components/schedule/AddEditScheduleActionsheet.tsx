@@ -18,7 +18,6 @@ import {
 import { Heading } from "../ui/heading";
 import { Input, InputField } from "../ui/input";
 import { CheckIcon, RepeatIcon } from "@/components/ui/icon";
-import { DAYS } from "@/constants";
 import { VStack } from "../ui/vstack";
 import DatePicker from "react-native-date-picker";
 import dayjs from "dayjs";
@@ -39,6 +38,7 @@ import {
 } from "@/lib/schedules/schedules.service";
 import { Schedule, ScheduleWithCount } from "@/lib/schedules/schedules.types";
 import { Alert, AlertIcon, AlertText } from "../ui/alert";
+import { DAYS } from "@/lib/schedules/schedules.constants";
 
 type AddScheduleActionsheetProps = {
   isOpen: boolean;

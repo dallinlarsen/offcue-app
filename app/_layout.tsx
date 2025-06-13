@@ -18,7 +18,7 @@ import { SettingsProvider } from "@/hooks/useSettings";
 import KeyboardDoneButton from "@/components/KeyboardDoneButton";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
-import { $customerInfo } from "@/lib/stores/revenueCat";
+import { $customerInfo } from "@/lib/revenue-cat/revenue-cat.store";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 

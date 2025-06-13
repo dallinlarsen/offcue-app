@@ -18,7 +18,6 @@ import {
   SelectPortal,
   SelectTrigger,
 } from "../ui/select";
-import { FREQUENCY_TYPES } from "@/constants";
 import { Controller, useForm } from "react-hook-form";
 import { Input, InputField } from "../ui/input";
 import { Heading } from "../ui/heading";
@@ -32,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ReminderSummaryBox from "./ReminderSummaryBox";
 import { HStack } from "../ui/hstack";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { FREQUENCY_TYPES } from "@/lib/schedules/schedules.constants";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;

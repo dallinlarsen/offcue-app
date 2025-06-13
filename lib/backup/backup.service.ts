@@ -3,9 +3,7 @@ import * as Sharing from "expo-sharing";
 import * as DocumentPicker from "expo-document-picker";
 import * as Updates from "expo-updates";
 import { Alert } from "react-native";
-import db from "../db";
-import { SplashScreen } from "expo-router";
-import { DB_FILENAME } from "../lib.constants";
+import db, { DB_FILENAME } from "../db";
 import { BACKUP_FILENAME, SQLITE_DIR_NAME } from "./backup.constants";
 
 const DB_DIR = FileSystem.documentDirectory + SQLITE_DIR_NAME;

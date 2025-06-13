@@ -70,9 +70,7 @@ export default function NewReminder() {
       {showForm && (
         <AddEditReminder
           data={reminder.current}
-          onSave={() =>
-            router.dismissAll()
-          }
+          onSave={() => router.dismissAll()}
         />
       )}
     </ThemedContainer>

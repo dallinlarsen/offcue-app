@@ -45,7 +45,6 @@ import {
 } from "../ui/table";
 import { Badge, BadgeText } from "../ui/badge";
 import { Animated, ScrollView, TouchableOpacity } from "react-native";
-import { STATUS_COLOR_MAP } from "@/constants";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
 import { useConfetti } from "@/hooks/useConfetti";
 import DeleteReminderDialog from "./DeleteReminderDialog";
@@ -78,6 +77,7 @@ import {
   ActionsheetItemText,
 } from "../ui/actionsheet";
 import { Divider } from "../ui/divider";
+import { STATUS_COLOR_MAP } from "@/lib/notifications/notifications.constants";
 
 type Props = {
   reminder: Reminder;

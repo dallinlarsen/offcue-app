@@ -1,9 +1,10 @@
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { $hasUnlimited } from "../stores/revenueCat";
+import { UNLIMITED_ENTITLEMENT_ID } from "./utils.constants";
 
 export async function presentUnlimitedPaywall() {
   const paywallResult: PAYWALL_RESULT = await RevenueCatUI.presentPaywallIfNeeded({
-    requiredEntitlementIdentifier: 'com.offcueapps.offcue.Unlimited',
+    requiredEntitlementIdentifier: UNLIMITED_ENTITLEMENT_ID,
   });
 
   switch (paywallResult) {

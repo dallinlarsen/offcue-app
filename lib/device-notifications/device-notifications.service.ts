@@ -6,12 +6,20 @@ import {
   updateNotificationResponse,
   getSoonestFutureNotificationsToSchedule,
 } from "../notifications/notifications.service";
+import {
+  CATEGORY_RECURRING,
+  CATEGORY_ONE_TIME,
+  ACTION_SKIP,
+  ACTION_DONE,
+  ACTION_LATER,
+  DATE_TIME_FORMAT,
+} from "./device-notifications.constants";
 
 dayjs.extend(utc);
 
 type CategoryIdentifier =
-  | "reminder-actions-recurring"
-  | "reminder-actions-one-time";
+  | typeof CATEGORY_RECURRING
+  | typeof CATEGORY_ONE_TIME;
 
 export async function setupAndConfigureNotifications() {
   Notifications.setNotificationHandler({
@@ -23,10 +31,10 @@ export async function setupAndConfigureNotifications() {
   });
 
   await Notifications.setNotificationCategoryAsync(
-    "reminder-actions-recurring",
+    CATEGORY_RECURRING,
     [
       {
-        identifier: "SKIP",
+        identifier: ACTION_SKIP,
         buttonTitle: "Skip",
         options: {
           isDestructive: false,
@@ -34,7 +42,7 @@ export async function setupAndConfigureNotifications() {
         },
       },
       {
-        identifier: "DONE",
+        identifier: ACTION_DONE,
         buttonTitle: "Done",
         options: {
           isDestructive: false,
@@ -45,10 +53,10 @@ export async function setupAndConfigureNotifications() {
   );
 
   await Notifications.setNotificationCategoryAsync(
-    "reminder-actions-one-time",
+    CATEGORY_ONE_TIME,
     [
       {
-        identifier: "LATER",
+        identifier: ACTION_LATER,
         buttonTitle: "Do It Later",
         options: {
           isDestructive: false,
@@ -56,7 +64,7 @@ export async function setupAndConfigureNotifications() {
         },
       },
       {
-        identifier: "DONE",
+        identifier: ACTION_DONE,
         buttonTitle: "Done",
         options: {
           isDestructive: false,
@@ -82,22 +90,22 @@ export function markDoneSkipNotificationCategoryListener(
 
       if (!notificationId) return;
 
-      if (actionId === "DONE") {
+      if (actionId === ACTION_DONE) {
         await updateNotificationResponse(notificationId, "done");
       }
 
-      if (actionId === "SKIP") {
+      if (actionId === ACTION_SKIP) {
         await updateNotificationResponse(notificationId, "skip");
       }
 
-      if (actionId === "LATER") {
+      if (actionId === ACTION_LATER) {
         await updateNotificationResponse(notificationId, "later");
       }
 
       if (
-        actionId !== "LATER" &&
-        actionId !== "SKIP" &&
-        actionId !== "DONE" &&
+        actionId !== ACTION_LATER &&
+        actionId !== ACTION_SKIP &&
+        actionId !== ACTION_DONE &&
         data.reminderId
       ) {
         callback && callback(parseInt(data.reminderId));
@@ -180,11 +188,11 @@ export async function scheduleAllUpcomingNotifications() {
           ),
         utcTimestamp: dayjs(notification.scheduled_at)
           .utc()
-          .format("YYYY-MM-DD HH:mm:ss"),
+          .format(DATE_TIME_FORMAT),
         identifier: notification.id.toString(),
         categoryIdentifier: notification.is_recurring
-          ? "reminder-actions-recurring"
-          : "reminder-actions-one-time",
+          ? CATEGORY_RECURRING
+          : CATEGORY_ONE_TIME,
         data: {
           reminderId: notification.reminder_id,
           scheduledAt: notification.scheduled_at,

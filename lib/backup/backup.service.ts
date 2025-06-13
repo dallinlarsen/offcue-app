@@ -5,10 +5,10 @@ import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import db from "../db";
 import { SplashScreen } from "expo-router";
+import { DB_FILENAME } from "../lib.constants";
+import { BACKUP_FILENAME, SQLITE_DIR_NAME } from "./backup.constants";
 
-const DB_FILENAME = "reminders.db";
-const BACKUP_FILENAME = "offcue-backup.json";
-const DB_DIR = FileSystem.documentDirectory + `SQLite`;
+const DB_DIR = FileSystem.documentDirectory + SQLITE_DIR_NAME;
 const DB_PATH = `${DB_DIR}/${DB_FILENAME}`;
 const BACKUP_PATH = `${DB_DIR}/${BACKUP_FILENAME}`;
 

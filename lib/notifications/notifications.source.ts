@@ -6,6 +6,7 @@ import {
   updateTable,
 } from "../utils/db-helpers";
 import { InsertRNotification, RNotification } from "./notifications.types";
+import { AMOUNT_TO_SCHEDULE } from "./notifications.constants";
 
 export async function notificationsInit() {
   await db.execAsync(`
@@ -69,7 +70,7 @@ export async function getFutureNotificationsByReminderId(reminderId: number) {
 }
 
 export async function getSoonestFutureNotificationsToSchedule(
-  amount: number = 64
+  amount: number = AMOUNT_TO_SCHEDULE
 ) {
   const notifications = await db.getAllAsync<RNotification & NReminder>(
     `SELECT n.*,

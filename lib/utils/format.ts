@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { IntervalType } from "../reminders/reminders.types";
 import { InsertSchedule, Schedule } from "../schedules/schedules.types";
+import { ALL_DAY_LABEL } from "./utils.constants";
 
 export function chunkIntoPairs<T>(list: T[]) {
   const result = [];
@@ -131,7 +132,7 @@ export function formatScheduleString(schedule: InsertSchedule) {
     schedule.end_time
   )}`;
 
-  if (schedule.start_time === schedule.end_time) timeString = 'all day'
+  if (schedule.start_time === schedule.end_time) timeString = ALL_DAY_LABEL;
 
   // If every day of the week is selected, return only the time string.
   if (weekDays.every((d) => inputSet.has(d))) {

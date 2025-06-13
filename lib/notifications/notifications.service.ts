@@ -1,6 +1,13 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+import {
+  DEFAULT_DESIRED_COUNT,
+  DEFAULT_BIAS,
+  MAX_ITERATION_LIMIT,
+  UTC_DATE_FORMAT,
+  LOCAL_DATE_FORMAT,
+} from "./notifications.constants";
 
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
@@ -37,8 +44,8 @@ export {
 
 export const createInitialNotifications = async (
   reminderId: number,
-  desiredCount: number = 10,
-  bias: number = 0.5
+  desiredCount: number = DEFAULT_DESIRED_COUNT,
+  bias: number = DEFAULT_BIAS
 ): Promise<void> => {
   await ensureNotificationsForReminder(reminderId, desiredCount, bias);
   runNotificationMaintenance();
@@ -46,8 +53,8 @@ export const createInitialNotifications = async (
 
 export const recalcFutureNotifications = async (
   reminderId: number,
-  desiredCount: number = 10,
-  bias: number = 0.5
+  desiredCount: number = DEFAULT_DESIRED_COUNT,
+  bias: number = DEFAULT_BIAS
 ): Promise<void> => {
   await source.deleteFutureNotificationsByReminderId(reminderId);
   console.log(
@@ -90,7 +97,7 @@ async function generateFutureNotifications(
     }
 
     intervalIndex++;
-    if (++iterations > 10000) {
+    if (++iterations > MAX_ITERATION_LIMIT) {
       throw new Error("generateFutureNotifications exceeded iteration limit");
     }
   }
@@ -104,8 +111,8 @@ async function generateFutureNotifications(
  */
 export const ensureNotificationsForReminder = async (
   reminderId: number,
-  desiredCount: number = 10,
-  bias: number = 0.5
+  desiredCount: number = DEFAULT_DESIRED_COUNT,
+  bias: number = DEFAULT_BIAS
 ): Promise<void> => {
   // Fetch existing unresponded future notifications
   const existing = await source.getUnrespondedNotificationsByReminderId(
@@ -370,19 +377,19 @@ export const getBiasedRandomTime = (
   segmentEnd: Date,
   bias: number
 ): Date => {
-  // Ensure bias is within [0, 1]; default to 0.5 if not.
+  // Ensure bias is within [0, 1]; default to DEFAULT_BIAS if not.
   if (bias < 0 || bias > 1) {
-    bias = 0.5;
+    bias = DEFAULT_BIAS;
   }
   const u = Math.random();
   // Calculate the exponent for bias adjustment.
   // When bias equals 0.5 the exponent is 1; otherwise, adjust to skew the distribution.
   const exponent =
-    bias === 0.5
+    bias === DEFAULT_BIAS
       ? 1
-      : bias < 0.5
-      ? 1 + (0.5 - bias) * 2
-      : 1 / (1 + (bias - 0.5) * 2);
+      : bias < DEFAULT_BIAS
+      ? 1 + (DEFAULT_BIAS - bias) * 2
+      : 1 / (1 + (bias - DEFAULT_BIAS) * 2);
   const weight = Math.pow(u, exponent);
 
   // Calculate the scheduled time in local time.
@@ -458,14 +465,14 @@ export const generateNotificationTimes = (
     // Generate a random number with bias within this segment
     let u = Math.random();
     if (bias < 0 || bias > 1) {
-      bias = 0.5;
+      bias = DEFAULT_BIAS;
     }
     const exponent =
-      bias === 0.5
+      bias === DEFAULT_BIAS
         ? 1
-        : bias < 0.5
-        ? 1 + (0.5 - bias) * 2
-        : 1 / (1 + (bias - 0.5) * 2);
+        : bias < DEFAULT_BIAS
+        ? 1 + (DEFAULT_BIAS - bias) * 2
+        : 1 / (1 + (bias - DEFAULT_BIAS) * 2);
     const weight = Math.pow(u, exponent);
     const offsetInSegment = Math.floor(
       minOffset + weight * (maxOffset - minOffset)
@@ -524,7 +531,7 @@ export const createNotifications = async (
         reminder_id: reminder.id,
         scheduled_at: dayjs(notif.scheduled_at)
           .utc()
-          .format("YYYY-MM-DD HH:mm:ssZ"),
+          .format(UTC_DATE_FORMAT),
         interval_index: notif.interval_index,
         segment_index: notif.segment_index,
       });
@@ -564,7 +571,7 @@ export async function updateNotificationResponse(
 ) {
   await source.updateNotification(id, {
     response_status: responseStatus,
-    response_at: dayjs().format("YYYY-MM-DD hh:mmZ"),
+    response_at: dayjs().format(LOCAL_DATE_FORMAT),
   });
 
   const notification = await source.getNotification(id);
@@ -587,14 +594,14 @@ export async function updateNotificationResponseOneTime(
 
   await source.updateNotification(notification.id, {
     response_status: responseStatus,
-    response_at: dayjs().format("YYYY-MM-DD hh:mmZ"),
+    response_at: dayjs().format(LOCAL_DATE_FORMAT),
   });
 
   await source.updateAllPastDueNotificationsToNoReponseByReminderId(reminderId);
 
   if (responseStatus === "done") {
     await source.updateNotification(notification.id, {
-      scheduled_at: dayjs().utc().format("YYYY-MM-DD hh:mmZ"),
+      scheduled_at: dayjs().utc().format(LOCAL_DATE_FORMAT),
     });
     await source.deleteFutureNotificationsByReminderId(reminderId);
   } else {
@@ -637,7 +644,7 @@ export const runNotificationMaintenance = async () => {
   for (const rem of reminders) {
     if (rem.end_date && dayjs(rem.end_date).isBefore(today, "day")) {
       await updateReminderArchived(rem.id, true);
-      const cutoff = dayjs(rem.end_date).utc().format("YYYY-MM-DD HH:mm:ssZ");
+      const cutoff = dayjs(rem.end_date).utc().format(UTC_DATE_FORMAT);
       await source.deleteNotificationsAfterDate(rem.id, cutoff);
     }
   }

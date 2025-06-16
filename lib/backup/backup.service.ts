@@ -5,6 +5,7 @@ import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import db, { DB_FILENAME } from "../db";
 import { BACKUP_FILENAME, SQLITE_DIR_NAME } from "./backup.constants";
+import { destroyConfettiView } from "@/hooks/useConfetti";
 
 const DB_DIR = FileSystem.documentDirectory + SQLITE_DIR_NAME;
 const DB_PATH = `${DB_DIR}/${DB_FILENAME}`;
@@ -112,6 +113,9 @@ export const restoreDatabase = async () => {
       {
         text: "OK",
         onPress: async () => {
+          destroyConfettiView();
+          // allow React to unmount the Skia view before reloading
+          await new Promise((r) => setTimeout(r, 50));
           await Updates.reloadAsync();
         },
       },

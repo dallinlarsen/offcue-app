@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import {
   DEFAULT_DESIRED_COUNT,
   DEFAULT_BIAS,
@@ -11,6 +12,7 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
+dayjs.extend(isSameOrAfter);
 
 import * as source from "./notifications.source";
 
@@ -26,7 +28,6 @@ import {
 } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
-
 
 export {
   notificationsInit,
@@ -531,9 +532,7 @@ export const createNotifications = async (
     try {
       await source.createNotification({
         reminder_id: reminder.id,
-        scheduled_at: dayjs(notif.scheduled_at)
-          .utc()
-          .format(UTC_DATE_FORMAT),
+        scheduled_at: dayjs(notif.scheduled_at).utc().format(UTC_DATE_FORMAT),
         interval_index: notif.interval_index,
         segment_index: notif.segment_index,
       });
@@ -620,7 +619,7 @@ export async function updateNotificationResponseOneTime(
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
-  if (!(await isUnlimitedCheck('task'))) return;
+  if (!(await isUnlimitedCheck("task"))) return;
 
   const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
     reminderId

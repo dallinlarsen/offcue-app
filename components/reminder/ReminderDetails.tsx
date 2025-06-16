@@ -237,8 +237,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   }
 
   const showStartDate = useRef(
-    dayjs(reminder.start_date).format("YYYY-MM-DD") !==
-      dayjs(reminder.created_at).format("YYYY-MM-DD")
+    dayjs(reminder.start_date).utc().format("YYYY-MM-DD") !==
+      dayjs(reminder.created_at).utc().format("YYYY-MM-DD")
   );
 
   const showEndDate = useRef(!!reminder.end_date);

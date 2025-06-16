@@ -5,7 +5,6 @@ import { InsertSchedule, Schedule } from "./schedules.types";
 
 export {
   schedulesInit,
-  getSchedulesByReminderId,
   createScheduleReminderMaps,
   deleteReminderScheduleMapByReminderId,
   deleteReminderScheduleMapByReminderIdAndScheduleId,
@@ -15,6 +14,8 @@ export {
   getAllSchedules,
   getAllSchedulesAlphabetical,
 } from "./schedules.source";
+
+export const getSchedulesByReminderId = source.getSchedulesByReminderId;
 
 export async function updateSchedule(
   id: number,

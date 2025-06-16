@@ -130,6 +130,7 @@ export default function AddEditReminder({
     setValue,
     clearErrors,
     watch,
+    resetField,
     formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -159,7 +160,7 @@ export default function AddEditReminder({
         await updateReminder({
           id: data.id,
           title: model.title,
-          description: model.description || undefined,
+          description: model.description?.trim() || undefined,
           interval_type: (interval_type as IntervalType) || "day",
           interval_num: parseInt(interval_num!),
           times: parseInt(model.times),
@@ -175,7 +176,7 @@ export default function AddEditReminder({
       } else {
         reminderId = await createReminder({
           title: model.title,
-          description: model.description || undefined,
+          description: model.description?.trim() || undefined,
           interval_type: (interval_type as IntervalType) || "day",
           interval_num: parseInt(interval_num!),
           times: parseInt(model.times),
@@ -235,6 +236,11 @@ export default function AddEditReminder({
 
   useWatch(end_date, () => {
     clearErrors();
+  });
+
+  useWatch(recurring, () => {
+    resetField('interval_num');
+    resetField('interval_type');
   });
 
   return (

@@ -24,6 +24,7 @@ const db = SQLite.openDatabaseSync("reminders.db");
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ fade: true, duration: 200 });
 
 export default function RootLayout() {
   const router = useRouter();

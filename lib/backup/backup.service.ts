@@ -1,10 +1,10 @@
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as DocumentPicker from "expo-document-picker";
-import * as Updates from "expo-updates";
 import { Alert } from "react-native";
 import db, { DB_FILENAME } from "../db";
 import { BACKUP_FILENAME, SQLITE_DIR_NAME } from "./backup.constants";
+import { runNotificationMaintenance } from "../notifications/notifications.service";
 
 const DB_DIR = FileSystem.documentDirectory + SQLITE_DIR_NAME;
 const DB_PATH = `${DB_DIR}/${DB_FILENAME}`;
@@ -108,14 +108,10 @@ export const restoreDatabase = async () => {
       }
     }
 
-    Alert.alert("Success", "Backup restored. The app will now restart.", [
-      {
-        text: "OK",
-        onPress: async () => {
-          await Updates.reloadAsync();
-        },
-      },
-    ]);
+    // Get the device and state of the app in sync after the new data is loaded.
+    await runNotificationMaintenance();
+
+    Alert.alert("Success", "Backup restored.");
   } catch (e) {
     console.error("Error restoring backup:", e);
 

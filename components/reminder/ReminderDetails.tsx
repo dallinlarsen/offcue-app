@@ -488,9 +488,12 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             </HStack>
             {pastNotifications.length > 0 ? (
               <>
-                <Box className="rounded overflow-hidden w-full flex-1">
+                <Box
+                  className="rounded overflow-hidden w-full flex-1 border-background-200"
+                  style={{ borderWidth: 1 }}
+                >
                   <Table className="w-full flex-1">
-                    <TableHeader className="border-t border-x border-background-300">
+                    <TableHeader>
                       <TableRow>
                         <TableHead>Time</TableHead>
                         <TableHead>Status</TableHead>
@@ -505,9 +508,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                               pastNotifications.length - 1 === idx
                                 ? "-mb-1"
                                 : "border-b"
-                            } ${
-                              idx === 0 ? "border-t" : ""
-                            } border-x border-background-300
+                            } border-background-200
                           `}
                           >
                             <TouchableOpacity

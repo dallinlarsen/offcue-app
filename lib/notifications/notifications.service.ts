@@ -81,14 +81,17 @@ async function generateFutureNotifications(
   let iterations = 0;
 
   while (allNotifications.length < desiredCount) {
-    const notifications = generateNotificationTimes(
+    // (exports as any) needed for jest to work properly with spyOn
+    const notifications = (exports as any).generateNotificationTimes(
       reminder,
       schedules,
       intervalIndex,
       bias
     );
     const futureNotifications = notifications.filter(
-      (n) =>
+      (n: {
+        scheduled_at: string | number | dayjs.Dayjs | Date | null | undefined;
+      }) =>
         dayjs(n.scheduled_at).isAfter(dayjs()) &&
         dayjs(n.scheduled_at).isSameOrAfter(dayjs(reminder.start_date))
     );
@@ -157,7 +160,8 @@ export const ensureNotificationsForReminder = async (
     bias
   );
   if (notifications.length > 0) {
-    await createNotifications(reminder, notifications);
+    // (exports as any) needed for jest to work properly with spyOn
+    await (exports as any).createNotifications(reminder, notifications);
     console.log(
       `Created ${notifications.length} new notifications for reminder ${reminderId}.`
     );

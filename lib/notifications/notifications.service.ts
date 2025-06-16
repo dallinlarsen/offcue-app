@@ -211,7 +211,7 @@ export const calculateCurrentInterval = (
   // Calculate the interval start: take the start-of the interval type on the
   // local start_date, then add (interval_num * intervalIndex).
   const localIntervalStart = dayjs(localStartDate)
-    .endOf(reminder.interval_type as dayjs.OpUnitType)
+    .startOf(reminder.interval_type as dayjs.OpUnitType)
     .add(
       reminder.interval_num * intervalIndex,
       reminder.interval_type as dayjs.ManipulateType

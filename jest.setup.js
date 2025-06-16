@@ -47,3 +47,5 @@ jest.mock('react-native-purchases-ui', () => ({
     RESTORED: 'RESTORED',
   },
 }));
+// Mock expo-sqlite with custom implementation
+jest.mock('expo-sqlite');

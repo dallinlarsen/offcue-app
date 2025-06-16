@@ -1,12 +1,14 @@
 export const openDatabaseSync = jest.fn(() => ({
-    // mimic the minimal interface your code/tests expect
-    transaction: (cb: (tx: { executeSql: Function }) => void) => {
-      const dummyTx = {
-        executeSql: (_sql: string, _params: any[], success?: Function) => {
-          // you can invoke `success` with fake rows if your tests care
-          if (success) success(dummyTx, { rows: { _array: [] } });
-        }
-      };
-      cb(dummyTx);
-    },
-  }));
+  runAsync: jest.fn(async (_sql?: string, _params?: any[]) => ({
+    lastInsertRowId: 1,
+  })),
+  execAsync: jest.fn(async (_sql?: string) => {}),
+  getFirstAsync: jest.fn(
+    async <T>(_sql?: string, _params?: any[]) => undefined as unknown as T
+  ),
+  getAllAsync: jest.fn(async <T>(_sql?: string, _params?: any[]) => [] as T[]),
+  closeAsync: jest.fn(async () => {}),
+  transaction: jest.fn(),
+}));
+
+export const deleteDatabaseAsync = jest.fn(async (_name: string) => {});

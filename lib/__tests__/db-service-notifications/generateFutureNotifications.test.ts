@@ -13,7 +13,7 @@ describe("generateFutureNotifications", () => {
   it("skips notifications scheduled before the reminder start_date", async () => {
     const reminder = {
       id: 1,
-      start_date: new Date("2025-01-01T00:00:00.000Z"),
+      start_date: new Date("2026-01-01T00:00:00.000Z"),
       interval_type: "day",
       interval_num: 1,
       times: 1,
@@ -37,8 +37,8 @@ describe("generateFutureNotifications", () => {
         is_friday: true,
         is_saturday: true,
         is_active: true,
-        start_time: "07:00",
-        end_time: "21:00",
+        start_time: "00:00",
+        end_time: "23:99",
       },
     ]);
 

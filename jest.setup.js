@@ -20,3 +20,30 @@ jest.mock('expo-dev-launcher', () => ({
   // e.g. if you call DevLauncherInternal.someFunction(), mock it here
   someFunction: jest.fn(),
 }));
+
+// Mock react-native-purchases to prevent Native module errors in tests
+jest.mock('react-native-purchases', () => ({
+  __esModule: true,
+  default: {
+    configure: jest.fn(),
+    setLogLevel: jest.fn(),
+    getCustomerInfo: jest.fn(() => Promise.resolve({ entitlements: { active: {} } })),
+    addCustomerInfoUpdateListener: jest.fn(),
+  },
+  LOG_LEVEL: { ERROR: 'ERROR' },
+}));
+
+// Mock react-native-purchases-ui as well
+jest.mock('react-native-purchases-ui', () => ({
+  __esModule: true,
+  default: {
+    presentPaywallIfNeeded: jest.fn(() => Promise.resolve('NOT_PRESENTED')),
+  },
+  PAYWALL_RESULT: {
+    NOT_PRESENTED: 'NOT_PRESENTED',
+    ERROR: 'ERROR',
+    CANCELLED: 'CANCELLED',
+    PURCHASED: 'PURCHASED',
+    RESTORED: 'RESTORED',
+  },
+}));

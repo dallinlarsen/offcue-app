@@ -86,8 +86,10 @@ async function generateFutureNotifications(
       intervalIndex,
       bias
     );
-    const futureNotifications = notifications.filter((n) =>
-      dayjs(n.scheduled_at).isAfter(dayjs())
+    const futureNotifications = notifications.filter(
+      (n) =>
+        dayjs(n.scheduled_at).isAfter(dayjs()) &&
+        dayjs(n.scheduled_at).isSameOrAfter(dayjs(reminder.start_date))
     );
 
     if (futureNotifications.length > 0) {

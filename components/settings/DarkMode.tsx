@@ -16,11 +16,12 @@ import {
   SelectTrigger,
 } from "../ui/select";
 import { ChevronDownIcon } from "../ui/icon";
-import { useColorScheme } from "nativewind";
 import { useSettings } from "@/hooks/useSettings";
+import { useEffect, useState } from "react";
+import { $reloadSettings, $settings } from "@/lib/settings/settings.store";
+import { useStore } from "@nanostores/react";
 
 type Props = {
-  theme: "light" | "dark" | "system";
   open?: boolean;
   setOpen?: (open: boolean) => void;
 };
@@ -35,29 +36,36 @@ const SELECT_OPTIONS = [
   { label: "🌙 Dark", value: "dark" },
 ];
 
-export default function ({ open, setOpen, theme }: Props) {
-  const { setColorScheme } = useColorScheme();
+export default function ({ open, setOpen }: Props) {
   const { updateSettings } = useSettings();
+  const settings = useStore($settings);
+  const [fieldKey, setFieldKey] = useState(1);
 
-  const { watch, control } = useForm({
+  const { watch, control, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
     defaultValues: {
-      theme,
+      theme: settings.theme,
     },
+  });
+
+  useWatch(settings.theme, (val) => {
+    setValue("theme", val);
+    setFieldKey(fieldKey + 1);
   });
 
   const themeValue = watch("theme");
 
   useWatch(themeValue, async (newVal, oldVal) => {
     if (newVal !== oldVal) { 
-      setColorScheme(newVal);
       await updateSettings({ theme: newVal });
+      $reloadSettings.set(true);
     }
   });
 
   return (
     <SettingDropDown title="App Theme" open={open} setOpen={setOpen}>
       <Controller
+        key={fieldKey}
         control={control}
         name="theme"
         render={({ field: { onChange, onBlur, value } }) => (

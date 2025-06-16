@@ -19,6 +19,7 @@ import KeyboardDoneButton from "@/components/KeyboardDoneButton";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
 import { $customerInfo } from "@/lib/revenue-cat/revenue-cat.store";
+import { $settings } from "@/lib/settings/settings.store";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -43,6 +44,7 @@ export default function RootLayout() {
   async function setupState() {
     await initDatabase();
     const settings = await getSettings();
+    $settings.set(settings!);
     if (!settings?.has_completed_tutorial) {
       router.replace("/welcome");
     }

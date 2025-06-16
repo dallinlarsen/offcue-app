@@ -5,6 +5,7 @@ import { Alert } from "react-native";
 import db, { DB_FILENAME } from "../db";
 import { BACKUP_FILENAME, SQLITE_DIR_NAME } from "./backup.constants";
 import { runNotificationMaintenance } from "../notifications/notifications.service";
+import { $reloadSettings } from "../settings/settings.store";
 
 const DB_DIR = FileSystem.documentDirectory + SQLITE_DIR_NAME;
 const DB_PATH = `${DB_DIR}/${DB_FILENAME}`;
@@ -110,6 +111,7 @@ export const restoreDatabase = async () => {
 
     // Get the device and state of the app in sync after the new data is loaded.
     await runNotificationMaintenance();
+    $reloadSettings.set(true);
 
     Alert.alert("Success", "Backup restored.");
   } catch (e) {

@@ -34,7 +34,7 @@ export const ConfettiProvider: React.FC<{ children: React.ReactNode }> = ({
     setTimeout(() => {
       confettiRef.current?.reset();
       isFalling.current = false;
-    }, 9000);
+    }, 6000);
   };
 
   return (

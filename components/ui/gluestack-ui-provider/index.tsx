@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { config } from "./config";
 import { View, ViewProps } from "react-native";
 import { OverlayProvider } from "@gluestack-ui/overlay";
 import { ToastProvider } from "@gluestack-ui/toast";
 import { useColorScheme } from "nativewind";
 import { ModeType } from "./types";
-import { getSettings } from "@/lib/settings/settings.source";
+import useWatch from "@/hooks/useWatch";
+import { useStore } from "@nanostores/react";
+import { $settings } from "@/lib/settings/settings.store";
 
 export function GluestackUIProvider({
   mode = "light",
@@ -16,16 +18,11 @@ export function GluestackUIProvider({
   style?: ViewProps["style"];
 }) {
   const { colorScheme, setColorScheme } = useColorScheme();
+  const settings = useStore($settings);
 
-  async function setUserTheme() {
-    const settings = await getSettings();
-    setColorScheme(settings?.theme || 'system');
-  }
-
-  useEffect(() => {
-    setUserTheme();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  useWatch(settings, () => {
+    setColorScheme(settings?.theme || "system");
+  });
 
   return (
     <View

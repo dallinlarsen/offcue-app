@@ -21,7 +21,7 @@ import omit from "lodash/omit";
 import { useEffect, useState } from "react";
 
 export default function () {
-  const confetti = useConfetti();
+  const sendConfetti = useConfetti();
   const { updateSettings, settings } = useSettings();
 
   const [pageState, setPageState] = useState(0);
@@ -55,10 +55,6 @@ export default function () {
     setPageState(1);
   }
 
-  function sendConfetti() {
-    confetti.current?.restart();
-    setTimeout(() => confetti.current?.reset(), 9000);
-  }
 
   async function completeReminder(reminder: Partial<InsertReminderModel>) {
     const scheduleIds: number[] = [];

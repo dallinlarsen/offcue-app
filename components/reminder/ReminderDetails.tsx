@@ -89,7 +89,7 @@ const ZodSchema = z.object({
 });
 
 export default function ({ reminder, onNotificationResponse }: Props) {
-  const confetti = useConfetti();
+  const sendConfetti = useConfetti();
   const router = useRouter();
 
   const [pastNotifications, setPastNotificatons] = useState<RNotification[]>(
@@ -181,10 +181,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     setValue("is_muted", newVal.is_muted);
   });
 
-  function sendConfetti() {
-    confetti.current?.restart();
-    setTimeout(() => confetti.current?.reset(), 9000);
-  }
 
   async function handleNotificationAction(
     response: NotificationResponseStatus

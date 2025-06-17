@@ -48,8 +48,8 @@ export default function Schedules4({ onNext, onPrevious, reminder }: Props) {
       <ScrollView showsVerticalScrollIndicator={false}>
         <VStack space="md" className="mt-2">
           <Text size="2xl" className="leading-normal">
-            You may not want to be reminded to do 5 pushups at 2am or to go for
-            a walk outside when you are on your commute to work.{" "}
+            You may not want to be reminded to do 5 push-ups at 2 a.m. or to go
+            for a walk outside when you are on your commute to work.{" "}
           </Text>
           <Text size="2xl" className="leading-normal">
             Schedules help you choose{" "}

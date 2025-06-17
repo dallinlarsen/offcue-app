@@ -99,8 +99,8 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
             on an interval.
           </Text>
           <Text size="2xl" className="leading-normal">
-            For example you may want to be reminded to drink a glass of water 2
-            times every 6 hours, or to call your mom once every month but you{" "}
+            For example, you may want to be reminded to drink a glass of water 2
+            times every 6 hours, or to call your mom once every month, but you{" "}
             <Heading size="xl" className="font-quicksand-bold">
               don't really care when
             </Heading>{" "}

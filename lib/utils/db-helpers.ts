@@ -11,16 +11,6 @@ export async function insertIntoTable<T extends GenericObject>(
 ) {
   const modelKeys = Object.keys(model);
 
-  console.log(
-    `
-    INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
-    VALUES (${modelKeys
-      .map((_) => "?")
-      .join(", ")}, CURRENT_TIMESTAMP || '+00:00', CURRENT_TIMESTAMP || '+00:00');
-    `,
-    modelKeys.map((k) => formatBoolean(model[k]))
-  );
-
   const result = await db.runAsync(
     `
     INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
@@ -40,20 +30,6 @@ export async function updateTable<
 >(tableName: string, model: T, where: X) {
   const modelKeys = Object.keys(model);
   const whereKeys = Object.keys(where);
-
-  console.log(
-    `
-    UPDATE ${tableName}
-    SET ${modelKeys
-      .map((k) => `${k} = ?`)
-      .join(", ")}, updated_at = CURRENT_TIMESTAMP || '+00:00'
-    WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
-    `,
-    [
-      ...modelKeys.map((k) => formatBoolean(model[k])),
-      ...whereKeys.map((k) => formatBoolean(where[k])),
-    ]
-  );
 
   await db.runAsync(
     `

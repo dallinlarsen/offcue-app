@@ -159,8 +159,6 @@ export default function ({
       end_time: dayjs(model.endTime).format("HH:mm"),
     };
 
-    console.log("Saving schedule to database:", scheduleModel);
-
     let scheduleId = schedule?.id;
 
     try {
@@ -169,7 +167,6 @@ export default function ({
       } else {
         scheduleId = await createSchedule(scheduleModel);
       }
-      console.log("Schedule saved successfully.");
     } catch (error) {
       console.error("Error saving schedule:", error);
     }

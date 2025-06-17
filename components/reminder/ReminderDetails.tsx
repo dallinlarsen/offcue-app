@@ -398,8 +398,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               className="text-orange-800 dark:text-orange-100"
             >
               Archived on{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
         )}
@@ -407,8 +407,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           <Alert>
             <AlertText size="lg">
               Muted on{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
         )}

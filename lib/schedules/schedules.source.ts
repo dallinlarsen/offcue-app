@@ -21,8 +21,8 @@ export async function schedulesInit() {
     is_active INTEGER NOT NULL DEFAULT 1,     -- Active state of the schedule
     start_time TEXT NOT NULL,                 -- Start time of the schedule in HH:MM format
     end_time TEXT NOT NULL,                   -- End time of the schedule in HH:MM format
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the schedule was created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP -- The time the schedule was last updated
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the schedule was created
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00') -- The time the schedule was last updated
   );`);
   console.log("✅ Schedule table created successfully");
 
@@ -31,8 +31,8 @@ export async function schedulesInit() {
     id INTEGER PRIMARY KEY NOT NULL,
     reminder_id INTEGER NOT NULL,             -- Foreign key to reminders table
     schedule_id INTEGER NOT NULL,             -- Foreign key to schedule table
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the reminder schedule was created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the reminder schedule was last updated
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the reminder schedule was created
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the reminder schedule was last updated
     FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE,
     FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE
   );`);

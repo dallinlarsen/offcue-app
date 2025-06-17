@@ -146,8 +146,8 @@ export default function () {
               className="text-orange-800 dark:text-orange-100"
             >
               Hidden on{" "}
-              {dayjs(schedule.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-              {dayjs(schedule.updated_at + "+00:00").format("h:mm a")}
+              {dayjs(schedule.updated_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(schedule.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
         )}

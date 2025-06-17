@@ -18,8 +18,8 @@ export async function notificationsInit() {
         segment_index INTEGER NOT NULL,           -- The index of the segment for the notification
         response_at DATETIME,                     -- The time the user responded to the notification
         response_status TEXT,                     -- The status of the user's response (e.g., "done", "skipped")
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was created                                            
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was last updated
+        created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the notification was created
+        updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the notification was last updated
         FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE
 
         UNIQUE (reminder_id, interval_index, segment_index)
@@ -163,7 +163,7 @@ export async function updateAllPastDueNotificationsToNoReponseByReminderId(remin
     ` UPDATE notifications
       SET response_at = CURRENT_TIMESTAMP || '+00:00',
           response_status = 'no_response',
-          updated_at = CURRENT_TIMESTAMP
+          updated_at = CURRENT_TIMESTAMP || '+00:00'
       WHERE scheduled_at <= CURRENT_TIMESTAMP
         AND response_status IS NULL
         AND reminder_id = ?;`,

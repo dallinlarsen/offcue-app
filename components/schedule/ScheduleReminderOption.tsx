@@ -25,11 +25,11 @@ export default function ({ reminder }: Props) {
 
   function formatSubText() {
     if (reminder.is_archived) {
-      return "Archived on " + formatDate(reminder.updated_at + '+00:00');
+      return "Archived on " + formatDate(reminder.updated_at);
     } else if (reminder.is_completed) {
       return "Completed on " + formatDate(reminder.completed_at);
     } else if (reminder.is_muted) {
-      return "Muted on " + formatDate(reminder.updated_at + '+00:00');
+      return "Muted on " + formatDate(reminder.updated_at);
     } else if (reminder.is_recurring) {
       return formatFrequencyString(
         reminder.times,
@@ -37,7 +37,7 @@ export default function ({ reminder }: Props) {
         reminder.interval_type
       );
     } else {
-      return "Created on " + formatDate(reminder.created_at + '+00:00');
+      return "Created on " + formatDate(reminder.created_at);
     }
   }
 

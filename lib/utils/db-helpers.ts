@@ -16,7 +16,7 @@ export async function insertIntoTable<T extends GenericObject>(
     INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
     VALUES (${modelKeys
       .map((_) => "?")
-      .join(", ")}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);    
+      .join(", ")}, CURRENT_TIMESTAMP || '+00:00', CURRENT_TIMESTAMP || '+00:00');
     `,
     modelKeys.map((k) => formatBoolean(model[k]))
   );
@@ -26,7 +26,7 @@ export async function insertIntoTable<T extends GenericObject>(
     INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
     VALUES (${modelKeys
       .map((_) => "?")
-      .join(", ")}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);    
+      .join(", ")}, CURRENT_TIMESTAMP || '+00:00', CURRENT_TIMESTAMP || '+00:00');
     `,
     modelKeys.map((k) => formatBoolean(model[k]))
   );
@@ -46,7 +46,7 @@ export async function updateTable<
     UPDATE ${tableName}
     SET ${modelKeys
       .map((k) => `${k} = ?`)
-      .join(", ")}, updated_at = CURRENT_TIMESTAMP
+      .join(", ")}, updated_at = CURRENT_TIMESTAMP || '+00:00'
     WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
     `,
     [
@@ -60,7 +60,7 @@ export async function updateTable<
     UPDATE ${tableName}
     SET ${modelKeys
       .map((k) => `${k} = ?`)
-      .join(", ")}, updated_at = CURRENT_TIMESTAMP
+      .join(", ")}, updated_at = CURRENT_TIMESTAMP || '+00:00'
     WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
     `,
     [

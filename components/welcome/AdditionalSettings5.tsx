@@ -10,6 +10,7 @@ import { Heading } from "../ui/heading";
 import { Input, InputField } from "../ui/input";
 import DatePicker from "react-native-date-picker";
 import dayjs from "dayjs";
+import { UTC_DATE_FORMAT } from "@/lib/notifications/notifications.constants";
 import {
   FormControl,
   FormControlError,
@@ -75,9 +76,11 @@ export default function AdditionalSettings5({ onNext, onPrevious, reminder }: Pr
   const nextPressedHandler = handleSubmit(async (model) => {
     onNext({
       track_streak: model.track_streak,
-      start_date: dayjs(model.start_date).format("YYYY-MM-DD"),
+      start_date: dayjs(model.start_date)
+        .utc()
+        .format(UTC_DATE_FORMAT),
       end_date: model.end_date
-        ? dayjs(model.end_date).format("YYYY-MM-DD")
+        ? dayjs(model.end_date).utc().format(UTC_DATE_FORMAT)
         : undefined,
     });
   });

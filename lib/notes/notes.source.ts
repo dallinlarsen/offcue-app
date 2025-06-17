@@ -7,8 +7,8 @@ export async function notesInit() {
     reminder_id INTEGER NOT NULL,   -- Foreign key to reminders table
     notification_id INTEGER,        -- Foreign key to notifications table if the note is related to a notification
     note TEXT NOT NULL,             -- The note text
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the note was created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the note was last updated
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the note was created
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the note was last updated
     FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE,
     FOREIGN KEY (notification_id) REFERENCES notifications (id) ON DELETE CASCADE
   );`);

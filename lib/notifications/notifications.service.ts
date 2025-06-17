@@ -7,7 +7,6 @@ import {
   DEFAULT_BIAS,
   MAX_ITERATION_LIMIT,
   UTC_DATE_FORMAT,
-  LOCAL_DATE_FORMAT,
 } from "./notifications.constants";
 
 dayjs.extend(utc);
@@ -576,7 +575,7 @@ export async function updateNotificationResponse(
 ) {
   await source.updateNotification(id, {
     response_status: responseStatus,
-    response_at: dayjs().format(LOCAL_DATE_FORMAT),
+    response_at: dayjs().utc().format(UTC_DATE_FORMAT),
   });
 
   const notification = await source.getNotification(id);
@@ -599,14 +598,14 @@ export async function updateNotificationResponseOneTime(
 
   await source.updateNotification(notification.id, {
     response_status: responseStatus,
-    response_at: dayjs().format(LOCAL_DATE_FORMAT),
+    response_at: dayjs().utc().format(UTC_DATE_FORMAT),
   });
 
   await source.updateAllPastDueNotificationsToNoReponseByReminderId(reminderId);
 
   if (responseStatus === "done") {
     await source.updateNotification(notification.id, {
-      scheduled_at: dayjs().utc().format(LOCAL_DATE_FORMAT),
+      scheduled_at: dayjs().utc().format(UTC_DATE_FORMAT),
     });
     await source.deleteFutureNotificationsByReminderId(reminderId);
   } else {

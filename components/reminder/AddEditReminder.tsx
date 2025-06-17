@@ -117,6 +117,26 @@ const ZodSchema = z
       message: "End date must be the same or after start date",
       path: ["start_date"],
     }
+  )
+  .refine(
+    ({ times, interval_type, interval_num, recurring }) => {
+      const type = recurring ? (interval_type as IntervalType) : "day";
+      const num = recurring ? interval_num : "1";
+      if (!times || !type || !num || (type !== "minute" && type !== "hour"))
+        return true;
+
+      const minutesMap: Record<"minute" | "hour", number> = {
+        minute: 1,
+        hour: 60,
+      };
+
+      const maxTimes = parseInt(num) * minutesMap[type];
+      return parseInt(times) < maxTimes;
+    },
+    {
+      message: "Must be less than total minutes in interval",
+      path: ["times"],
+    }
   );
 
 export default function AddEditReminder({
@@ -240,8 +260,8 @@ export default function AddEditReminder({
   });
 
   useWatch(recurring, () => {
-    resetField('interval_num');
-    resetField('interval_type');
+    resetField("interval_num");
+    resetField("interval_type");
   });
 
   return (
@@ -344,8 +364,8 @@ export default function AddEditReminder({
           )}
           <Box>
             <Heading size="xl">Remind Me</Heading>
-            <Box className="flex flex-row w-full gap-2 items-center">
-              <FormControl isInvalid={!!errors.times} className="flex-1">
+            <FormControl isInvalid={!!errors.times} className="flex-1">
+              <Box className="flex flex-row w-full gap-2 items-center">
                 <Controller
                   control={control}
                   name="times"
@@ -361,16 +381,16 @@ export default function AddEditReminder({
                     </Input>
                   )}
                 />
-                <FormControlError>
-                  <FormControlErrorText>
-                    {errors?.times?.message || ""}
-                  </FormControlErrorText>
-                </FormControlError>
-              </FormControl>
-              <Text size="xl" className="flex-1">
-                Time(s) {!recurring && "per day"}
-              </Text>
-            </Box>
+                <Text size="xl" className="flex-1">
+                  Time(s) {!recurring && "per day"}
+                </Text>
+              </Box>
+              <FormControlError>
+                <FormControlErrorText>
+                  {errors?.times?.message || ""}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
           </Box>
           {recurring && (
             <VStack>

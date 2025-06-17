@@ -4,6 +4,7 @@ import {
   deleteFromTable,
   insertIntoTable,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 import { InsertSchedule, Schedule, ScheduleWithCount } from "./schedules.types";
 
@@ -24,6 +25,7 @@ export async function schedulesInit() {
     created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the schedule was created
     updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00') -- The time the schedule was last updated
   );`);
+  await ensureUtcOffset('schedules', ['created_at', 'updated_at']);
   console.log("✅ Schedule table created successfully");
 
   await db.execAsync(`
@@ -36,6 +38,7 @@ export async function schedulesInit() {
     FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE,
     FOREIGN KEY (schedule_id) REFERENCES schedules (id) ON DELETE CASCADE
   );`);
+  await ensureUtcOffset('reminder_schedule', ['created_at', 'updated_at']);
   console.log("✅ Reminder schedule table created successfully");
 }
 

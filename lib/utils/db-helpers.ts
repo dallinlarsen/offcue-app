@@ -71,3 +71,17 @@ export function convertIntegerValuesToBoolean<T extends { [key: string]: any }>(
 
   return model;
 }
+
+export async function ensureUtcOffset(
+  tableName: string,
+  columns: string[]
+) {
+  for (const column of columns) {
+    await db.runAsync(
+      `UPDATE ${tableName}
+       SET ${column} = ${column} || '+00:00'
+       WHERE ${column} IS NOT NULL
+         AND ${column} NOT LIKE '%+00:00';`
+    );
+  }
+}

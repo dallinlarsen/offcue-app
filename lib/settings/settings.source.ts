@@ -3,6 +3,7 @@ import db from "../db";
 import {
   convertIntegerValuesToBoolean,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 
 export async function settingsInit() {
@@ -25,6 +26,7 @@ export async function settingsInit() {
       `INSERT INTO settings (has_completed_tutorial) VALUES (0);`
     );
   }
+  await ensureUtcOffset('settings', ['created_at', 'updated_at']);
   console.log("✅ Settings table created successfully");
 }
 

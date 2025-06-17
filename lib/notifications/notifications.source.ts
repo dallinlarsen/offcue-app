@@ -4,6 +4,7 @@ import {
   deleteFromTable,
   insertIntoTable,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 import { InsertRNotification, RNotification } from "./notifications.types";
 import { AMOUNT_TO_SCHEDULE } from "./notifications.constants";
@@ -25,6 +26,13 @@ export async function notificationsInit() {
         UNIQUE (reminder_id, interval_index, segment_index)
     );
   `);
+
+  await ensureUtcOffset('notifications', [
+    'scheduled_at',
+    'response_at',
+    'created_at',
+    'updated_at',
+  ]);
 
   console.log("✅ Notifications table created successfully");
 }
@@ -82,7 +90,7 @@ export async function getSoonestFutureNotificationsToSchedule(
             r.is_recurring
      FROM notifications n
      JOIN reminders r ON r.id = n.reminder_id
-     WHERE response_at IS NULL AND scheduled_at >= CURRENT_TIMESTAMP
+     WHERE response_at IS NULL AND scheduled_at > CURRENT_TIMESTAMP
      ORDER BY scheduled_at
      LIMIT ?;`,
     [amount]

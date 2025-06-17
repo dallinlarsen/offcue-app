@@ -152,6 +152,7 @@ export default function AddEditReminder({
     clearErrors,
     watch,
     resetField,
+    trigger,
     formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -222,12 +223,22 @@ export default function AddEditReminder({
     }
   });
 
-  const [schedules, track_streak, recurring, start_date, end_date] = watch([
+  const [
+    schedules,
+    track_streak,
+    recurring,
+    start_date,
+    end_date,
+    interval_num,
+    interval_type,
+  ] = watch([
     "schedules",
     "track_streak",
     "recurring",
     "start_date",
     "end_date",
+    "interval_num",
+    "interval_type",
   ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
@@ -259,9 +270,21 @@ export default function AddEditReminder({
     clearErrors();
   });
 
+  useWatch(interval_num, () => {
+    trigger("times");
+  });
+
+  useWatch(interval_type, () => {
+    trigger("times");
+  });
+
   useWatch(recurring, () => {
     resetField("interval_num");
     resetField("interval_type");
+    clearErrors();
+    if (isSubmitted) {
+      trigger();
+    }
   });
 
   return (

@@ -1,5 +1,5 @@
 import db from "../db";
-import { deleteFromTable } from "../utils/db-helpers";
+import { deleteFromTable, ensureUtcOffset } from "../utils/db-helpers";
 
 export async function notesInit() {
   await db.execAsync(`CREATE TABLE IF NOT EXISTS notes (
@@ -12,6 +12,7 @@ export async function notesInit() {
     FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE,
     FOREIGN KEY (notification_id) REFERENCES notifications (id) ON DELETE CASCADE
   );`);
+  await ensureUtcOffset('notes', ['created_at', 'updated_at']);
   console.log("✅ Notes table created successfully");
 }
 

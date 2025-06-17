@@ -14,6 +14,7 @@ import {
   ACTION_LATER,
   DATE_TIME_FORMAT,
 } from "./device-notifications.constants";
+import { $isSchedulingNotifications } from "./device-notifications.store";
 
 dayjs.extend(utc);
 
@@ -137,7 +138,7 @@ export async function createDeviceNotification({
   categoryIdentifier,
   data,
 }: CreateDeviceNotification) {
-  console.log(utcTimestamp);
+  // console.log(utcTimestamp);
   return await Notifications.scheduleNotificationAsync({
     identifier,
     content: {
@@ -165,14 +166,16 @@ export async function getAllScheduledNotifications() {
 }
 
 export async function scheduleAllUpcomingNotifications() {
-  console.log("Rescheduling all notifications from scratch...");
+  // Solving a race condition that can set device notifications in a weird state 
+  // if run multiple times at once without finishing.
+  if ($isSchedulingNotifications.get()) return;
+  $isSchedulingNotifications.set(true);
 
   // 1. Cancel all existing notifications
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   // 2. Fetch new ones from DB
   const notifications = await getSoonestFutureNotificationsToSchedule();
-  // console.log("Notifications to create:", notifications.length);
 
   // 3. Recreate each one
   for (const notification of notifications) {
@@ -198,11 +201,12 @@ export async function scheduleAllUpcomingNotifications() {
           scheduledAt: notification.scheduled_at,
         },
       });
-      // console.log(`Scheduled notification ${notification.id}`);
     } catch (err) {
       console.error(`Failed to schedule notification ${notification.id}:`, err);
     }
   }
+
+  $isSchedulingNotifications.set(false);
 }
 
 export async function dismissFromNotificationCenter(notificationId: number) {

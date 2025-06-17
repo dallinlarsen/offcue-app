@@ -5,25 +5,21 @@ import BackupRestore from "@/components/settings/BackupRestore";
 import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
-import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
-import { ChevronRightIcon } from "@/components/ui/icon";
 import { VStack } from "@/components/ui/vstack";
-import { getSettings } from "@/lib/settings/settings.source";
-import { Settings } from "@/lib/settings/settings.types";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollView } from "react-native";
+import { useStore } from "@nanostores/react";
+import { $settings } from "@/lib/settings/settings.store";
 
 export default function SettingsScreen() {
-  const router = useRouter();
+  const settings = useStore($settings);
 
   const [accordiansOpen, setAccordiansOpen] = useState<string[]>([
     "dark-mode",
     "welcome-tutorial",
     "help",
   ]);
-  const [settings, setSettings] = useState<Settings | null>(null);
 
   function setOpenHandler(open: boolean, key: string) {
     if (open && !accordiansOpen.includes(key)) {
@@ -32,14 +28,6 @@ export default function SettingsScreen() {
       setAccordiansOpen(accordiansOpen.filter((k) => k !== key));
     }
   }
-
-  async function loadSettings() {
-    setSettings(await getSettings());
-  }
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
 
   return settings ? (
     <ThemedContainer>
@@ -50,7 +38,6 @@ export default function SettingsScreen() {
         <VStack space="lg" className="mb-24">
           <PurchaseUnlimited />
           <DarkMode
-            theme={settings.theme}
             open={accordiansOpen.includes("dark-mode")}
             setOpen={(open) => setOpenHandler(open, "dark-mode")}
           />

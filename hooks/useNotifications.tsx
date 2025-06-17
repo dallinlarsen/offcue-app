@@ -5,6 +5,7 @@ import {
   setupAndConfigureNotifications,
 } from "@/lib/device-notifications/device-notifications.service";
 import { useRouter } from "expo-router";
+import { runNotificationMaintenance } from "@/lib/notifications/notifications.service";
 
 type NotificationContextType = {
   lastNotification: Notifications.Notification | null;
@@ -30,7 +31,7 @@ export const NotificationProvider = ({
     setupAndConfigureNotifications();
     const receivedSub = Notifications.addNotificationReceivedListener(
       (notif) => {
-        console.log("Foreground Notification in Provider:", notif);
+        runNotificationMaintenance();
         setLastNotification(notif);
       }
     );

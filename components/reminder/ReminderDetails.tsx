@@ -89,7 +89,7 @@ const ZodSchema = z.object({
 });
 
 export default function ({ reminder, onNotificationResponse }: Props) {
-  const confetti = useConfetti();
+  const sendConfetti = useConfetti();
   const router = useRouter();
 
   const [pastNotifications, setPastNotificatons] = useState<RNotification[]>(
@@ -181,10 +181,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
     setValue("is_muted", newVal.is_muted);
   });
 
-  function sendConfetti() {
-    confetti.current?.restart();
-    setTimeout(() => confetti.current?.reset(), 9000);
-  }
 
   async function handleNotificationAction(
     response: NotificationResponseStatus
@@ -241,8 +237,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   }
 
   const showStartDate = useRef(
-    dayjs(reminder.start_date).format("YYYY-MM-DD") !==
-      dayjs(reminder.created_at).format("YYYY-MM-DD")
+    dayjs(reminder.start_date).utc().format("YYYY-MM-DD") !==
+      dayjs(reminder.created_at).utc().format("YYYY-MM-DD")
   );
 
   const showEndDate = useRef(!!reminder.end_date);
@@ -402,8 +398,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               className="text-orange-800 dark:text-orange-100"
             >
               Archived on{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
         )}
@@ -411,8 +407,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
           <Alert>
             <AlertText size="lg">
               Muted on{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("MMM D, YYYY")} at{" "}
-              {dayjs(reminder.updated_at + "+00:00").format("h:mm a")}
+              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
         )}
@@ -488,9 +484,12 @@ export default function ({ reminder, onNotificationResponse }: Props) {
             </HStack>
             {pastNotifications.length > 0 ? (
               <>
-                <Box className="rounded overflow-hidden w-full flex-1">
+                <Box
+                  className="rounded overflow-hidden w-full flex-1 border-background-200"
+                  style={{ borderWidth: 1 }}
+                >
                   <Table className="w-full flex-1">
-                    <TableHeader className="border-t border-x border-background-300">
+                    <TableHeader>
                       <TableRow>
                         <TableHead>Time</TableHead>
                         <TableHead>Status</TableHead>
@@ -505,9 +504,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                               pastNotifications.length - 1 === idx
                                 ? "-mb-1"
                                 : "border-b"
-                            } ${
-                              idx === 0 ? "border-t" : ""
-                            } border-x border-background-300
+                            } border-background-200
                           `}
                           >
                             <TouchableOpacity

@@ -42,7 +42,7 @@ export default function ({
   displayOnly,
 }: Props) {
   const router = useRouter();
-  const confetti = useConfetti();
+  const sendConfetti = useConfetti();
 
   const { watch, setValue } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -62,10 +62,6 @@ export default function ({
     setValue("is_muted", r.is_muted);
   });
 
-  function sendConfetti() {
-    confetti.current?.restart();
-    setTimeout(() => confetti.current?.reset(), 9000);
-  }
 
   async function handleNotificationAction(
     response: NotificationResponseStatus

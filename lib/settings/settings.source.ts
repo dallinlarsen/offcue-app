@@ -3,6 +3,7 @@ import db from "../db";
 import {
   convertIntegerValuesToBoolean,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 
 export async function settingsInit() {
@@ -14,8 +15,8 @@ export async function settingsInit() {
     theme TEXT NOT NULL DEFAULT 'system',                    -- The theme of the app (e.g., "light", "dark", "system")
     language TEXT NOT NULL DEFAULT 'en',                    -- The language of the app (e.g., "en", "es", "fr")
     timezone TEXT NOT NULL DEFAULT 'UTC',                   -- The timezone of the user
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the user settings were created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- The time the user settings were last updated
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the user settings were created
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00')  -- The time the user settings were last updated
   );`);
 
   const userSettings = await getSettings();
@@ -25,6 +26,7 @@ export async function settingsInit() {
       `INSERT INTO settings (has_completed_tutorial) VALUES (0);`
     );
   }
+  await ensureUtcOffset('settings', ['created_at', 'updated_at']);
   console.log("✅ Settings table created successfully");
 }
 

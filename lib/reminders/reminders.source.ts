@@ -3,6 +3,7 @@ import {
   deleteFromTable,
   insertIntoTable,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 import {
   ActiveReminderCounts,
@@ -26,11 +27,12 @@ export async function remindersInit() {
     is_muted INTEGER NOT NULL DEFAULT 0,            -- Whether the reminder is muted (1 for true, 0 for false)
     is_recurring INTEGER NOT NULL DEFAULT 1,        -- Whether the reminder is recurring (1 for true, 0 for false)
     is_archived INTEGER NOT NULL DEFAULT 0,         -- Whether the reminder is archived (1 for true, 0 for false)
-    start_date DATE NOT NULL DEFAULT CURRENT_DATE,  -- When the reminder begins reminding 
+    start_date DATE NOT NULL DEFAULT CURRENT_DATE,  -- When the reminder begins reminding
     end_date DATE,                                  -- When the reminder is auto archived
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the reminder was created
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP  -- The time the reminder was last updated
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the reminder was created
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00')  -- The time the reminder was last updated
   );`);
+  await ensureUtcOffset('reminders', ['created_at', 'updated_at']);
   console.log("✅ Reminders table created successfully");
 }
 

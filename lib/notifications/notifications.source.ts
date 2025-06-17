@@ -4,6 +4,7 @@ import {
   deleteFromTable,
   insertIntoTable,
   updateTable,
+  ensureUtcOffset,
 } from "../utils/db-helpers";
 import { InsertRNotification, RNotification } from "./notifications.types";
 import { AMOUNT_TO_SCHEDULE } from "./notifications.constants";
@@ -18,13 +19,20 @@ export async function notificationsInit() {
         segment_index INTEGER NOT NULL,           -- The index of the segment for the notification
         response_at DATETIME,                     -- The time the user responded to the notification
         response_status TEXT,                     -- The status of the user's response (e.g., "done", "skipped")
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was created                                            
-        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- The time the notification was last updated
+        created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the notification was created
+        updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP || '+00:00'), -- The time the notification was last updated
         FOREIGN KEY (reminder_id) REFERENCES reminders (id) ON DELETE CASCADE
 
         UNIQUE (reminder_id, interval_index, segment_index)
     );
   `);
+
+  await ensureUtcOffset('notifications', [
+    'scheduled_at',
+    'response_at',
+    'created_at',
+    'updated_at',
+  ]);
 
   console.log("✅ Notifications table created successfully");
 }
@@ -82,7 +90,7 @@ export async function getSoonestFutureNotificationsToSchedule(
             r.is_recurring
      FROM notifications n
      JOIN reminders r ON r.id = n.reminder_id
-     WHERE response_at IS NULL AND scheduled_at >= CURRENT_TIMESTAMP
+     WHERE response_at IS NULL AND scheduled_at > CURRENT_TIMESTAMP
      ORDER BY scheduled_at
      LIMIT ?;`,
     [amount]
@@ -163,7 +171,7 @@ export async function updateAllPastDueNotificationsToNoReponseByReminderId(remin
     ` UPDATE notifications
       SET response_at = CURRENT_TIMESTAMP || '+00:00',
           response_status = 'no_response',
-          updated_at = CURRENT_TIMESTAMP
+          updated_at = CURRENT_TIMESTAMP || '+00:00'
       WHERE scheduled_at <= CURRENT_TIMESTAMP
         AND response_status IS NULL
         AND reminder_id = ?;`,

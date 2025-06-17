@@ -49,6 +49,7 @@ import useWatch from "@/hooks/useWatch";
 import Fade from "../Fade";
 import { InsertReminder, IntervalType } from "@/lib/reminders/reminders.types";
 import { Schedule } from "@/lib/schedules/schedules.types";
+import { UTC_DATE_FORMAT } from "@/lib/notifications/notifications.constants";
 import {
   createReminder,
   updateReminder,
@@ -116,6 +117,26 @@ const ZodSchema = z
       message: "End date must be the same or after start date",
       path: ["start_date"],
     }
+  )
+  .refine(
+    ({ times, interval_type, interval_num, recurring }) => {
+      const type = recurring ? (interval_type as IntervalType) : "day";
+      const num = recurring ? interval_num : "1";
+      if (!times || !type || !num || (type !== "minute" && type !== "hour"))
+        return true;
+
+      const minutesMap: Record<"minute" | "hour", number> = {
+        minute: 1,
+        hour: 60,
+      };
+
+      const maxTimes = parseInt(num) * minutesMap[type];
+      return parseInt(times) < maxTimes;
+    },
+    {
+      message: "Must be less than total minutes in interval",
+      path: ["times"],
+    }
   );
 
 export default function AddEditReminder({
@@ -130,6 +151,8 @@ export default function AddEditReminder({
     setValue,
     clearErrors,
     watch,
+    resetField,
+    trigger,
     formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -159,23 +182,23 @@ export default function AddEditReminder({
         await updateReminder({
           id: data.id,
           title: model.title,
-          description: model.description || undefined,
+          description: model.description?.trim() || undefined,
           interval_type: (interval_type as IntervalType) || "day",
           interval_num: parseInt(interval_num!),
           times: parseInt(model.times),
           scheduleIds: model.schedules.map((s) => s.id),
           track_streak: model.track_streak,
           start_date: model.start_date
-            ? dayjs(model.start_date).format("YYYY-MM-DD")
+            ? dayjs(model.start_date).utc().format(UTC_DATE_FORMAT)
             : undefined,
           end_date: model.end_date
-            ? dayjs(model.end_date).format("YYYY-MM-DD")
+            ? dayjs(model.end_date).utc().format(UTC_DATE_FORMAT)
             : undefined,
         });
       } else {
         reminderId = await createReminder({
           title: model.title,
-          description: model.description || undefined,
+          description: model.description?.trim() || undefined,
           interval_type: (interval_type as IntervalType) || "day",
           interval_num: parseInt(interval_num!),
           times: parseInt(model.times),
@@ -184,10 +207,10 @@ export default function AddEditReminder({
           track_notes: false,
           is_recurring: model.recurring,
           start_date: model.start_date
-            ? dayjs(model.start_date).format("YYYY-MM-DD")
-            : dayjs().format("YYYY-MM-DD"),
+            ? dayjs(model.start_date).utc().format(UTC_DATE_FORMAT)
+            : dayjs().utc().format(UTC_DATE_FORMAT),
           end_date: model.end_date
-            ? dayjs(model.end_date).format("YYYY-MM-DD")
+            ? dayjs(model.end_date).utc().format(UTC_DATE_FORMAT)
             : null,
         });
 
@@ -200,12 +223,22 @@ export default function AddEditReminder({
     }
   });
 
-  const [schedules, track_streak, recurring, start_date, end_date] = watch([
+  const [
+    schedules,
+    track_streak,
+    recurring,
+    start_date,
+    end_date,
+    interval_num,
+    interval_type,
+  ] = watch([
     "schedules",
     "track_streak",
     "recurring",
     "start_date",
     "end_date",
+    "interval_num",
+    "interval_type",
   ]);
   const [schedulesOpen, setSchedulesOpen] = useState(false);
   const [addScheduleOpen, setAddScheduleOpen] = useState(false);
@@ -235,6 +268,23 @@ export default function AddEditReminder({
 
   useWatch(end_date, () => {
     clearErrors();
+  });
+
+  useWatch(interval_num, () => {
+    trigger("times");
+  });
+
+  useWatch(interval_type, () => {
+    trigger("times");
+  });
+
+  useWatch(recurring, () => {
+    resetField("interval_num");
+    resetField("interval_type");
+    clearErrors();
+    if (isSubmitted) {
+      trigger();
+    }
   });
 
   return (
@@ -337,8 +387,8 @@ export default function AddEditReminder({
           )}
           <Box>
             <Heading size="xl">Remind Me</Heading>
-            <Box className="flex flex-row w-full gap-2 items-center">
-              <FormControl isInvalid={!!errors.times} className="flex-1">
+            <FormControl isInvalid={!!errors.times} className="flex-1">
+              <Box className="flex flex-row w-full gap-2 items-center">
                 <Controller
                   control={control}
                   name="times"
@@ -354,16 +404,16 @@ export default function AddEditReminder({
                     </Input>
                   )}
                 />
-                <FormControlError>
-                  <FormControlErrorText>
-                    {errors?.times?.message || ""}
-                  </FormControlErrorText>
-                </FormControlError>
-              </FormControl>
-              <Text size="xl" className="flex-1">
-                Time(s) {!recurring && "per day"}
-              </Text>
-            </Box>
+                <Text size="xl" className="flex-1">
+                  Time(s) {!recurring && "per day"}
+                </Text>
+              </Box>
+              <FormControlError>
+                <FormControlErrorText>
+                  {errors?.times?.message || ""}
+                </FormControlErrorText>
+              </FormControlError>
+            </FormControl>
           </Box>
           {recurring && (
             <VStack>

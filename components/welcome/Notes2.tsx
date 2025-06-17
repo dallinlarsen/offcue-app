@@ -1,6 +1,4 @@
-import {
-  findNodeHandle,
-} from "react-native";
+import { findNodeHandle } from "react-native";
 import { VStack } from "../ui/vstack";
 import { Button, ButtonIcon, ButtonText } from "../ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "../ui/icon";
@@ -41,22 +39,25 @@ export default function Notes2({ onNext, onPrevious, reminder }: Props) {
     resolver: zodResolver(ZodSchema),
     defaultValues: {
       title: reminder.title || "",
-      description: reminder.description || "",
+      description: reminder.description?.trim() || "",
     },
   });
 
   const scrollViewRef = useRef<any>(null);
 
   const nextPressedHandler = handleSubmit(async (model) => {
-    onNext(model);
+    onNext({
+      ...model,
+      description: model.description?.trim() || "",
+    });
   });
 
   function previousPressedHandler() {
     onPrevious(reminder);
   }
 
-  function _scrollToInput (reactNode: React.ReactNode) {
-    scrollViewRef.current.scrollToFocusedInput(reactNode)
+  function _scrollToInput(reactNode: React.ReactNode) {
+    scrollViewRef.current.scrollToFocusedInput(reactNode);
   }
 
   return (

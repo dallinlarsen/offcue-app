@@ -11,22 +11,12 @@ export async function insertIntoTable<T extends GenericObject>(
 ) {
   const modelKeys = Object.keys(model);
 
-  console.log(
-    `
-    INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
-    VALUES (${modelKeys
-      .map((_) => "?")
-      .join(", ")}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);    
-    `,
-    modelKeys.map((k) => formatBoolean(model[k]))
-  );
-
   const result = await db.runAsync(
     `
     INSERT INTO ${tableName} (${modelKeys.join(", ")}, created_at, updated_at)
     VALUES (${modelKeys
       .map((_) => "?")
-      .join(", ")}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);    
+      .join(", ")}, CURRENT_TIMESTAMP || '+00:00', CURRENT_TIMESTAMP || '+00:00');
     `,
     modelKeys.map((k) => formatBoolean(model[k]))
   );
@@ -41,26 +31,12 @@ export async function updateTable<
   const modelKeys = Object.keys(model);
   const whereKeys = Object.keys(where);
 
-  console.log(
-    `
-    UPDATE ${tableName}
-    SET ${modelKeys
-      .map((k) => `${k} = ?`)
-      .join(", ")}, updated_at = CURRENT_TIMESTAMP
-    WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
-    `,
-    [
-      ...modelKeys.map((k) => formatBoolean(model[k])),
-      ...whereKeys.map((k) => formatBoolean(where[k])),
-    ]
-  );
-
   await db.runAsync(
     `
     UPDATE ${tableName}
     SET ${modelKeys
       .map((k) => `${k} = ?`)
-      .join(", ")}, updated_at = CURRENT_TIMESTAMP
+      .join(", ")}, updated_at = CURRENT_TIMESTAMP || '+00:00'
     WHERE ${whereKeys.map((k) => `${k} = ?`).join(" AND ")};    
     `,
     [
@@ -94,4 +70,18 @@ export function convertIntegerValuesToBoolean<T extends { [key: string]: any }>(
   }
 
   return model;
+}
+
+export async function ensureUtcOffset(
+  tableName: string,
+  columns: string[]
+) {
+  for (const column of columns) {
+    await db.runAsync(
+      `UPDATE ${tableName}
+       SET ${column} = ${column} || '+00:00'
+       WHERE ${column} IS NOT NULL
+         AND ${column} NOT LIKE '%+00:00';`
+    );
+  }
 }

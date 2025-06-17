@@ -19,11 +19,14 @@ import KeyboardDoneButton from "@/components/KeyboardDoneButton";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
 import { $customerInfo } from "@/lib/revenue-cat/revenue-cat.store";
+import { $settings } from "@/lib/settings/settings.store";
+import { runNotificationMaintenance } from "@/lib/notifications/notifications.service";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ fade: true, duration: 200 });
 
 export default function RootLayout() {
   const router = useRouter();
@@ -42,6 +45,7 @@ export default function RootLayout() {
   async function setupState() {
     await initDatabase();
     const settings = await getSettings();
+    $settings.set(settings!);
     if (!settings?.has_completed_tutorial) {
       router.replace("/welcome");
     }
@@ -57,6 +61,8 @@ export default function RootLayout() {
     }
 
     $customerInfo.set(await Purchases.getCustomerInfo());
+
+    runNotificationMaintenance();
 
     setTimeout(() => SplashScreen.hideAsync(), 500);
   }

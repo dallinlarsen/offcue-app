@@ -11,7 +11,7 @@ import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
     "#F04F52",
   ];
 
-const ConfettiContext = createContext<React.RefObject<ConfettiMethods> | null>(null);
+const ConfettiContext = createContext<(() => void) | null>(null);
 
 export const useConfetti = () => {
   const context = useContext(ConfettiContext);
@@ -25,10 +25,26 @@ export const ConfettiProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const confettiRef = useRef<ConfettiMethods>(null);
+  const isFalling = useRef(false);
+
+  const sendConfetti = () => {
+    if (isFalling.current) return;
+    isFalling.current = true;
+    confettiRef.current?.restart();
+    setTimeout(() => {
+      confettiRef.current?.reset();
+      isFalling.current = false;
+    }, 6000);
+  };
 
   return (
-    <ConfettiContext.Provider value={confettiRef}>
-      <Confetti ref={confettiRef} colors={CONFETTI_COLORS} autoplay={false} fallDuration={6000} />
+    <ConfettiContext.Provider value={sendConfetti}>
+      <Confetti
+        ref={confettiRef}
+        colors={CONFETTI_COLORS}
+        autoplay={false}
+        fallDuration={6000}
+      />
       {children}
     </ConfettiContext.Provider>
   );

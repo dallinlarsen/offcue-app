@@ -1,16 +1,17 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import {
   DEFAULT_DESIRED_COUNT,
   DEFAULT_BIAS,
   MAX_ITERATION_LIMIT,
   UTC_DATE_FORMAT,
-  LOCAL_DATE_FORMAT,
 } from "./notifications.constants";
 
 dayjs.extend(utc);
 dayjs.extend(weekOfYear);
+dayjs.extend(isSameOrAfter);
 
 import * as source from "./notifications.source";
 
@@ -26,7 +27,6 @@ import {
 } from "../reminders/reminders.service";
 import { getSchedulesByReminderId } from "../schedules/schedules.service";
 import { NotificationResponseStatus } from "./notifications.types";
-
 
 export {
   notificationsInit,
@@ -80,14 +80,19 @@ async function generateFutureNotifications(
   let iterations = 0;
 
   while (allNotifications.length < desiredCount) {
-    const notifications = generateNotificationTimes(
+    // (exports as any) needed for jest to work properly with spyOn
+    const notifications = (exports as any).generateNotificationTimes(
       reminder,
       schedules,
       intervalIndex,
       bias
     );
-    const futureNotifications = notifications.filter((n) =>
-      dayjs(n.scheduled_at).isAfter(dayjs())
+    const futureNotifications = notifications.filter(
+      (n: {
+        scheduled_at: string | number | dayjs.Dayjs | Date | null | undefined;
+      }) =>
+        dayjs(n.scheduled_at).isAfter(dayjs()) &&
+        dayjs(n.scheduled_at).isSameOrAfter(dayjs(reminder.start_date))
     );
 
     if (futureNotifications.length > 0) {
@@ -154,7 +159,8 @@ export const ensureNotificationsForReminder = async (
     bias
   );
   if (notifications.length > 0) {
-    await createNotifications(reminder, notifications);
+    // (exports as any) needed for jest to work properly with spyOn
+    await (exports as any).createNotifications(reminder, notifications);
     console.log(
       `Created ${notifications.length} new notifications for reminder ${reminderId}.`
     );
@@ -529,9 +535,7 @@ export const createNotifications = async (
     try {
       await source.createNotification({
         reminder_id: reminder.id,
-        scheduled_at: dayjs(notif.scheduled_at)
-          .utc()
-          .format(UTC_DATE_FORMAT),
+        scheduled_at: dayjs(notif.scheduled_at).utc().format(UTC_DATE_FORMAT),
         interval_index: notif.interval_index,
         segment_index: notif.segment_index,
       });
@@ -571,7 +575,7 @@ export async function updateNotificationResponse(
 ) {
   await source.updateNotification(id, {
     response_status: responseStatus,
-    response_at: dayjs().format(LOCAL_DATE_FORMAT),
+    response_at: dayjs().utc().format(UTC_DATE_FORMAT),
   });
 
   const notification = await source.getNotification(id);
@@ -594,14 +598,14 @@ export async function updateNotificationResponseOneTime(
 
   await source.updateNotification(notification.id, {
     response_status: responseStatus,
-    response_at: dayjs().format(LOCAL_DATE_FORMAT),
+    response_at: dayjs().utc().format(UTC_DATE_FORMAT),
   });
 
   await source.updateAllPastDueNotificationsToNoReponseByReminderId(reminderId);
 
   if (responseStatus === "done") {
     await source.updateNotification(notification.id, {
-      scheduled_at: dayjs().utc().format(LOCAL_DATE_FORMAT),
+      scheduled_at: dayjs().utc().format(UTC_DATE_FORMAT),
     });
     await source.deleteFutureNotificationsByReminderId(reminderId);
   } else {
@@ -618,7 +622,7 @@ export async function updateNotificationResponseOneTime(
 }
 
 export async function undoOneTimeComplete(reminderId: number) {
-  if (!(await isUnlimitedCheck('task'))) return;
+  if (!(await isUnlimitedCheck("task"))) return;
 
   const lastDoneNotification = await source.getLastDoneNotificationByReminderId(
     reminderId

@@ -102,8 +102,8 @@ export default function AdditionalSettings5({ onNext, onPrevious, reminder }: Pr
       <ReminderSummaryBox reminder={reminder} />
       <Heading size="2xl">Additional Options</Heading>
       <Text size="2xl" className="leading-normal">
-        Track your streak 🔥, customize when you want the reminder to begin or
-        end. It's your reminder, so make it yours! 🫵
+        Track your streak 🔥 and customize when you want the reminder to start
+        or end—it's your reminder, so make it yours! ��
       </Text>
       <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         <VStack space="lg">

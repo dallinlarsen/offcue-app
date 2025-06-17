@@ -59,7 +59,7 @@ export async function getPastNotificationsByReminderId(
       AND scheduled_at < CURRENT_TIMESTAMP 
       AND response_status IS NOT NULL
     ORDER BY scheduled_at DESC
-    ${limit ? "LIMIT = ?" : ""} ${limit && offset ? "OFFSET = ?" : ""};`,
+    ${limit ? "LIMIT ?" : ""} ${limit && offset ? "OFFSET ?" : ""};`,
     [reminderId, limit || null, offset || null]
   );
   return notifications;

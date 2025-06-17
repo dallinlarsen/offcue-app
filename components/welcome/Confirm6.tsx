@@ -42,13 +42,13 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
   return (
     <VStack className="justify-between flex-1">
       <VStack space="md">
-        <Heading size="2xl">You Created A Reminder!</Heading>
+        <Heading size="2xl">You Created a Reminder!</Heading>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Heading size="xl" className="font-quicksand-bold">
             Congratulations 🥳
           </Heading>
           <Text size="xl" className="leading-normal mb-4">
-            If you would like to go through this tutorial again, it is always
+            If you would like to go through this tutorial again, it's always
             available in the settings menu. Choose what to do next! 👇
           </Text>
 

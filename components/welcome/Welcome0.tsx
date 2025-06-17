@@ -72,14 +72,14 @@ export default function Welcome0({ onNext }: Props) {
           </Text>
           <Text size="2xl" className="leading-relaxed">
             <Heading size="2xl">1{"\t"}</Heading> To get the most out of this
-            app please{" "}
+            app, please{" "}
             <Heading size="xl" className="font-quicksand-bold">
               allow notifications 🔔
             </Heading>{" "}
             when prompted.
           </Text>
           <Text size="2xl" className="leading-relaxed">
-            <Heading size="2xl">2{"\t"}</Heading> Click{" "}
+            <Heading size="2xl">2{"\t"}</Heading> Tap{" "}
             <Heading size="xl" className="font-quicksand-bold">
               "Begin Tutorial"
             </Heading>{" "}

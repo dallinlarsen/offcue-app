@@ -526,7 +526,6 @@ export const generateNotificationTimes = (
 //------------------------------------------------------------------------------
 
 // Loops over the generated notifications and persists each notification.
-// The first notification (segment_index === 0) is flagged as isScheduled.
 export const createNotifications = async (
   reminder: any,
   notifications: NotificationTime[]

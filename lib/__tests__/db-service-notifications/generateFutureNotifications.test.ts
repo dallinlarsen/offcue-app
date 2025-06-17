@@ -38,7 +38,7 @@ describe("generateFutureNotifications", () => {
         is_saturday: true,
         is_active: true,
         start_time: "00:00",
-        end_time: "23:99",
+        end_time: "23:59",
       },
     ]);
 

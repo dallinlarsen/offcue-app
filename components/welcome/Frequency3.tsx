@@ -32,6 +32,7 @@ import ReminderSummaryBox from "./ReminderSummaryBox";
 import { HStack } from "../ui/hstack";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { FREQUENCY_TYPES } from "@/lib/schedules/schedules.constants";
+import useWatch from "@/hooks/useWatch";
 
 type Props = {
   onNext: (reminder: Partial<InsertReminderModel>) => void;
@@ -39,24 +40,50 @@ type Props = {
   reminder: Partial<InsertReminderModel>;
 };
 
-const ZodSchema = z.object({
-  interval_type: z.string().min(1, "Required"),
-  interval_num: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => !num || parseInt(num) < 100, "Must be less than 100")
-    .refine((num) => !num || parseInt(num) > 0, "Must be greater than 0"),
-  times: z
-    .string()
-    .min(1, "Required")
-    .refine((num) => parseInt(num) < 50, "Must be less than 50")
-    .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
-});
+const ZodSchema = z
+  .object({
+    interval_type: z.string().min(1, "Required"),
+    interval_num: z
+      .string()
+      .min(1, "Required")
+      .refine((num) => !num || parseInt(num) < 100, "Must be less than 100")
+      .refine((num) => !num || parseInt(num) > 0, "Must be greater than 0"),
+    times: z
+      .string()
+      .min(1, "Required")
+      .refine((num) => parseInt(num) < 50, "Must be less than 50")
+      .refine((num) => parseInt(num) > 0, "Must be greater than 0"),
+  })
+  .refine(
+    ({ times, interval_type, interval_num }) => {
+      if (
+        !times ||
+        !interval_type ||
+        !interval_num ||
+        (interval_type !== "minute" && interval_type !== "hour")
+      )
+        return true;
+
+      const minutesMap: Record<"minute" | "hour", number> = {
+        minute: 1,
+        hour: 60,
+      };
+
+      const maxTimes = parseInt(interval_num) * minutesMap[interval_type];
+      return parseInt(times) < maxTimes;
+    },
+    {
+      message: "Must be less than total minutes in interval",
+      path: ["times"],
+    }
+  );
 
 export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
   const {
     control,
     handleSubmit,
+    watch,
+    trigger,
     formState: { errors, isValid, isSubmitted },
   } = useForm({
     resolver: zodResolver(ZodSchema),
@@ -78,6 +105,19 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
   function previousPressedHandler() {
     onPrevious(reminder);
   }
+
+  const [interval_num_val, interval_type_val] = watch([
+    "interval_num",
+    "interval_type",
+  ]);
+
+  useWatch(interval_num_val, () => {
+    trigger("times");
+  });
+
+  useWatch(interval_type_val, () => {
+    trigger("times");
+  });
 
   return (
     <KeyboardAwareScrollView
@@ -109,8 +149,8 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
           <VStack space="md">
             <VStack>
               <Heading size="xl">Remind Me</Heading>
-              <HStack space="md">
-                <FormControl isInvalid={!!errors.times} className="flex-1">
+              <FormControl isInvalid={!!errors.times} className="flex-1">
+                <HStack space="md">
                   <Controller
                     control={control}
                     name="times"
@@ -126,16 +166,16 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
                       </Input>
                     )}
                   />
-                  <FormControlError>
-                    <FormControlErrorText>
-                      {errors?.times?.message || ""}
-                    </FormControlErrorText>
-                  </FormControlError>
-                </FormControl>
-                <Text size="xl" className="flex-1 mt-3">
-                  Time(s)
-                </Text>
-              </HStack>
+                  <Text size="xl" className="flex-1 mt-3">
+                    Time(s)
+                  </Text>
+                </HStack>
+                <FormControlError>
+                  <FormControlErrorText>
+                    {errors?.times?.message || ""}
+                  </FormControlErrorText>
+                </FormControlError>
+              </FormControl>
             </VStack>
 
             <VStack>

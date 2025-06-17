@@ -20,6 +20,7 @@ import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { Platform } from "react-native";
 import { $customerInfo } from "@/lib/revenue-cat/revenue-cat.store";
 import { $settings } from "@/lib/settings/settings.store";
+import { runNotificationMaintenance } from "@/lib/notifications/notifications.service";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -60,6 +61,8 @@ export default function RootLayout() {
     }
 
     $customerInfo.set(await Purchases.getCustomerInfo());
+
+    runNotificationMaintenance();
 
     setTimeout(() => SplashScreen.hideAsync(), 500);
   }

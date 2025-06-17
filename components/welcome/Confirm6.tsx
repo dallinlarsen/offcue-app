@@ -61,7 +61,7 @@ export default function Confirm6({ onNext, onStartOver, reminderId }: Props) {
             onPress={onNext}
           /> */}
           <MenuOption text="🎓 Do this tutorial again" onPress={onStartOver} />
-          <MenuOption text="🤔 Learn more about offcue" onPress={openWebPage} />
+          <MenuOption text="🤔 Learn more about Offcue" onPress={openWebPage} />
           <MenuOption
             text="✌️ Close this tutorial"
             onPress={() => router.dismissTo("/")}

@@ -1,15 +1,17 @@
-# offcue
+# Offcue
 
-offcue is a cross‑platform reminder and scheduling app built with [Expo](https://expo.dev) and React Native. The project uses the Expo Router for navigation and provides a customizable notification system for recurring reminders.
+Offcue is a cross‑platform reminder and scheduling app built with [Expo](https://expo.dev) and React Native. The project uses the Expo Router for navigation and provides a customizable notification system for recurring reminders.
 
 ## Getting Started
 
 1. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 2. **Start the development client**
+
    - **iOS**
      ```bash
      npm run ios
@@ -38,4 +40,3 @@ npm test
 
 - [Expo documentation](https://docs.expo.dev/)
 - [Expo Router](https://expo.github.io/router/docs)
-

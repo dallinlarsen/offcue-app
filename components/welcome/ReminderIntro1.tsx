@@ -5,9 +5,7 @@ import { ScrollView, TouchableOpacity } from "react-native";
 import { Card } from "../ui/card";
 import { Text } from "../ui/text";
 import Fade from "../Fade";
-import {
-  InsertReminderModel,
-} from "@/lib/reminders/reminders.types";
+import { InsertReminderModel } from "@/lib/reminders/reminders.types";
 import { ButtonIcon, ButtonText, Button } from "../ui/button";
 import { CloseIcon } from "../ui/icon";
 import { useRouter } from "expo-router";
@@ -61,7 +59,7 @@ export default function ReminderIntro1({ onNext }: Props) {
           Pick your first habit 🤔
         </Heading>
         <Text size="2xl" className="leading-normal mt-2 mb-2">
-          offcue will help you build habits or remember to do things{" "}
+          Offcue will help you build habits or remember to do things{" "}
           <Heading size="xl" className="font-quicksand-bold">
             with random nudges. 📣{" "}
           </Heading>

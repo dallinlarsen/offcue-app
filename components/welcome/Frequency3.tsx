@@ -92,7 +92,7 @@ export default function Frequency3({ onNext, onPrevious, reminder }: Props) {
           <ReminderSummaryBox reminder={reminder} />
           <Heading size="2xl">How often do you want to be reminded?</Heading>
           <Text size="2xl" className="leading-normal">
-            Unlike other apps, offcue lets you set reminders to{" "}
+            Unlike other apps, Offcue lets you set reminders to{" "}
             <Heading size="xl" className="font-quicksand-bold">
               pop up at random times 🎲
             </Heading>{" "}

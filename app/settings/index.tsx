@@ -3,6 +3,7 @@ import GetHelp from "@/components/settings/GetHelp";
 import PurchaseUnlimited from "@/components/settings/PurchaseUnlimited";
 import BackupRestore from "@/components/settings/BackupRestore";
 import WelcomeTutorial from "@/components/settings/WelcomeTutorial";
+import LegalLinks from "@/components/settings/LegalLinks";
 import { ThemedContainer } from "@/components/ThemedContainer";
 import { Box } from "@/components/ui/box";
 import { Heading } from "@/components/ui/heading";
@@ -52,6 +53,10 @@ export default function SettingsScreen() {
           <BackupRestore
             open={accordiansOpen.includes("backup")}
             setOpen={(open) => setOpenHandler(open, "backup")}
+          />
+          <LegalLinks
+            open={accordiansOpen.includes("legal")}
+            setOpen={(open) => setOpenHandler(open, "legal")}
           />
           {/* <Button
           size="xl"

@@ -39,7 +39,19 @@
           }
         }
       ],
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/SpaceMono-Regular.ttf",
+            "./assets/fonts/Quicksand/Quicksand-Light.ttf",
+            "./assets/fonts/Quicksand/Quicksand-Regular.ttf",
+            "./assets/fonts/Quicksand/Quicksand-Medium.ttf",
+            "./assets/fonts/Quicksand/Quicksand-SemiBold.ttf",
+            "./assets/fonts/Quicksand/Quicksand-Bold.ttf"
+          ]
+        }
+      ],
       "expo-sqlite",
       "expo-dev-client",
        [

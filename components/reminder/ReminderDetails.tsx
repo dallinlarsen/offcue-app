@@ -78,6 +78,7 @@ import {
 } from "../ui/actionsheet";
 import { Divider } from "../ui/divider";
 import { STATUS_COLOR_MAP } from "@/lib/notifications/notifications.constants";
+import { useColorScheme } from "nativewind";
 
 type Props = {
   reminder: Reminder;
@@ -91,6 +92,7 @@ const ZodSchema = z.object({
 export default function ({ reminder, onNotificationResponse }: Props) {
   const sendConfetti = useConfetti();
   const router = useRouter();
+  const { colorScheme } = useColorScheme();
 
   const [pastNotifications, setPastNotificatons] = useState<RNotification[]>(
     []
@@ -351,6 +353,8 @@ export default function ({ reminder, onNotificationResponse }: Props) {
 
                         <BlurView
                           intensity={20}
+                          tint={colorScheme}
+                          experimentalBlurMethod='dimezisBlurView'
                           className="absolute top-0 bottom-0 right-0 left-0 flex items-center justify-center"
                         >
                           <HStack space="md">
@@ -397,8 +401,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
               size="lg"
               className="text-orange-800 dark:text-orange-100"
             >
-              Archived on{" "}
-              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              Archived on {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
               {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>
@@ -406,8 +409,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         {is_muted && !reminder.is_archived && (
           <Alert>
             <AlertText size="lg">
-              Muted on{" "}
-              {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
+              Muted on {dayjs(reminder.updated_at).format("MMM D, YYYY")} at{" "}
               {dayjs(reminder.updated_at).format("h:mm a")}
             </AlertText>
           </Alert>

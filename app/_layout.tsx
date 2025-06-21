@@ -33,7 +33,7 @@ export default function RootLayout() {
   const route = useRouteInfo();
   useDrizzleStudio(db);
 
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     "Quicksand-Light": require("../assets/fonts/Quicksand/Quicksand-Light.ttf"),
     "Quicksand-Regular": require("../assets/fonts/Quicksand/Quicksand-Regular.ttf"),
@@ -68,10 +68,10 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded || error) {
       setupState();
     }
-  }, [loaded]);
+  }, [loaded, error]);
 
   useEffect(() => {
     Purchases.addCustomerInfoUpdateListener((info) => {

@@ -1,6 +1,6 @@
 import "@/global.css";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
-import { useFonts } from "expo-font";
+import { Quicksand_300Light, Quicksand_400Regular, Quicksand_500Medium, Quicksand_600SemiBold, Quicksand_700Bold, useFonts } from "@expo-google-fonts/quicksand";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -21,6 +21,7 @@ import { Platform } from "react-native";
 import { $customerInfo } from "@/lib/revenue-cat/revenue-cat.store";
 import { $settings } from "@/lib/settings/settings.store";
 import { runNotificationMaintenance } from "@/lib/notifications/notifications.service";
+import { StatusBar } from "expo-status-bar";
 
 const db = SQLite.openDatabaseSync("reminders.db");
 
@@ -33,13 +34,12 @@ export default function RootLayout() {
   const route = useRouteInfo();
   useDrizzleStudio(db);
 
-  const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    "Quicksand-Light": require("../assets/fonts/Quicksand/Quicksand-Light.ttf"),
-    "Quicksand-Regular": require("../assets/fonts/Quicksand/Quicksand-Regular.ttf"),
-    "Quicksand-Medium": require("../assets/fonts/Quicksand/Quicksand-Medium.ttf"),
-    "Quicksand-SemiBold": require("../assets/fonts/Quicksand/Quicksand-SemiBold.ttf"),
-    "Quicksand-Bold": require("../assets/fonts/Quicksand/Quicksand-Bold.ttf"),
+  const [loaded, error] = useFonts({
+    Quicksand_300Light,
+    Quicksand_400Regular,
+    Quicksand_500Medium,
+    Quicksand_600SemiBold,
+    Quicksand_700Bold,
   });
 
   async function setupState() {
@@ -68,10 +68,10 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded || error) {
       setupState();
     }
-  }, [loaded]);
+  }, [loaded, error]);
 
   useEffect(() => {
     Purchases.addCustomerInfoUpdateListener((info) => {
@@ -103,6 +103,7 @@ export default function RootLayout() {
           </NotificationProvider>
         </ConfettiProvider>
       </GluestackUIProvider>
+      {Platform.OS === 'android' && <StatusBar style="auto" /> }
     </SettingsProvider>
   );
 }

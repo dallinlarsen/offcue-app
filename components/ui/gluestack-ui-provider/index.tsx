@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { config } from "./config";
-import { View, ViewProps } from "react-native";
+import { Platform, View, ViewProps } from "react-native";
 import { OverlayProvider } from "@gluestack-ui/overlay";
 import { ToastProvider } from "@gluestack-ui/toast";
 import { useColorScheme } from "nativewind";
@@ -8,6 +8,7 @@ import { ModeType } from "./types";
 import useWatch from "@/hooks/useWatch";
 import { useStore } from "@nanostores/react";
 import { $settings } from "@/lib/settings/settings.store";
+import * as NavigationBar from "expo-navigation-bar";
 
 export function GluestackUIProvider({
   mode = "light",
@@ -23,6 +24,14 @@ export function GluestackUIProvider({
   useWatch(settings, () => {
     setColorScheme(settings?.theme || "system");
   });
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      NavigationBar.setBackgroundColorAsync(
+        colorScheme === "dark" ? "#181719" : "#FBFBFB"
+      );
+    }
+  }, [colorScheme]);
 
   return (
     <View

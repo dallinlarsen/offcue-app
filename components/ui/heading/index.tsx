@@ -23,7 +23,6 @@ const MappedHeading = memo(
         size,
         className,
         isTruncated,
-        bold,
         underline,
         strikeThrough,
         sub,
@@ -42,7 +41,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -50,6 +48,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -61,7 +60,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -69,6 +67,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -80,7 +79,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -88,6 +86,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -99,7 +98,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -107,6 +105,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -118,7 +117,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -126,6 +124,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -138,7 +137,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -146,6 +144,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -157,7 +156,6 @@ const MappedHeading = memo(
               className={headingStyle({
                 size,
                 isTruncated,
-                bold,
                 underline,
                 strikeThrough,
                 sub,
@@ -165,6 +163,7 @@ const MappedHeading = memo(
                 highlight,
                 class: className,
               })}
+              style={{ fontWeight: undefined }}
               {...props}
               // @ts-expect-error : type issue
               ref={ref}
@@ -182,7 +181,6 @@ const Heading = memo(
   ) {
     const {
       isTruncated,
-      bold,
       underline,
       strikeThrough,
       sub,
@@ -196,7 +194,6 @@ const Heading = memo(
           className={headingStyle({
             size,
             isTruncated,
-            bold,
             underline,
             strikeThrough,
             sub,

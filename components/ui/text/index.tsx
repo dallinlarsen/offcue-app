@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { VariantProps } from '@gluestack-ui/nativewind-utils';
-import { Text as RNText } from 'react-native';
+import { Platform, Text as RNText } from 'react-native';
 import { textStyle } from './styles';
 
 type ITextProps = React.ComponentProps<typeof RNText> &
@@ -12,7 +12,6 @@ const Text = React.forwardRef<React.ComponentRef<typeof RNText>, ITextProps>(
     {
       className,
       isTruncated,
-      bold,
       underline,
       strikeThrough,
       size = 'md',
@@ -27,7 +26,6 @@ const Text = React.forwardRef<React.ComponentRef<typeof RNText>, ITextProps>(
       <RNText
         className={textStyle({
           isTruncated,
-          bold,
           underline,
           strikeThrough,
           size,
@@ -36,6 +34,7 @@ const Text = React.forwardRef<React.ComponentRef<typeof RNText>, ITextProps>(
           highlight,
           class: className,
         })}
+        style={{ fontWeight: undefined, letterSpacing: Platform.OS === 'android' ? .5 : undefined }}
         {...props}
         ref={ref}
       />

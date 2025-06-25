@@ -44,7 +44,12 @@ import {
   TableRow,
 } from "../ui/table";
 import { Badge, BadgeText } from "../ui/badge";
-import { Animated, ScrollView, TouchableOpacity } from "react-native";
+import {
+  Animated,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import EditNotificationStatusActionsheet from "./EditNotificationStatusActionsheet";
 import { useConfetti } from "@/hooks/useConfetti";
 import DeleteReminderDialog from "./DeleteReminderDialog";
@@ -137,30 +142,73 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   }, [reminder]);
 
   const opacity = useRef(new Animated.Value(1)).current;
+  const borderPulse = useRef(new Animated.Value(0)).current;
+  const AnimatedAlert = Animated.createAnimatedComponent(Alert);
+
+  const androidAlertStyle = {
+    borderWidth: borderPulse.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    }),
+    borderColor: borderPulse.interpolate({
+      inputRange: [0, 1],
+      outputRange: [colors.transparent, colors.gray[500]],
+    }),
+  };
+
+  useWatch(nextNotification, (newValue, oldValue) => {
+    if (newValue !== oldValue && oldValue !== null) pulseNextReminderAlert();
+  });
 
   function pulseNextReminderAlert() {
-    const pulse = Animated.sequence([
-      Animated.timing(opacity, {
-        toValue: 0.3,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]);
+    if (Platform.OS === "ios") {
+      const pulse = Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]);
 
-    Animated.sequence([
-      pulse,
-      pulse,
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      Animated.sequence([
+        pulse,
+        pulse,
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      const pulse = Animated.sequence([
+        Animated.timing(borderPulse, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+        Animated.timing(borderPulse, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]);
+
+      Animated.sequence([
+        pulse,
+        pulse,
+        pulse,
+        Animated.timing(borderPulse, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
   }
 
   const { watch, setValue } = useForm({
@@ -210,7 +258,6 @@ export default function ({ reminder, onNotificationResponse }: Props) {
   async function recalcFutureNotificationsHandler() {
     await recalcFutureNotifications(reminder.id!);
     await fetchData();
-    pulseNextReminderAlert();
   }
 
   async function notificationEditUpdateHandler() {
@@ -333,9 +380,12 @@ export default function ({ reminder, onNotificationResponse }: Props) {
         {!reminder.due_scheduled_at &&
           ((nextNotification && !is_muted && !reminder.is_archived) ||
             (!reminder.is_completed && !reminder.is_archived && !is_muted)) && (
-            <Animated.View style={{ opacity }}>
+            <>
               {nextNotification && !is_muted ? (
-                <Alert className="relative">
+                <AnimatedAlert
+                  className="relative"
+                  style={Platform.OS === "android" ? androidAlertStyle : { opacity }}
+                >
                   <AlertText size="lg">Next Reminder on</AlertText>
                   <Box
                     onTouchEnd={() =>
@@ -381,15 +431,18 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                       as={hideNextNotification ? EyeIcon : EyeOffIcon}
                     />
                   </Box>
-                </Alert>
+                </AnimatedAlert>
               ) : !reminder.is_completed &&
                 !reminder.is_archived &&
                 !is_muted ? (
-                <Alert className="relative">
+                <AnimatedAlert
+                  className="relative"
+                  style={Platform.OS === "android" ? androidAlertStyle : { opacity }}
+                >
                   <AlertText size="lg">Next Reminder on</AlertText>
-                </Alert>
+                </AnimatedAlert>
               ) : null}
-            </Animated.View>
+            </>
           )}
         {reminder.is_archived && (
           <Alert className="bg-orange-100 dark:bg-orange-950">

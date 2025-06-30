@@ -12,9 +12,6 @@ export const textStyle = tva({
     isTruncated: {
       true: 'web:truncate',
     },
-    bold: {
-      true: 'font-bold',
-    },
     underline: {
       true: 'underline',
     },

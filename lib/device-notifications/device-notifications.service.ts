@@ -31,6 +31,11 @@ export async function setupAndConfigureNotifications() {
     }),
   });
 
+  Notifications.setNotificationChannelAsync("default", {
+    name: "default",
+    importance: Notifications.AndroidImportance.MAX,
+  });
+
   await Notifications.setNotificationCategoryAsync(
     CATEGORY_RECURRING,
     [
@@ -150,6 +155,7 @@ export async function createDeviceNotification({
     trigger: {
       date: dayjs(utcTimestamp).utc(true).toDate(),
       type: Notifications.SchedulableTriggerInputTypes.DATE,
+      channelId: "default",
     },
   });
 }

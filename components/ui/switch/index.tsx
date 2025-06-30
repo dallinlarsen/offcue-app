@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { View, Switch as RNSwitch } from 'react-native';
+import { Switch as RNSwitch, Platform } from 'react-native';
 import { createSwitch } from '@gluestack-ui/switch';
 import { tva } from '@gluestack-ui/nativewind-utils/tva';
 import { withStyleContext } from '@gluestack-ui/nativewind-utils/withStyleContext';
@@ -13,13 +13,13 @@ const UISwitch = createSwitch({
 });
 
 const switchStyle = tva({
-  base: 'data-[focus=true]:outline-0 data-[focus=true]:ring-2 data-[focus=true]:ring-indicator-primary web:cursor-pointer disabled:cursor-not-allowed data-[disabled=true]:opacity-40 data-[invalid=true]:border-error-700 data-[invalid=true]:rounded-xl data-[invalid=true]:border-2',
+  base: "data-[focus=true]:outline-0 data-[focus=true]:ring-2 data-[focus=true]:ring-indicator-primary web:cursor-pointer disabled:cursor-not-allowed data-[disabled=true]:opacity-40 data-[invalid=true]:border-error-700 data-[invalid=true]:rounded-xl data-[invalid=true]:border-2",
 
   variants: {
     size: {
-      sm: 'scale-75',
-      md: '',
-      lg: 'scale-125',
+      sm: Platform.OS === "android" ? "scale-125" : "scale-75",
+      md: Platform.OS === "android" ? "scale-150" : "",
+      lg: "scale-150",
     },
   },
 });
@@ -36,10 +36,18 @@ const Switch = React.forwardRef<
   useEffect(() => {
     switch (size) {
       case "sm":
-        setIconPlacement(value ? "right-3" : "left-3");
+        if (Platform.OS === 'android') {
+          setIconPlacement(value ? "right-1" : "left-1");
+        } else {
+          setIconPlacement(value ? "right-3" : "left-3");
+        }
         break;
       default:
-        setIconPlacement(value ? "right-2" : "left-2");
+        if (Platform.OS === 'android') {
+          setIconPlacement(value ? "right-[0.5px]" : "left-[0.5px]");
+        } else {
+          setIconPlacement(value ? "right-2" : "left-2");
+        }
         break;
     }
   }, [value]);

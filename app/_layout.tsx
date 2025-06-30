@@ -57,7 +57,9 @@ export default function RootLayout() {
         apiKey: process.env.EXPO_PUBLIC_REVENUE_CAT_APPLE_API_KEY || "",
       });
     } else if (Platform.OS === "android") {
-      //  Purchases.configure({apiKey: <revenuecat_project_google_api_key>});
+      Purchases.configure({
+        apiKey: process.env.EXPO_PUBLIC_REVENUE_CAT_GOOGLE_API_KEY || "",
+      });
     }
 
     $customerInfo.set(await Purchases.getCustomerInfo());

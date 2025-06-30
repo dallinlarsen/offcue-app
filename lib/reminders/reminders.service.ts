@@ -65,17 +65,15 @@ export async function createReminder(
 }
 
 export async function isUnlimitedCheck(type: 'task' | 'recurring' = 'recurring') {
-  // const info = await Purchases.getCustomerInfo();
+  const info = await Purchases.getCustomerInfo();
 
-  // if (!info.entitlements.active['Unlimited']) {
-  //   const reminderCounts = await source.getActiveReminderCounts();
+  if (!info.entitlements.active['Unlimited']) {
+    const reminderCounts = await source.getActiveReminderCounts();
 
-  //   if (REMINDER_LIMIT[type] - reminderCounts[type] <= 0) {
-  //     return await presentUnlimitedPaywall();
-  //   }
-  // }
-
-  // return true;
+    if (REMINDER_LIMIT[type] - reminderCounts[type] <= 0) {
+      return await presentUnlimitedPaywall();
+    }
+  }
 
   return true;
 }

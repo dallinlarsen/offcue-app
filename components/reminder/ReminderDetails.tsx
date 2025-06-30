@@ -420,7 +420,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                       </AlertText>
                     )}
                   </Box>
-                  <Box
+                  {/* <Box
                     className="absolute right-3 py-2"
                     onTouchEnd={() =>
                       setHideNextNotification(!hideNextNotification)
@@ -430,7 +430,7 @@ export default function ({ reminder, onNotificationResponse }: Props) {
                       className="text-typography-700"
                       as={hideNextNotification ? EyeIcon : EyeOffIcon}
                     />
-                  </Box>
+                  </Box> */}
                 </AnimatedAlert>
               ) : !reminder.is_completed &&
                 !reminder.is_archived &&
